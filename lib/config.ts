@@ -9,6 +9,7 @@ export const siteConfig = {
   location: "Zhoushan,Zhejiang | Chengdu,Sichuan",
   education: "Sichuan Normal University - Undergraduate",
   github: "https://github.com/InfiniteScope",
+  bilibili: "https://space.bilibili.com/364698333",
   links: {
     tools: [
       { name: "GitHub", url: "https://github.com" },

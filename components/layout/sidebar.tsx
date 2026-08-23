@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { toast } from "sonner"
 import {
   Github,
   MapPin,
@@ -20,6 +21,20 @@ import { DanmakuList } from "@/components/danmaku/danmaku-list"
 import { DanmakuForm } from "@/components/danmaku/danmaku-form"
 import type { Danmaku } from "@prisma/client"
 
+/** Bilibili 小电视图标（icons8 PNG，CSS 染灰与文字统一） */
+function BilibiliIcon({ className }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/icons/bilibili.png"
+      alt=""
+      aria-hidden
+      className={className}
+      style={{ filter: "grayscale(1) brightness(0.45)", width: 20, height: 20 }}
+    />
+  )
+}
+
 interface SidebarProps {
   className?: string
   danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
@@ -27,6 +42,19 @@ interface SidebarProps {
 
 export function Sidebar({ className, danmaku }: SidebarProps) {
   const { collapsed } = useSidebarCollapse()
+
+  const copyEmail = async () => {
+    // siteConfig.email = "gmail\nqq"（换行分隔），复制 QQ 邮箱
+    const emails = siteConfig.email.split("\n").map((e) => e.trim())
+    const target = emails[emails.length > 1 ? 1 : 0]
+    try {
+      await navigator.clipboard.writeText(target)
+      toast.success("QQ 邮箱已复制到剪贴板")
+    } catch {
+      toast.error("复制失败，请手动复制")
+    }
+  }
+
   return (
     <aside
       className={cn(
@@ -88,21 +116,65 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
         </div>
       )}
 
-      {/* GitHub */}
-      <Button
-        variant="outline"
-        className={cn("w-full gap-2", collapsed && "px-0")}
-        asChild
-      >
-        <Link
-          href={siteConfig.github}
-          target="_blank"
-          rel="noopener noreferrer"
+      {/* Social buttons: GitHub (full row) / Bilibili & Email (half row) */}
+      <div className={cn("grid gap-2", collapsed ? "grid-cols-1" : "grid-cols-2")}>
+        <Button
+          variant="outline"
+          className={cn(
+            "gap-2",
+            collapsed && "h-9 w-11 gap-0 px-0",
+            !collapsed && "col-span-2 justify-center"
+          )}
+          asChild
         >
-          <Github className="h-4 w-4" />
-          {!collapsed && "GitHub 主页"}
-        </Link>
-      </Button>
+          <Link
+            href={siteConfig.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="GitHub 主页"
+          >
+            <Github className="h-4 w-4 shrink-0" />
+            {!collapsed && "GitHub 主页"}
+          </Link>
+        </Button>
+
+        {siteConfig.bilibili && (
+          <Button
+            variant="outline"
+            className={cn(
+              "gap-2",
+              collapsed && "h-9 w-11 gap-0 px-0",
+              !collapsed && "justify-center"
+            )}
+            asChild
+          >
+            <Link
+              href={siteConfig.bilibili}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Bilibili 主页"
+            >
+              <BilibiliIcon className="shrink-0" />
+              {!collapsed && "Bilibili"}
+            </Link>
+          </Button>
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            "gap-2",
+            collapsed && "h-9 w-11 gap-0 px-0",
+            !collapsed && "justify-center"
+          )}
+          onClick={copyEmail}
+          title="复制邮箱"
+        >
+          <Mail className="h-4 w-4 shrink-0" />
+          {!collapsed && "邮箱"}
+        </Button>
+      </div>
 
       {/* Tools & Friends */}
       {!collapsed && (

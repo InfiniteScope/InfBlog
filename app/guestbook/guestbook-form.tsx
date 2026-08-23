@@ -1,6 +1,7 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { startTransition, useActionState, useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Ghost, Send, User } from "lucide-react"
@@ -57,7 +58,7 @@ export function GuestbookForm() {
     formData.set("content", content)
     formData.set("mode", mode)
 
-    formAction(formData)
+    startTransition(() => formAction(formData))
   }
 
   const goToLogin = () => {
@@ -67,39 +68,45 @@ export function GuestbookForm() {
 
   return (
     <>
-      {/* Fixed bottom input bar */}
-      <div
-        className={cn(
-          "fixed bottom-0 right-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6",
-          collapsed ? "lg:left-[80px]" : "lg:left-[280px]"
-        )}
-      >
-        <form
-          className="mx-auto flex max-w-3xl items-end gap-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (!content.trim()) return
-            setOpen(true)
-          }}
-        >
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="写下你的想法，支持 Markdown 语法..."
-            className="min-h-[3rem] resize-none rounded-2xl bg-muted/50 px-4 py-2.5"
-            rows={1}
-            maxLength={500}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="h-10 w-10 shrink-0 rounded-full"
-            disabled={!content.trim()}
+      {/* Fixed bottom input bar.
+          注意：用 createPortal 渲染到 body——页面切换动画（PageTransition）
+          的 transform/filter 会让 fixed 元素退化为 absolute，必须脱离转场层 */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={cn(
+              "fixed bottom-0 right-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6",
+              collapsed ? "lg:left-[80px]" : "lg:left-[280px]"
+            )}
           >
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </div>
+            <form
+              className="mx-auto flex w-full max-w-3xl items-end gap-3"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!content.trim()) return
+                setOpen(true)
+              }}
+            >
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="写下你的想法，支持 Markdown 语法..."
+                className="min-h-[3rem] resize-none rounded-2xl bg-muted/50 px-4 py-2.5"
+                rows={1}
+                maxLength={500}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-full"
+                disabled={!content.trim()}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>,
+          document.body
+        )}
 
       {/* Mode selection dialog */}
       <Dialog open={open} onOpenChange={setOpen}>

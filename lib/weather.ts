@@ -24,42 +24,33 @@ export function getWeatherDescription(code: number) {
   return "未知"
 }
 
-export function raceIpLocation(timeout = 4000): Promise<GeoLocation> {
-  const controllers = [new AbortController(), new AbortController()]
-  const timeoutId = setTimeout(() => {
-    controllers.forEach((c) => c.abort())
-  }, timeout)
-
-  const ipapi = fetch("https://ipapi.co/json/", {
-    signal: controllers[0].signal,
-  })
-    .then((res) => (res.ok ? res.json() : Promise.reject(res)))
-    .then((data) => ({
-      city: data.city as string,
-      latitude: parseFloat(data.latitude),
-      longitude: parseFloat(data.longitude),
-      country: data.country_name as string,
-    }))
-
-  const ipApi = fetch("http://ip-api.com/json/?fields=status,city,lat,lon,country", {
-    signal: controllers[1].signal,
-  })
-    .then((res) => (res.ok ? res.json() : Promise.reject(res)))
-    .then((data) => ({
-      city: data.city as string,
-      latitude: parseFloat(data.lat),
-      longitude: parseFloat(data.lon),
-      country: data.country as string,
-    }))
-
-  return Promise.race([ipapi, ipApi])
-    .finally(() => clearTimeout(timeoutId))
-    .catch(() => ({
+export async function raceIpLocation(timeout = 4000): Promise<GeoLocation> {
+  // ipapi.co / ip-api.com 无 CORS 头，浏览器直连必被拦截。
+  // 统一走服务端代理 /api/weather/location（服务端无 CORS 限制）。
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    const res = await fetch("/api/weather/location", {
+      signal: controller.signal,
+      cache: "no-store",
+    })
+    clearTimeout(timeoutId)
+    if (!res.ok) throw new Error(res.statusText)
+    const data = (await res.json()) as GeoLocation
+    return {
+      city: data.city,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      country: data.country,
+    }
+  } catch {
+    return {
       city: "成都",
       latitude: 30.66,
       longitude: 104.06,
       country: "中国",
-    }))
+    }
+  }
 }
 
 export async function fetchWeather(location: GeoLocation): Promise<WeatherCurrent> {

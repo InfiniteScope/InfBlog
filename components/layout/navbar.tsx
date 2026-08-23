@@ -34,10 +34,16 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
   const pathname = usePathname()
   const { status } = useSession()
   const [loginHref, setLoginHref] = useState("/login")
+  const [navOpen, setNavOpen] = useState(false)
 
   useEffect(() => {
     const current = window.location.pathname + window.location.search
     setLoginHref(`/login?callbackUrl=${encodeURIComponent(current)}`)
+  }, [pathname])
+
+  // 切页时自动收起抽屉
+  useEffect(() => {
+    setNavOpen(false)
   }, [pathname])
 
   return (
@@ -45,7 +51,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
       <div className="relative flex h-14 items-center justify-between px-4 md:px-6">
         {/* Left: mobile menu + desktop nav */}
         <div className="flex items-center gap-1 md:flex-1">
-          <Sheet>
+          <Sheet open={navOpen} onOpenChange={setNavOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden">
                 <Menu className="h-5 w-5" />
@@ -53,6 +59,33 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] p-0">
+              {/* Mobile nav drawer: 顶部导航列表 */}
+              <div className="border-b border-border/60 p-4">
+                <p className="mb-2 font-mono text-[10px] tracking-widest text-accent">
+                  // NAVIGATION
+                </p>
+                <nav className="flex flex-col gap-1">
+                  {siteConfig.nav.map((item) => {
+                    const active = pathname === item.href
+                    return (
+                      <Button
+                        key={item.href}
+                        variant={active ? "secondary" : "ghost"}
+                        size="sm"
+                        className={cn(
+                          "justify-start",
+                          active
+                            ? "font-medium"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                        asChild
+                      >
+                        <Link href={item.href}>{item.name}</Link>
+                      </Button>
+                    )
+                  })}
+                </nav>
+              </div>
               <Sidebar danmaku={danmaku} />
             </SheetContent>
           </Sheet>

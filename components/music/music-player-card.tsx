@@ -142,7 +142,7 @@ export function MusicPlayerCard({ className }: MusicPlayerCardProps) {
         </div>
 
         {/* Category, play mode & volume */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1">
             <MusicCategorySelect />
             <PlayModeToggle />
@@ -167,7 +167,7 @@ export function MusicPlayerCard({ className }: MusicPlayerCardProps) {
               value={muted ? 0 : volume}
               max={1}
               onChange={(v) => setVolume(Math.min(1, Math.max(0, v)))}
-              className="w-24 sm:w-28"
+              className="w-20 min-w-0 sm:w-28"
             />
           </div>
         </div>
