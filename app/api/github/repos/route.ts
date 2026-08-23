@@ -41,10 +41,11 @@ export async function GET() {
       fork: boolean
     }>
 
-    // 只返回首页配置选中的仓库，按 config 顺序排
+    // 只返回首页配置选中的仓库，按 config 顺序排。
+    // 注意：不排除 fork——config 显式选中的仓库（如 npm-safe 是 fork）应照常展示
     const wanted = siteConfig.githubRepos
     const repos: GithubRepo[] = raw
-      .filter((r) => !r.fork && wanted.includes(r.name))
+      .filter((r) => wanted.includes(r.name))
       .sort((a, b) => wanted.indexOf(a.name) - wanted.indexOf(b.name))
       .map((r) => ({
         name: r.name,

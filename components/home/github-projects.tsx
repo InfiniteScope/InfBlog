@@ -77,7 +77,7 @@ export function GithubProjects() {
   }
 
   return (
-    <div className="flex h-full flex-col justify-center gap-1">
+    <div className="flex h-full flex-col justify-start gap-1">
       {repos.slice(0, 3).map((repo) => (
         <Link
           key={repo.name}
