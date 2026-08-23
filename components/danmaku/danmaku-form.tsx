@@ -17,6 +17,7 @@ export function DanmakuForm() {
         placeholder="发送弹幕..."
         className="h-8 text-xs"
         disabled={isPending}
+        maxLength={50}
         aria-invalid={state?.success === false}
       />
       <Button type="submit" size="icon" className="h-8 w-8 shrink-0" disabled={isPending}>

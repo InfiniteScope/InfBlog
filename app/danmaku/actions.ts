@@ -7,7 +7,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
 const danmakuSchema = z.object({
-  content: z.string().min(1, "弹幕内容不能为空").max(100, "弹幕内容过长"),
+  content: z.string().min(1, "弹幕内容不能为空").max(50, "弹幕内容不能超过 50 字"),
 })
 
 export type DanmakuFormState =

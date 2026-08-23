@@ -12,7 +12,6 @@ const allowedMimeTypes = new Set([
   "image/gif",
   "image/webp",
   "image/avif",
-  "image/svg+xml",
 ])
 
 const maxSize = 5 * 1024 * 1024 // 5 MB
@@ -23,7 +22,6 @@ const mimeToExt: Record<string, string> = {
   "image/gif": ".gif",
   "image/webp": ".webp",
   "image/avif": ".avif",
-  "image/svg+xml": ".svg",
 }
 
 type UploadResult =
@@ -66,7 +64,7 @@ export async function POST(request: Request) {
 
   if (!allowedMimeTypes.has(mimeType)) {
     return jsonResponse(
-      { success: false, message: "仅支持 JPG、PNG、GIF、WebP、AVIF、SVG 图片" },
+      { success: false, message: "仅支持 JPG、PNG、GIF、WebP、AVIF 图片" },
       400
     )
   }

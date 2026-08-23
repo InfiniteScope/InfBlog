@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma"
 
 const guestbookSchema = z.object({
   author: z.string().max(50, "昵称过长").optional().or(z.literal("")),
-  content: z.string().min(1, "请输入留言内容").max(1000, "留言内容过长"),
+  content: z.string().min(1, "请输入留言内容").max(500, "留言内容不能超过 500 字"),
   email: z.string().email("邮箱格式不正确").optional().or(z.literal("")),
   website: z.string().url("网址格式不正确").optional().or(z.literal("")),
   mode: z.enum(["nickname", "anonymous"]),

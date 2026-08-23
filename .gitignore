@@ -46,8 +46,7 @@ data/blog.db
 
 # local dev logs & prompt history
 /tmp-*
-docs/Prompt.md
-docs/*.png
+/docs/
 
 # AI tooling config
 /.opencode/

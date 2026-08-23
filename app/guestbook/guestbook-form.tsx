@@ -88,7 +88,7 @@ export function GuestbookForm() {
             placeholder="写下你的想法，支持 Markdown 语法..."
             className="min-h-[3rem] resize-none rounded-2xl bg-muted/50 px-4 py-2.5"
             rows={1}
-            maxLength={1000}
+            maxLength={500}
           />
           <Button
             type="submit"

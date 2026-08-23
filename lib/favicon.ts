@@ -47,8 +47,7 @@ function sanitizeDomain(url: string): string {
   }
 }
 
-async function readBodyLimited(res: Response, maxBytes: number): Promise<Buffer> {
-  const reader = res.body?.getReader()
+async function readBodyLimited(res: Response, maxBytes: number): Promise<Buffer> {  const reader = res.body?.getReader()
   if (!reader) return Buffer.from(await res.arrayBuffer())
   const chunks: Uint8Array[] = []
   let total = 0
@@ -66,16 +65,98 @@ async function readBodyLimited(res: Response, maxBytes: number): Promise<Buffer>
   return Buffer.concat(chunks)
 }
 
+/**
+ * SSRF 防护：拒绝内网 / 回环 / 链路本地 / 云元数据网段的 IP。
+ * 直接判断 hostname 为 IP 时立即拦截；域名则以解析结果为据，
+ * 任何一次解析命中私有段即拒绝（防 DNS rebinding 双解析差异）。
+ */
+function isPrivateIp(ip: string): boolean {
+  const parts = ip.split(".").map(Number)
+  if (parts.length !== 4 || parts.some((n) => Number.isNaN(n) || n < 0 || n > 255)) {
+    return true // 解析不出合法 IPv4 一律拒绝
+  }
+  const [a, b] = parts
+  return (
+    a === 0 || // 0.0.0.0/8
+    a === 10 || // 10.0.0.0/8
+    a === 127 || // 127.0.0.0/8
+    a === 169 && b === 254 || // 169.254.0.0/16 (AWS/GCP metadata)
+    a === 172 && b >= 16 && b <= 31 || // 172.16.0.0/12
+    a === 192 && b === 168 || // 192.168.0.0/16
+    a === 100 && b >= 64 && b <= 127 || // 100.64.0.0/10 CGNAT
+    a === 198 && b === 18 || // 198.18.0.0/15 benchmarking
+    a === 224 || // 224.0.0.0/4 multicast
+    a >= 240 // 240.0.0.0/4 reserved
+  )
+}
+
+/** 校验 URL 的主机名与解析结果不落在内网/回环段；不合法抛错 */
+async function assertUrlSafe(input: string): Promise<void> {
+  let url: URL
+  try {
+    url = new URL(input)
+  } catch {
+    throw new Error("URL 无效")
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error("仅支持 http/https")
+  }
+
+  const hostname = url.hostname
+
+  // 直接是 IP 字面量：同步检查
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    if (isPrivateIp(hostname)) throw new Error("内网地址被禁止")
+    return
+  }
+  // IPv6 / localhost 等一律禁止（云环境元数据走 169.254，但留白即拒绝）
+  if (hostname === "localhost" || hostname.endsWith(".local")) {
+    throw new Error("内网地址被禁止")
+  }
+
+  // 域名：解析并逐一校验；至少一个结果安全才放行
+  const dns = await import("node:dns/promises")
+  let addrs: { address: string }[]
+  try {
+    addrs = await dns.lookup(hostname, { all: true })
+  } catch {
+    throw new Error("域名解析失败")
+  }
+  for (const a of addrs) {
+    if (isPrivateIp(a.address)) throw new Error("域名解析到内网地址，已拦截")
+  }
+  if (addrs.length === 0) throw new Error("域名无解析结果")
+}
+
 async function fetchLimited(url: string, maxBytes: number): Promise<Buffer> {
-  const res = await fetch(url, {
-    redirect: "follow",
-    headers: {
-      "User-Agent": UA,
-      Accept: "image/*,text/html,*/*;q=0.1",
-    },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`)
-  return readBodyLimited(res, maxBytes)
+  // SSRF 防线：任何请求、任何跳转前都必须过安全校验
+  const target = new URL(url)
+  await assertUrlSafe(url)
+
+  // 手动跟随 redirect，每次跳转重新校验（不信任 Location 目标解绑后仍安全）
+  let current = target
+  for (let hop = 0; hop < 5; hop++) {
+    const res = await fetch(current, {
+      redirect: "manual",
+      headers: {
+        "User-Agent": UA,
+        Accept: "image/*,text/html,*/*;q=0.1",
+      },
+    })
+
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location")
+      res.body?.cancel()
+      if (!loc) throw new Error(`重定向无 Location (${res.status})`)
+      current = new URL(loc, current)
+      await assertUrlSafe(current.toString())
+      continue
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${current}`)
+    return readBodyLimited(res, maxBytes)
+  }
+  throw new Error("重定向次数过多")
 }
 
 function looksLikeImage(buffer: Buffer): boolean {
