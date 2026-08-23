@@ -1,0 +1,1 @@
+ALTER TABLE "guestbook_messages" ADD COLUMN "userId" TEXT REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

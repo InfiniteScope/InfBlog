@@ -1,0 +1,334 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.625rem;
+
+  /*
+    Light theme: "Moss & Sand"
+    Inspired by low-saturation palettes like Everforest and Catppuccin Latte.
+    Warm paper background, deep forest green primary, soft teal accent,
+    earthy secondary and muted olive text.
+  */
+  --background: 48 24% 96%;
+  --foreground: 150 18% 15%;
+  --card: 48 20% 98%;
+  --card-foreground: 150 18% 15%;
+  --popover: 48 20% 98%;
+  --popover-foreground: 150 18% 15%;
+  --primary: 155 42% 26%;
+  --primary-foreground: 48 30% 97%;
+  --secondary: 45 24% 90%;
+  --secondary-foreground: 150 16% 18%;
+  --muted: 80 14% 92%;
+  --muted-foreground: 100 10% 42%;
+  --accent: 180 45% 38%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 5 55% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 42 18% 86%;
+  --input: 42 18% 86%;
+  --ring: 155 42% 26%;
+
+  /* View transition origin defaults */
+  --vt-origin-x: 50%;
+  --vt-origin-y: 50%;
+}
+
+.dark {
+  /*
+    Dark theme: "Forest Night"
+    Not a simple inversion: a deep green-navy background with soft sage
+    primary, muted teal accent and warm earthy surface colors.
+  */
+  --background: 160 14% 8%;
+  --foreground: 80 14% 88%;
+  --card: 160 12% 11%;
+  --card-foreground: 80 14% 88%;
+  --popover: 160 12% 13%;
+  --popover-foreground: 80 14% 88%;
+  --primary: 140 30% 52%;
+  --primary-foreground: 160 18% 10%;
+  --secondary: 100 10% 16%;
+  --secondary-foreground: 80 10% 80%;
+  --muted: 140 8% 15%;
+  --muted-foreground: 100 8% 55%;
+  --accent: 180 35% 50%;
+  --accent-foreground: 160 18% 10%;
+  --destructive: 5 45% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 8% 18%;
+  --input: 150 8% 18%;
+  --ring: 140 30% 52%;
+}
+
+/*
+  Flow mode: a reading-focused palette within the same hue family,
+  with lower saturation and gentler contrast for long-form reading.
+  It also forces a clean background and minute-only clock.
+*/
+.flow {
+  --background: 45 30% 94%;
+  --foreground: 150 12% 22%;
+  --card: 45 26% 96%;
+  --card-foreground: 150 12% 22%;
+  --popover: 45 26% 97%;
+  --popover-foreground: 150 12% 22%;
+  --primary: 155 30% 32%;
+  --primary-foreground: 45 30% 96%;
+  --secondary: 45 20% 89%;
+  --secondary-foreground: 150 12% 24%;
+  --muted: 70 12% 91%;
+  --muted-foreground: 100 8% 46%;
+  --accent: 170 28% 42%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 5 50% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 45 16% 85%;
+  --input: 45 16% 85%;
+  --ring: 155 30% 32%;
+}
+
+.dark.flow {
+  --background: 160 10% 10%;
+  --foreground: 80 10% 82%;
+  --card: 160 9% 13%;
+  --card-foreground: 80 10% 82%;
+  --popover: 160 9% 14%;
+  --popover-foreground: 80 10% 82%;
+  --primary: 140 22% 56%;
+  --primary-foreground: 160 14% 12%;
+  --secondary: 100 8% 17%;
+  --secondary-foreground: 80 8% 76%;
+  --muted: 140 6% 16%;
+  --muted-foreground: 100 6% 52%;
+  --accent: 175 24% 48%;
+  --accent-foreground: 160 14% 12%;
+  --destructive: 5 42% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 6% 19%;
+  --input: 150 6% 19%;
+  --ring: 140 22% 56%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-inter), var(--font-noto-sans-sc), system-ui, -apple-system, sans-serif;
+  --font-display: "SmileySans-Oblique", var(--font-inter), var(--font-noto-sans-sc), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--accent) / 0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent) / 0.55);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--accent) / 0.35) transparent;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+@keyframes blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(20px, -30px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  75% {
+    transform: translate(30px, 30px) scale(1.02);
+  }
+}
+
+.animate-blob {
+  animation: blob 20s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 12s linear infinite;
+}
+
+/* --------------------------------------------------------------------------
+   Theme transition: circular reveal using the View Transitions API.
+   The new theme expands from the click/tap point like ink spreading on paper.
+   Falls back to an instant switch on unsupported browsers or reduced motion.
+   -------------------------------------------------------------------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+  animation: vt-reveal 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  clip-path: circle(0% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
+}
+
+@keyframes vt-reveal {
+  to {
+    clip-path: circle(150% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
+/* Custom range slider for music player */
+input[type="range"].music-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  width: 100%;
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"].music-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: hsl(var(--accent));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--accent) / 0.3);
+  transition: transform 0.1s ease;
+}
+
+input[type="range"].music-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+input[type="range"].music-slider::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: hsl(var(--accent));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--accent) / 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-marquee {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

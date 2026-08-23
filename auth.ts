@@ -1,0 +1,110 @@
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+import { prisma } from "@/lib/prisma"
+
+/** Profile fields kept in the JWT. */
+const JWT_PROFILE_FIELDS = {
+  nickname: true,
+  image: true,
+} as const
+
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+  unstable_update,
+} = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+  },
+  providers: [
+    Credentials({
+      name: "credentials",
+      credentials: {
+        username: { label: "用户名", type: "text" },
+        password: { label: "密码", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const parsed = z
+          .object({
+            username: z.string().min(1),
+            password: z.string().min(1),
+          })
+          .safeParse(credentials)
+
+        if (!parsed.success) return null
+
+        const { username, password } = parsed.data
+
+        const user = await prisma.user.findUnique({
+          where: { name: username },
+        })
+
+        if (!user || !user.password) return null
+
+        const isValid = await bcrypt.compare(password, user.password)
+        if (!isValid) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          nickname: user.nickname,
+          email: user.email,
+          image: user.image,
+          role: user.role,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    jwt: async ({ token, user, trigger, session }) => {
+      if (user) {
+        token.id = user.id
+        token.name = user.name
+        token.nickname = user.nickname
+        token.role = user.role
+        token.image = user.image
+      }
+      if (trigger === "update") {
+        // Database is the source of truth: refresh profile fields on every
+        // client-side `update()` call so changes apply within the session.
+        if (token.id) {
+          try {
+            const fresh = await prisma.user.findUnique({
+              where: { id: token.id as string },
+              select: JWT_PROFILE_FIELDS,
+            })
+            if (fresh) {
+              token.nickname = fresh.nickname ?? undefined
+              token.image = fresh.image
+            }
+          } catch {
+            // keep the previous values on DB errors
+          }
+        }
+      }
+      return token
+    },
+    session: async ({ session, token }) => {
+      if (token) {
+        session.user.id = token.id as string
+        session.user.name = token.name as string | undefined
+        session.user.nickname = token.nickname as string | undefined
+        session.user.role = token.role as "OWNER" | "ADMIN" | "VISITOR"
+        session.user.image = token.image as string | null | undefined
+      }
+      return session
+    },
+  },
+})
