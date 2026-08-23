@@ -23,12 +23,13 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      {/* 2 列栅格：左列(hero+视图+文章) + 右列(播放器 / widgets 第二行)。
-          左列高度自然流动，右侧 widgets 用 row-start-2 固定到播放器下方，
-          保持 Latest Updates 与 SITE_VIEWS 同水平起点。 */}
+      {/* 2 列栅格：
+          第 1 行：左=hero(标题+技能)，右=音乐播放器
+          第 2 行左：最新文章；第 2 行右：右侧 widgets（紧跟播放器下方）。
+          right column (播放器+widgets) 用 flex-col,Latest Updates 独立对齐 SITE_VIEWS 顶部 */}
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
-        {/* Left column: hero + views + latest posts */}
-        <div className="flex flex-col gap-8">
+        {/* Left column: hero + views */}
+        <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
           {/* Hero: title left, skill showcase right.
               上/下边缘与音乐播放器（h-56）对齐；标题行 items-start 与 WELCOME 平齐 */}
           <div className="grid h-[224px] items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
@@ -48,9 +49,10 @@ export default async function HomePage() {
 
           {/* Site views */}
           <ViewsCard />
+        </div>
 
-        {/* Latest Posts */}
-        <section className="space-y-4">
+        {/* Latest Posts（第2行左列） */}
+        <section className="space-y-4 lg:col-start-1 lg:row-start-2">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-2xl tracking-tight">最新文章</h2>
             <Button variant="ghost" size="sm" asChild>
@@ -121,17 +123,14 @@ export default async function HomePage() {
             </StaggerContainer>
           )}
         </section>
-        </div>
 
-        {/* Music Player（行1右，与 hero 同高） */}
-        <MusicPlayerExpanded />
-
-        {/* Right sidebar widgets（显式行2右列，与 SITE_VIEWS 同水平起点） */}
-        <aside className="flex flex-col gap-8 lg:col-start-2 lg:row-start-2">
+        {/* Right column: music player + widgets packed（第1行右→第2行右连续） */}
+        <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <MusicPlayerExpanded />
           <TimelineWidget updates={updates} />
           <TagsWidget posts={posts} />
           <StatsWidget posts={posts} updates={updates} />
-        </aside>
+        </div>
       </div>
     </div>
   )
