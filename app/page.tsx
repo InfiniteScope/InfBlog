@@ -10,6 +10,7 @@ import { TimelineWidget } from "@/components/updates/timeline-widget"
 import { TagsWidget } from "@/components/home/tags-widget"
 import { StatsWidget } from "@/components/home/stats-widget"
 import { ViewsCard } from "@/components/home/views-card"
+import { SkillShowcase } from "@/components/home/skill-showcase"
 import {
   StaggerContainer,
   StaggerItem,
@@ -37,6 +38,9 @@ export default async function HomePage() {
 
           {/* Site views */}
           <ViewsCard />
+
+          {/* GitHub projects + tech stack showcase */}
+          <SkillShowcase />
         </div>
 
         {/* Music Player */}

@@ -247,6 +247,43 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Tech stack marquee: infinite horizontal flow (duplicated content x2,
+   translateX(-50%) loop). Two rows run in opposite directions.
+   -------------------------------------------------------------------------- */
+@keyframes tech-marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes tech-marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-tech-marquee-left {
+  animation: tech-marquee-left 24s linear infinite;
+}
+
+.animate-tech-marquee-right {
+  animation: tech-marquee-right 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-tech-marquee-left,
+  .animate-tech-marquee-right {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Theme transition: circular reveal using the View Transitions API.
    The new theme expands from the click/tap point like ink spreading on paper.
    Falls back to an instant switch on unsupported browsers or reduced motion.
