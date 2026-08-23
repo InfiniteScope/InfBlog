@@ -44,6 +44,11 @@ data/blog.db
 .idea/
 .vscode/*.local
 
+# local dev logs & prompt history
+/tmp-*
+docs/Prompt.md
+docs/*.png
+
 # AI tooling config
 /.opencode/
 
