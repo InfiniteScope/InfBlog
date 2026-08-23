@@ -23,8 +23,11 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl">
+      {/* 2 列栅格：左列(hero+视图+文章) + 右列(播放器 / widgets 第二行)。
+          左列高度自然流动，右侧 widgets 用 row-start-2 固定到播放器下方，
+          保持 Latest Updates 与 SITE_VIEWS 同水平起点。 */}
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
-        {/* Left column: hero + site views */}
+        {/* Left column: hero + views + latest posts */}
         <div className="flex flex-col gap-8">
           {/* Hero: title left, skill showcase right.
               上/下边缘与音乐播放器（h-56）对齐；标题行 items-start 与 WELCOME 平齐 */}
@@ -45,10 +48,6 @@ export default async function HomePage() {
 
           {/* Site views */}
           <ViewsCard />
-        </div>
-
-        {/* Music Player（h-56 外壳与 hero 等高，上下沿对齐） */}
-        <MusicPlayerExpanded />
 
         {/* Latest Posts */}
         <section className="space-y-4">
@@ -122,9 +121,13 @@ export default async function HomePage() {
             </StaggerContainer>
           )}
         </section>
+        </div>
 
-        {/* Right sidebar widgets */}
-        <aside className="flex flex-col gap-8">
+        {/* Music Player（行1右，与 hero 同高） */}
+        <MusicPlayerExpanded />
+
+        {/* Right sidebar widgets（显式行2右列，与 SITE_VIEWS 同水平起点） */}
+        <aside className="flex flex-col gap-8 lg:col-start-2 lg:row-start-2">
           <TimelineWidget updates={updates} />
           <TagsWidget posts={posts} />
           <StatsWidget posts={posts} updates={updates} />
