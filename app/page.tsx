@@ -26,21 +26,24 @@ export default async function HomePage() {
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
         {/* Left column: hero + site views */}
         <div className="flex flex-col gap-8">
-          <section className="flex flex-col justify-center space-y-4 pb-2 lg:pb-0">
-            <TypedHeading />
-            <h1 className="font-display text-4xl tracking-tight md:text-5xl lg:text-6xl">
-              {siteConfig.name}
-            </h1>
-            <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-              {siteConfig.description}
-            </p>
-          </section>
+          {/* Hero: title left, skill showcase right (same row, higher density) */}
+          <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+            <section className="flex flex-col justify-center space-y-4">
+              <TypedHeading />
+              <h1 className="font-display text-4xl tracking-tight md:text-5xl lg:text-5xl">
+                {siteConfig.name}
+              </h1>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                {siteConfig.description}
+              </p>
+            </section>
+
+            {/* GitHub projects + tech stack showcase */}
+            <SkillShowcase />
+          </div>
 
           {/* Site views */}
           <ViewsCard />
-
-          {/* GitHub projects + tech stack showcase */}
-          <SkillShowcase />
         </div>
 
         {/* Music Player */}

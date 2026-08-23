@@ -22,15 +22,15 @@ const TECH_STACK = [
 ]
 
 /**
- * 首页 skill 展示卡片：
- * 左 - GitHub 最近项目；右 - 斜向流动技术栈。
+ * 首页技能展示：GitHub 项目 + 技术栈 marquee。
+ * 位于 hero 右半栏（空间窄），两卡上下竖排保证信息完整可读。
  */
 export function SkillShowcase() {
   return (
-    <section className="grid min-w-0 gap-4 lg:grid-cols-[1fr_1.2fr]">
+    <section className="grid min-w-0 gap-3">
       {/* GitHub projects */}
       <div className="min-w-0 rounded-xl border border-border bg-card/50 p-4">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <Github className="h-3.5 w-3.5 text-accent" />
           <h3 className="font-display text-sm tracking-wide text-muted-foreground">
             // RECENT_PROJECTS
@@ -39,8 +39,8 @@ export function SkillShowcase() {
         <GithubProjects />
       </div>
       {/* Tech stack: slanted flowing marquee */}
-      <div className="relative min-h-[160px] overflow-hidden rounded-xl border border-border bg-card/50">
-        <div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-md bg-card/70 px-1.5 py-0.5 backdrop-blur-sm">
+      <div className="relative min-h-[150px] overflow-hidden rounded-xl border border-border bg-card/50">
+        <div className="absolute left-4 top-3 z-10 flex items-center gap-2 rounded-md bg-card/70 px-1.5 py-0.5 backdrop-blur-sm">
           <Layers className="h-3.5 w-3.5 text-accent" />
           <h3 className="font-display text-sm tracking-wide text-muted-foreground">
             // TECH_STACK
