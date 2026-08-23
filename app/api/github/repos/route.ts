@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { siteConfig } from "@/lib/config"
+
 interface GithubRepo {
   name: string
   description: string | null
@@ -19,7 +21,7 @@ const REVALIDATE_SECONDS = 600
 export async function GET() {
   try {
     const res = await fetch(
-      "https://api.github.com/users/InfiniteScope/repos?sort=updated&per_page=6",
+      "https://api.github.com/users/InfiniteScope/repos?sort=updated&per_page=100",
       {
         headers: {
           "User-Agent": "infblog",
@@ -39,8 +41,11 @@ export async function GET() {
       fork: boolean
     }>
 
+    // 只返回首页配置选中的仓库，按 config 顺序排
+    const wanted = siteConfig.githubRepos
     const repos: GithubRepo[] = raw
-      .filter((r) => !r.fork)
+      .filter((r) => !r.fork && wanted.includes(r.name))
+      .sort((a, b) => wanted.indexOf(a.name) - wanted.indexOf(b.name))
       .map((r) => ({
         name: r.name,
         description: r.description,

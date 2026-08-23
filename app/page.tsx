@@ -26,8 +26,10 @@ export default async function HomePage() {
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
         {/* Left column: hero + site views */}
         <div className="flex flex-col gap-8">
-          {/* Hero: title left, skill showcase right (same row, higher density) */}
-          <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+          {/* Hero: title left, skill showcase right.
+              高度 h-[224px] 与右侧音乐播放器外壳（h-56）一致，
+              上/下边缘与播放器对齐（数值与视觉双对齐） */}
+          <div className="grid h-[224px] items-center gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
             <section className="flex flex-col justify-center space-y-4">
               <TypedHeading />
               <h1 className="font-display text-4xl tracking-tight md:text-5xl lg:text-5xl">
@@ -46,7 +48,7 @@ export default async function HomePage() {
           <ViewsCard />
         </div>
 
-        {/* Music Player */}
+        {/* Music Player（h-56 外壳与 hero 等高，上下沿对齐） */}
         <MusicPlayerExpanded />
 
         {/* Latest Posts */}

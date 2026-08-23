@@ -23,31 +23,38 @@ const TECH_STACK = [
 
 /**
  * 首页技能展示：GitHub 项目 + 技术栈 marquee。
- * 位于 hero 右半栏（空间窄），两卡上下竖排保证信息完整可读。
+ * - 无外轮廓：与页面背景融合，减少"盒子感"
+ * - 与 hero 标题同高（由外层 h-[240px] 控制）
+ * - marquee 边缘渐隐蒙版，流动不突兀
  */
 export function SkillShowcase() {
   return (
-    <section className="grid min-w-0 gap-3">
-      {/* GitHub projects */}
-      <div className="min-w-0 rounded-xl border border-border bg-card/50 p-4">
+    <div className="grid h-full min-w-0 grid-cols-[2fr_3fr] items-stretch gap-6">
+      {/* GitHub projects（无边框） */}
+      <div className="flex min-w-0 flex-col">
         <div className="mb-2 flex items-center gap-2">
           <Github className="h-3.5 w-3.5 text-accent" />
           <h3 className="font-display text-sm tracking-wide text-muted-foreground">
             // RECENT_PROJECTS
           </h3>
         </div>
-        <GithubProjects />
+        <div className="min-h-0 flex-1">
+          <GithubProjects />
+        </div>
       </div>
-      {/* Tech stack: slanted flowing marquee */}
-      <div className="relative min-h-[150px] overflow-hidden rounded-xl border border-border bg-card/50">
-        <div className="absolute left-4 top-3 z-10 flex items-center gap-2 rounded-md bg-card/70 px-1.5 py-0.5 backdrop-blur-sm">
+
+      {/* Tech stack: slanted flowing marquee（无边框 + 边缘渐隐） */}
+      <div className="relative flex min-w-0 flex-col">
+        <div className="mb-2 flex items-center gap-2">
           <Layers className="h-3.5 w-3.5 text-accent" />
           <h3 className="font-display text-sm tracking-wide text-muted-foreground">
             // TECH_STACK
           </h3>
         </div>
-        <TechMarquee items={TECH_STACK} className="pt-6" />
+        <div className="marquee-fade-x relative min-h-0 flex-1 overflow-hidden">
+          <TechMarquee items={TECH_STACK} />
+        </div>
       </div>
-    </section>
+    </div>
   )
 }

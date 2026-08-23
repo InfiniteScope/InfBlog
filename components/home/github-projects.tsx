@@ -78,13 +78,13 @@ export function GithubProjects() {
 
   return (
     <div className="flex h-full flex-col justify-center gap-1">
-      {repos.slice(0, 4).map((repo) => (
+      {repos.slice(0, 3).map((repo) => (
         <Link
           key={repo.name}
           href={repo.html_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent/5"
+          className="group flex items-center gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-accent/5"
         >
           <GitBranch className="h-3.5 w-3.5 shrink-0 text-accent/70" />
           <span className="min-w-0 truncate font-mono text-sm font-medium text-foreground group-hover:text-accent">

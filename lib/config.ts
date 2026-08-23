@@ -10,6 +10,8 @@ export const siteConfig = {
   education: "Sichuan Normal University - Undergraduate",
   github: "https://github.com/InfiniteScope",
   bilibili: "https://space.bilibili.com/364698333",
+  /** 首页 RECENT_PROJECTS 展示的仓库（按此顺序，不存在则隐藏） */
+  githubRepos: ["npm-safe", "InfBlog", "DailyLikeTrees"],
   links: {
     tools: [
       { name: "GitHub", url: "https://github.com" },
