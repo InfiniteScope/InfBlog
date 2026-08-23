@@ -258,9 +258,7 @@ InfBlog/
 ├── package.json
 ├── pnpm-lock.yaml
 └── docs/
-    ├── PROJECT.md
-    ├── Prompt.md
-    └── 整体布局.png
+    └── PROJECT.md            # 项目主文档
 ```
 
 ---
