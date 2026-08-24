@@ -8,6 +8,8 @@ export const metadata = {
   description: "技术、设计与生活的文章集合",
 }
 
+export const revalidate = 60
+
 export default async function BlogPage() {
   const posts = await getAllPosts()
 
