@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { Calendar, Tag, ArrowLeft, Pencil } from "lucide-react"
+import { Calendar, Tag, ArrowLeft, Pencil, RefreshCw } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 
 import { auth } from "@/auth"
@@ -80,6 +80,12 @@ export default async function BlogPostPage({ params }: PageProps) {
             <Calendar className="h-4 w-4" />
             {new Date(post.date).toLocaleDateString("zh-CN")}
           </span>
+          {post.updatedAt && post.updatedAt !== post.date && (
+            <span className="flex items-center gap-1">
+              <RefreshCw className="h-3.5 w-3.5" />
+              更新于 {new Date(post.updatedAt).toLocaleDateString("zh-CN")}
+            </span>
+          )}
           {post.tags.length > 0 && (
             <span className="flex items-center gap-1">
               <Tag className="h-4 w-4" />

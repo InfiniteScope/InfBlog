@@ -158,7 +158,8 @@ export async function updatePost(
         ? validated.data.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [],
       coverImage: validated.data.coverImage || undefined,
-      date: validated.data.date ?? new Date().toISOString(),
+      date: validated.data.date ?? new Date().toISOString().slice(0, 10),
+      updatedAt: new Date().toISOString().slice(0, 10),
     }
 
     await savePost(post)

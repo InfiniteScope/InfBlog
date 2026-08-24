@@ -6,6 +6,7 @@ export interface Post {
   slug: string
   title: string
   date: string
+  updatedAt?: string
   description: string
   tags: string[]
   coverImage?: string
@@ -62,7 +63,8 @@ export async function getPostBySlug(rawSlug: string): Promise<Post> {
   return {
     slug,
     title: data.title ?? slug,
-    date: data.date ?? new Date().toISOString(),
+    date: data.date ?? new Date().toISOString().slice(0, 10),
+    updatedAt: data.updatedAt ?? undefined,
     description: data.description ?? "",
     tags: data.tags ?? [],
     coverImage: data.coverImage ?? undefined,
@@ -86,6 +88,10 @@ export function serializePost(post: Post): string {
 
   if (post.coverImage) {
     frontmatter.coverImage = post.coverImage
+  }
+
+  if (post.updatedAt) {
+    frontmatter.updatedAt = post.updatedAt
   }
 
   return matter.stringify(post.content, frontmatter)
