@@ -60,6 +60,16 @@ function Paragraph({ className, ...props }: ComponentPropsWithoutRef<"p">) {
 
 function Anchor({ className, ...props }: ComponentPropsWithoutRef<"a">) {
   const { href } = props
+  // In-page anchor links should scroll within the same page.
+  if (href?.startsWith("#")) {
+    return (
+      <a
+        href={href}
+        className="font-medium text-primary underline underline-offset-4"
+        {...props}
+      />
+    )
+  }
   if (href?.startsWith("/")) {
     return (
       <Link
@@ -110,7 +120,7 @@ function Code({ className, ...props }: ComponentPropsWithoutRef<"code">) {
 function Pre({ className, ...props }: ComponentPropsWithoutRef<"pre">) {
   return (
     <pre
-      className="mb-4 mt-6 overflow-x-auto rounded-lg border border-border bg-muted p-4 font-mono text-sm"
+      className="mb-4 mt-6 overflow-x-auto rounded-lg border border-border bg-muted p-4 font-mono text-sm [&_code]:rounded-none [&_code]:bg-transparent [&_code]:p-0"
       {...props}
     />
   )
