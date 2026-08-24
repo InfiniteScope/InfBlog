@@ -125,6 +125,7 @@ export async function updatePost(
   _prevState: AdminFormState,
   formData: FormData
 ): Promise<AdminFormState> {
+  const decodedSlug = decodeURIComponent(slug)
   const session = await auth()
   if (!session?.user) {
     return { success: false, errors: {}, message: "请先登录" }
@@ -150,7 +151,7 @@ export async function updatePost(
 
   try {
     const post: Post = {
-      slug,
+      slug: decodedSlug,
       title: validated.data.title,
       description: validated.data.description,
       content: validated.data.content,
@@ -165,9 +166,9 @@ export async function updatePost(
     await savePost(post)
     revalidatePath("/")
     revalidatePath("/blog")
-    revalidatePath(`/blog/${slug}`)
+    revalidatePath(`/blog/${decodedSlug}`)
     revalidatePath("/admin/posts")
-    return { success: true, slug, message: "文章更新成功" }
+    return { success: true, slug: decodedSlug, message: "文章更新成功" }
   } catch {
     return {
       success: false,
