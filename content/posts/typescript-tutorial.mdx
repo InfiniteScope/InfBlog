@@ -1,0 +1,519 @@
+---
+title: TypeScript简略教程
+date: '2025-04-27'
+description: TypeScript 简介、环境搭建、基础语法、类型系统、泛型、模块、高级特性到工程实践与优化建议的简明教程。
+tags:
+  - TypeScript
+  - 全栈
+  - 前端
+  - 技术
+coverImage: /uploads/mt6ubd6x-9d5ca6cc.jpeg
+updatedAt: '2026-08-24T13:07:49.349Z'
+---
+
+> 本文主要内容转载自 CSDN 博主「前端极客探险家」，部分内容为本人原创（主要为原文补充了部分内容），遵循 [CC 4.0 BY-SA](http://creativecommons.org/licenses/by-sa/4.0/) 版权协议。原文链接：[https://blog.csdn.net/idree/article/details/147563077](https://blog.csdn.net/idree/article/details/147563077)
+
+## 目录
+
+- [一、TypeScript 简介](#一typescript-简介)
+  - [1.1 什么是 TypeScript？](#11-什么是-typescript)
+  - [1.2 为什么要使用 TypeScript？](#12-为什么要使用-typescript)
+  - [1.3为什么要学 TypeScript？](#13-为什么要学-typescript)
+- [二、环境搭建与基本使用](#二环境搭建与基本使用)
+  - [2.1 安装 TypeScript](#21-安装-typescript)
+  - [2.2 编译运行 TypeScript](#22-编译运行-typescript)
+  - [2.3 配置 tsconfig.json](#23-配置-tsconfigjson)
+- [三、基础语法](#三基础语法)
+  - [3.1 基础类型](#31-基础类型)
+  - [3.2 枚举（Enum）](#32-枚举enum)
+  - [3.3 接口（Interface）](#33-接口interface)
+  - [3.4 类（Class）](#34-类class)
+  - [3.5 函数](#35-函数)
+- [四、类型系统深入](#四类型系统深入)
+  - [4.1 类型断言（Type Assertion）](#41-类型断言type-assertion)
+  - [4.2 联合类型与交叉类型](#42-联合类型与交叉类型)
+  - [4.3 字面量类型（Literal Types）](#43-字面量类型literal-types)
+- [五、泛型（Generics）](#五泛型generics)
+  - [5.1 基本泛型](#51-基本泛型)
+  - [5.2 泛型接口与泛型类](#52-泛型接口与泛型类)
+  - [5.3 泛型约束（Constraints）](#53-泛型约束constraints)
+- [六、模块与命名空间](#六模块与命名空间)
+  - [6.1 模块导出与导入](#61-模块导出与导入)
+  - [6.2 命名空间](#62-命名空间)
+- [七、高级特性](#七高级特性)
+  - [7.1 装饰器（Decorators）](#71-装饰器decorators)
+  - [7.2 声明合并（Declaration Merging）](#72-声明合并declaration-merging)
+  - [7.3 条件类型（Conditional Types）](#73-条件类型conditional-types)
+- [八、常见错误与排查技巧](#八常见错误与排查技巧)
+- [九、工程应用实践](#九工程应用实践)
+  - [9.1 使用 Vite 搭建 TypeScript 项目](#91-使用-vite-搭建-typescript-项目)
+  - [9.2 React + TypeScript 项目搭建](#92-react-typescript-项目搭建)
+  - [9.3 Node.js + TypeScript 后端项目](#93-nodejs-typescript-后端项目)
+- [十、功能拓展与优化建议](#十功能拓展与优化建议)
+  - [10.1 集成 ESLint + Prettier](#101-集成-eslint-prettier)
+  - [10.2 配置别名路径](#102-配置别名路径)
+  - [10.3 类型体操训练推荐](#103-类型体操训练推荐)
+- [十一、总结](#十一总结)
+
+---
+
+## 一、TypeScript 简介
+
+### 1.1 什么是 TypeScript？
+
+- TypeScript（简称 TS）是 JavaScript 的超集，支持 ECMAScript 标准。
+- 增强了**静态类型检查**、**接口编程**和**面向对象特性**。
+- 最终会被编译为浏览器可以执行的 JavaScript。
+
+### 1.2 为什么要使用 TypeScript？
+或许各位在书写JavaScript时遇到过许多难绷的语言设计缺陷，比如...
+
+![图片描述](/uploads/mt6s74pi-280f583a.png)
+
+由于JavaScript是于1995年，网景的一个老哥（Brendan Eich）仅用**10天**开发的脚本语言（最初发明这个语言的动机仅仅是网景希望能在网页上添加一些动态效果），导致该语言在发明之初就具有诸多不完善之处。
+
+所以在2012年，微软开发并开源了**TypeScrpt**作为JavaScript的**超集**（类似C++与C之间的关系），提供了静态类型检查等现代语言常见的规范。所有TS代码在运行前都会被**编译**为JS代码，这也使得开发者所写的TS代码可以在所有支持JS的环境中。
+
+### 1.3为什么要学 TypeScript？
+
+由于web浏览器可使用HTML解释JavaScript，JS在**web开发领域**一直有着很高的市占率。而TS能够完美**兼容**曾经的JS项目且在易用性等方面表现突出，使TS很快获得了大量开发者的喜爱。
+
+- 现在三大主流的前端框架**React / Vue3 / Angular**默认均使用TS进行开发；
+- 后端框架 **Node.js** 也推崇普及TS；
+- 依托npm的强大生态以及ts-node、tsx等工具，TS/JS也是当今**前端/Node开发者发布npm包**以及**AI CLI工具**的主要开发语言；
+- 微软出品的Babylon.js为**网页3D开发**提供了便利，诸如Minecraft的官方网页怀旧版使用的就是框架搭配TS完成开发的。
+
+简而言之，TypeScript具有以下优点：
+
+- **提前发现错误**：在编译阶段就发现大部分潜在问题。
+- **提升开发体验**：智能补全、接口提示、跳转定义。
+- **更适合大型应用开发**：类型约束，代码可维护性提升。
+- **兼容现有 JavaScript 项目**。
+- **开发社区活跃，市占率高**：GitHub2025开源项目贡献代码量，TypeScript超过Python/JavaScript等语言登顶榜首。
+
+---
+
+## 二、环境搭建与基本使用
+
+### 2.1 安装 TypeScript
+
+```bash
+npm install -g typescript
+```
+
+### 2.2 编译运行 TypeScript
+
+创建 `hello.ts`：
+
+```typescript
+const message: string = "Hello, TypeScript!";
+console.log(message);
+```
+
+编译为 JavaScript：
+
+```bash
+tsc hello.ts
+node hello.js
+```
+
+### 2.3 配置 tsconfig.json
+
+生成配置文件：
+
+```bash
+tsc --init
+```
+
+常见配置说明：
+
+```json
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "esModuleInterop": true
+  }
+}
+```
+
+---
+
+## 三、基础语法
+
+### 3.1 基础类型
+
+```typescript
+let isDone: boolean = false;
+let age: number = 25;
+let username: string = "Alice";
+let list: number[] = [1, 2, 3];
+let tuple: [string, number] = ["hello", 10];
+let notSure: any = 4;
+let u: undefined = undefined;
+let n: null = null;
+```
+
+### 3.2 枚举（Enum）
+
+```typescript
+enum Color { Red, Green, Blue }
+let c: Color = Color.Green;
+```
+
+### 3.3 接口（Interface）
+
+接口是描述一个类“应该长什么”样的数据类型，其支持多继承，且不能创建实例。对于TS，接口相关代码在编译后会完全消失，不会带入编译产物的JS代码中。
+
+TS的接口性质上和Java、C#、Go、Rust等语言的接口有诸多相似，可类比。
+
+```typescript
+interface Person {
+  name: string;
+  age: number;
+}
+
+function greet(person: Person) {
+  console.log(`Hello, ${person.name}`);
+}
+```
+
+### 3.4 类（Class）
+
+```typescript
+class Animal {
+  constructor(public name: string) {}
+
+  move(distance: number = 0) {
+    console.log(`${this.name} moved ${distance}m.`);
+  }
+}
+```
+
+接口与类（TypeScript中）的主要区别：
+
+| 性质 | 接口-interface | 类-class |
+| --- | --- | --- |
+| 本质 | 类的“蓝图”，只描述类的形态 | 实体，既有数据 又有行为 |
+| 编译后的状态 | 完全消失 | 会形成JS代码产物 |
+| 是否可以创建实例 | 不可实例化 | 可以 ```new``` |
+| 能有方法实现吗 | 只可声明方法，但不能有逻辑代码 | 可以有完整实现 |
+| 能有构造函数吗 | 不可 | 可 |
+| 是否可以多继承 | 可以，例如```extends A, B, C``` | 不可，只能单继承 |
+| 运行时是否还存在 | 不存在 | 存在 |
+
+<br />
+
+### 3.5 函数
+
+```typescript
+function add(x: number, y: number): number {
+  return x + y;
+}
+
+// 可选参数
+function buildName(firstName: string, lastName?: string): string {
+  return lastName ? `${firstName} ${lastName}` : firstName;
+}
+
+// 剩余参数
+function pushItems(...items: number[]) {
+  return items;
+}
+```
+
+---
+
+## 四、类型系统深入
+
+### 4.1 类型断言（Type Assertion）
+
+```typescript
+let someValue: any = "this is a string";
+let strLength: number = (someValue as string).length;
+```
+
+### 4.2 联合类型与交叉类型
+
+```typescript
+// 联合类型
+function padLeft(value: string, padding: string | number) {
+  // ...
+}
+
+// 交叉类型
+type Admin = {
+  name: string;
+  privileges: string[];
+};
+
+type Employee = {
+  name: string;
+  startDate: Date;
+};
+
+type ElevatedEmployee = Admin & Employee;
+```
+
+### 4.3 字面量类型（Literal Types）
+
+```typescript
+type Direction = "Up" | "Down" | "Left" | "Right";
+```
+
+---
+
+## 五、泛型（Generics）
+
+为了解决静态类型语言在类型安全以及代码复用上的问题，现代语言普遍应用泛型。
+
+TypeScript中的泛型和Java中的泛型最像，与C++中的模板、C#中的泛型均很类似。
+
+泛型就像是一个万能模具，装类型的数据的时候就是什么数据类型；泛型的加入为不同项目、不同场景中的代码模块复用提供了便利，加强了程序的健壮性。
+
+### 5.1 基本泛型
+
+```typescript
+function identity<T>(arg: T): T {
+  return arg;
+}
+```
+
+### 5.2 泛型接口与泛型类
+
+```typescript
+interface GenericIdentityFn<T> {
+  (arg: T): T;
+}
+
+class GenericNumber<T> {
+  zeroValue: T;
+  add: (x: T, y: T) => T;
+}
+```
+
+### 5.3 泛型约束（Constraints）
+
+```typescript
+interface Lengthwise {
+  length: number;
+}
+
+function loggingIdentity<T extends Lengthwise>(arg: T): T {
+  console.log(arg.length);
+  return arg;
+}
+```
+
+---
+
+## 六、模块与命名空间
+
+### 6.1 模块导出与导入
+
+```typescript
+// math.ts
+export function add(x: number, y: number): number {
+  return x + y;
+}
+
+// app.ts
+import { add } from './math';
+console.log(add(1, 2));
+```
+
+### 6.2 命名空间
+
+```typescript
+namespace Validation {
+  export interface StringValidator {
+    isAcceptable(s: string): boolean;
+  }
+}
+```
+
+---
+
+## 七、高级特性
+
+### 7.1 装饰器（Decorators）
+
+装饰器类似Python中的函数装饰器、Java中的注解、C#中的特性、Rust中的属性宏，其类似将函数作为一个“基底”，通过“@其他函数名”的方式向这个函数上增加功能。
+
+CSDN原文中给出的例子如下：
+```typescript
+function sealed(constructor: Function) {
+  Object.seal(constructor);
+  Object.seal(constructor.prototype);
+}
+
+@sealed
+class Greeter {
+  greeting: string;
+  constructor(message: string) {
+    this.greeting = message;
+  }
+}
+```
+但是这有一个更具体形象的例子：
+
+```
+// 定义一个装饰器：给方法加日志
+function Log(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const original = descriptor.value;
+    descriptor.value = function (...args: any[]) {
+        console.log(`调用了 ${propertyKey}，参数：`, args);
+        const result = original.apply(this, args);
+        console.log(`${propertyKey} 返回：`, result);
+        return result;
+    };
+}
+
+class Calculator {
+    @Log
+    add(a: number, b: number) {
+        return a + b;
+    }
+}
+
+const calc = new Calculator();
+calc.add(1, 2);
+
+// 输出：
+// 调用了 add，参数： [1, 2]
+// add 返回： 3
+```
+
+### 7.2 声明合并（Declaration Merging）
+
+```typescript
+interface Box {
+  height: number;
+  width: number;
+}
+
+interface Box {
+  scale: number;
+}
+
+// 合并后 Box 同时具有 height、width、scale
+```
+
+### 7.3 条件类型（Conditional Types）
+
+```typescript
+type IsString<T> = T extends string ? true : false;
+```
+
+---
+
+## 八、常见错误与排查技巧
+
+| 错误信息 | 原因 | 解决方法 |
+|---------|------|---------|
+| Property 'xxx' does not exist on type 'yyy' | 类型不匹配 | 检查类型定义或使用类型断言 |
+| Cannot find name 'xxx' | 未引入模块或变量 | 导入正确模块或声明 |
+| Argument of type 'xxx' is not assignable to parameter of type 'yyy' | 参数类型不匹配 | 修改参数或函数定义 |
+
+---
+
+## 九、工程应用实践
+
+### 9.1 使用 Vite 搭建 TypeScript 项目
+
+```bash
+npm create vite@latest my-ts-app -- --template vanilla-ts
+cd my-ts-app
+npm install
+npm run dev
+```
+
+### 9.2 React + TypeScript 项目搭建
+
+```bash
+npx create-react-app my-react-app --template typescript
+```
+
+### 9.3 Node.js + TypeScript 后端项目
+
+依赖安装：
+
+```bash
+npm install express
+npm install -D typescript ts-node @types/node @types/express
+```
+
+基本服务器代码：
+
+```typescript
+import express from "express";
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Hello from TS Server");
+});
+
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
+```
+
+---
+
+## 十、功能拓展与优化建议
+
+### 10.1 集成 ESLint + Prettier
+
+```bash
+npm install -D eslint prettier eslint-config-prettier eslint-plugin-prettier
+```
+
+`.eslintrc.js`：
+
+```javascript
+module.exports = {
+  parser: "@typescript-eslint/parser",
+  extends: ["plugin:@typescript-eslint/recommended", "prettier"],
+};
+```
+
+### 10.2 配置别名路径
+
+`tsconfig.json`：
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@components/*": ["components/*"]
+    }
+  }
+}
+```
+
+使用时：
+
+```typescript
+import Button from "@components/Button";
+```
+
+### 10.3 类型体操训练推荐
+
+- [type-challenges](https://github.com/type-challenges/type-challenges)
+- 逐步掌握 `infer`、`extends`、条件类型、映射类型
+
+---
+
+## 十一、总结
+
+TypeScript 是现代前端工程化的必备技术。掌握 TS，不仅可以提升项目质量，还可以在大型协作开发中立于不败之地。从入门到进阶，坚持动手实践，相信你可以成为 TypeScript 高手！
+
+---
+
+> 原文作者：[前端极客探险家](https://blog.csdn.net/idree)  
+> 原文链接：https://blog.csdn.net/idree/article/details/147563077  
+> 许可协议：[CC 4.0 BY-SA](http://creativecommons.org/licenses/by-sa/4.0/)

@@ -1,0 +1,670 @@
+---
+title: Markdown基础语法简明教程
+date: '2026-08-24T16:10:57'
+description: 介绍Markdown基础语法，包括标题、段落、列表、代码、内嵌HTML标签等等。
+tags:
+  - MarkDown
+  - 前端
+  - 技术
+coverImage: /uploads/mt71kkqy-cfb560c8.jpg
+updatedAt: '2026-08-24T12:34:56.254Z'
+---
+
+> 本教程内容主要参考 [Markdown 教程](https://markdown.com.cn/)，遵循其 CC BY-SA 4.0 协议。原文版权归原作者所有。
+
+## 目录
+
+- [一、Markdown 简介](#一markdown-简介)
+- [二、基础语法](#二基础语法)
+  - [2.1 标题语法](#21-标题语法)
+  - [2.2 段落语法](#22-段落语法)
+  - [2.3 换行语法](#23-换行语法)
+  - [2.4 强调语法](#24-强调语法)
+  - [2.5 引用块语法](#25-引用块语法)
+  - [2.6 列表语法](#26-列表语法)
+  - [2.7 代码语法](#27-代码语法)
+  - [2.8 分隔线语法](#28-分隔线语法)
+  - [2.9 链接语法](#29-链接语法)
+  - [2.10 图片语法](#210-图片语法)
+  - [2.11 转义字符语法](#211-转义字符语法)
+  - [2.12 内嵌HTML标签](#212-内嵌html标签)
+
+---
+
+## 一、Markdown 简介
+
+Markdown 是一种轻量级标记语言，排版语法简洁，让人们更多地关注内容本身而非排版。它使用易读易写的纯文本格式编写文档，可与 HTML 混编，可导出 HTML、PDF 以及本身的 `.md` 格式文件。因简洁、高效、易读、易写，Markdown 被大量使用（~~也由此，Md 也被称为 AI 时代最好的编程语言，因为发给 AI 用 Md 写的 Prompt 非常高效~~），如 GitHub、Wikipedia、简书以及众多博客网站等。
+
+Markdown 语法也有很好的扩展性，在构建应用时可以自由组合不同的规则（如 GFM、MDX 等）。所以本教程之所以称为“基础语法”，很大程度上是因为 Md 的扩展语法太多；实际上本篇包含内容足以应对多数情况。
+
+千万不要被「标记」、「语言」吓到，Markdown 的语法十分简单，常用的标记符号不超过十个，用于日常写作记录绰绰有余，不到半小时就能完全掌握。
+
+---
+
+## 二、基础语法
+
+### 2.1 标题语法
+
+要创建标题，请在单词或短语前面添加井号 `#`。`#` 的数量代表了标题的级别。例如，添加三个 `#` 表示创建一个三级标题（`<h3>`）。
+
+| Markdown 语法 | HTML |
+| --- | --- |
+| `# Heading level 1` | `<h1>Heading level 1</h1>` |
+| `## Heading level 2` | `<h2>Heading level 2</h2>` |
+| `### Heading level 3` | `<h3>Heading level 3</h3>` |
+| `#### Heading level 4` | `<h4>Heading level 4</h4>` |
+| `##### Heading level 5` | `<h5>Heading level 5</h5>` |
+| `###### Heading level 6` | `<h6>Heading level 6</h6>` |
+
+渲染效果：
+
+<h1 style={{fontSize: '2.5em', fontWeight: 'bold', margin: '0.5em 0'}}>Heading level 1</h1>
+
+<h2 style={{fontSize: '2em', fontWeight: 'bold', margin: '0.5em 0'}}>Heading level 2</h2>
+
+<h3 style={{fontSize: '1.5em', fontWeight: 'bold', margin: '0.5em 0'}}>Heading level 3</h3>
+
+<h4 style={{fontSize: '1.25em', fontWeight: 'bold', margin: '0.5em 0'}}>Heading level 4</h4>
+
+<h5 style={{fontSize: '1.1em', fontWeight: 'bold', margin: '0.5em 0'}}>Heading level 5</h5>
+
+<h6 style={{fontSize: '1em', fontWeight: 'bold', margin: '0.5em 0'}}>Heading level 6</h6>
+
+#### 2.1.1 可选语法
+
+还可以在文本下方添加**任意数量**的 `==` 号来标识一级标题，或者 `--` 号来标识二级标题。
+
+```markdown
+Heading level 1
+===============
+
+Heading level 2
+---------------
+```
+
+#### 2.1.2 标题最佳实践
+
+不同的 Markdown 应用程序处理 `#` 和标题之间的空格方式并不一致。为了兼容考虑，请用一个空格在 `#` 和标题之间进行分隔。
+
+✅ 推荐：`# Here's a Heading`
+
+❌ 不推荐：`#Here's a Heading`
+
+---
+
+### 2.2 段落语法
+
+要创建段落，请使用空白行将一行或多行文本进行分隔。
+
+```markdown
+I really like using Markdown.
+
+I think I'll use it to format all of my documents from now on.
+```
+
+渲染效果：
+
+I really like using Markdown.
+
+I think I'll use it to format all of my documents from now on.
+
+#### 2.2.1 段落最佳实践
+
+不要用空格或制表符缩进段落。
+
+✅ 推荐：
+
+```text
+Don't put tabs or spaces in front of your paragraphs.
+Keep lines left-aligned like this.
+```
+
+❌ 不推荐：
+
+```text
+    This can result in unexpected formatting problems.
+    Don't add tabs or spaces in front of paragraphs.
+```
+
+---
+
+### 2.3 换行语法
+
+在一行的末尾添加两个或多个空格，然后按回车键，即可创建一个换行（`<br />`）。
+
+```markdown
+This is the first line.  
+And this is the second line.
+```
+
+渲染效果：
+
+This is the first line.<br />
+And this is the second line.
+
+#### 2.3.1 换行最佳实践
+
+几乎每个 Markdown 应用程序都支持两个或多个空格进行换行，称为“结尾空格”的方式。但这种方式有争议，因为很难在编辑器中直接看到空格。
+
+为了兼容性，更推荐使用 HTML 的 `<br />` 标签来实现换行：
+
+```markdown
+First line with the HTML tag after.<br />
+And the next line.
+```
+
+还有两种方式不推荐：
+
+- 行尾反斜杠 `\`：并非所有 Markdown 应用都支持
+- 直接回车：只有部分轻量级标记语言支持
+
+---
+
+### 2.4 强调语法
+
+通过将文本设置为粗体或斜体来强调其重要性。
+
+#### 2.4.1 粗体
+
+要加粗文本，请在单词或短语的前后各添加两个星号 `**` 或下划线 `__`。
+
+| Markdown 语法 | HTML | 预览效果 |
+| --- | --- | --- |
+| `I just love **bold text**.` | `I just love <strong>bold text</strong>.` | I just love **bold text**。 |
+| `I just love __bold text__.` | `I just love <strong>bold text</strong>.` | I just love __bold text__。 |
+| `Love**is**bold` | `Love<strong>is</strong>bold` | Love**is**bold |
+
+#### 2.4.2 斜体
+
+要用斜体显示文本，请在单词或短语前后添加一个星号 `*` 或下划线 `_`。
+
+| Markdown 语法 | HTML | 预览效果 |
+| --- | --- | --- |
+| `Italicized text is the *cat's meow*.` | `Italicized text is the <em>cat's meow</em>.` | Italicized text is the *cat's meow*。 |
+| `Italicized text is the _cat's meow_.` | `Italicized text is the <em>cat's meow</em>.` | Italicized text is the _cat's meow_。 |
+| `A*cat*meow` | `A<em>cat</em>meow` | A*cat*meow |
+
+#### 2.4.3 粗体和斜体
+
+要同时用粗体和斜体突出显示文本，请在单词或短语的前后各添加三个星号或下划线。
+
+| Markdown 语法 | HTML | 预览效果 |
+| --- | --- | --- |
+| `This text is ***really important***.` | `This text is <strong><em>really important</em></strong>.` | This text is ***really important***。 |
+| `This text is ___really important___.` | `This text is <strong><em>really important</em></strong>.` | This text is ___really important___。 |
+| `This text is __*really important*__.` | `This text is <strong><em>really important</em></strong>.` | This text is __*really important*__。 |
+
+#### 2.4.4 强调最佳实践
+
+Markdown 应用程序在如何处理单词或短语中间的下划线上并不一致。为兼容考虑，在单词或短语中间部分加粗或斜体的话，请使用星号。
+
+✅ 推荐：
+
+```markdown
+Love**is**bold
+A*cat*meow
+This is really***very***important text.
+```
+
+❌ 不推荐：
+
+```markdown
+Love__is__bold
+A_cat_meow
+This is really___very___important text.
+```
+
+---
+
+### 2.5 引用块语法
+
+要创建块引用，请在段落前添加一个 `>` 符号。
+
+```markdown
+> Dorothy followed her through many of the beautiful rooms in her castle.
+```
+
+渲染效果：
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+
+#### 2.5.1 多个段落的块引用
+
+块引用可以包含多个段落。为段落之间的空白行添加一个 `>` 符号。
+
+```markdown
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+```
+
+渲染效果：
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+#### 2.5.2 嵌套块引用
+
+块引用可以嵌套。在要嵌套的段落前添加一个 `>>` 符号。
+
+```markdown
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+```
+
+渲染效果：
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+#### 2.5.3 带有其它元素的块引用
+
+块引用可以包含其他 Markdown 格式的元素。
+
+```markdown
+> #### The quarterly results look great!
+>
+> - Revenue was off the chart.
+> - Profits were higher than ever.
+>
+>  *Everything* is going according to **plan**.
+```
+
+渲染效果：
+
+> #### The quarterly results look great！
+>
+> - Revenue was off the chart.
+> - Profits were higher than ever.
+>
+> *Everything* is going according to **plan**。
+
+---
+
+### 2.6 列表语法
+
+可以将多个条目组织成有序或无序列表。
+
+#### 2.6.1 有序列表
+
+要创建有序列表，请在每个列表项前添加数字并紧跟一个英文句点。数字不必按数学顺序排列，但是列表应当以数字 1 起始。
+
+```markdown
+1. First item
+2. Second item
+3. Third item
+4. Fourth item
+```
+
+渲染效果：
+
+1. First item
+2. Second item
+3. Third item
+4. Fourth item
+
+##### 有序列表最佳实践
+
+为了保证兼容性，请只使用句点 `.` 作为分隔符，不要使用右括号 `)`。
+
+✅ 推荐：
+
+```markdown
+1. First item
+2. Second item
+```
+
+❌ 不推荐：
+
+```markdown
+1) First item
+2) Second item
+```
+
+#### 2.6.2 无序列表
+
+要创建无序列表，请在每个列表项前面添加破折号 `-`、星号 `*` 或加号 `+`。缩进一个或多个列表项可创建嵌套列表。
+
+```markdown
+- First item
+- Second item
+- Third item
+  - Indented item
+  - Indented item
+- Fourth item
+```
+
+渲染效果：
+
+- First item
+- Second item
+- Third item
+  - Indented item
+  - Indented item
+- Fourth item
+
+##### 无序列表最佳实践
+
+不要在同一个列表中混合使用多种分隔符。
+
+✅ 推荐：
+
+```markdown
+- First item
+- Second item
+- Third item
+- Fourth item
+```
+
+❌ 不推荐：
+
+```markdown
++ First item
+* Second item
+- Third item
++ Fourth item
+```
+
+#### 2.6.3 在列表中嵌套其他元素
+
+要在保留列表连续性的同时在列表中添加另一种元素，请将该元素缩进四个空格或一个制表符。
+
+**段落示例：**
+
+```markdown
+* This is the first list item.
+* Here's the second list item.
+  I need to add another paragraph below the second list item.
+* And here's the third list item.
+```
+
+渲染效果：
+
+* This is the first list item。
+* Here's the second list item。<br />I need to add another paragraph below the second list item。
+* And here's the third list item。
+
+**引用块示例：**
+
+```markdown
+* This is the first list item.
+* Here's the second list item.
+  > A blockquote would look great below the second list item.
+* And here's the third list item.
+```
+
+渲染效果：
+
+* This is the first list item。
+* Here's the second list item。
+  > A blockquote would look great below the second list item。
+* And here's the third list item。
+
+---
+
+### 2.7 代码语法
+
+要将单词或短语表示为代码，请将其包裹在反引号 `` ` `` 中。
+
+| Markdown 语法 | HTML | 预览效果 |
+| --- | --- | --- |
+| ``At the command prompt, type `nano`.`` | `At the command prompt, type <code>nano</code>.` | At the command prompt, type `nano`。 |
+
+#### 2.7.1 转义反引号
+
+如果你要表示为代码的单词或短语中包含一个或多个反引号，则可以通过将单词或短语包裹在双反引号中。
+
+| Markdown 语法 | HTML | 预览效果 |
+| --- | --- | --- |
+| ```` ``Use `code` in your Markdown file.`` ```` | ``<code>Use `code` in your Markdown file.</code>`` | ``Use `code` in your Markdown file.`` |
+
+#### 2.7.2 代码块
+
+要创建代码块，请将代码块的每一行缩进至少四个空格或一个制表符。
+
+```text
+    <html>
+      <head>
+      </head>
+    </html>
+```
+
+渲染效果：
+
+```html
+<html>
+  <head>
+  </head>
+</html>
+```
+
+> 更推荐使用围栏式代码块（fenced code blocks），也就是用三个反引号包裹代码，这样可以指定语言，如：
+>
+> ```markdown
+> ```typescript
+> const a = 1;
+> ```
+> ```
+
+---
+
+### 2.8 分隔线语法
+
+要创建分隔线，请在单独一行上使用三个或多个星号 `***`、破折号 `---` 或下划线 `___`，并且不能包含其他内容。
+
+```markdown
+***
+
+---
+
+_________________
+```
+
+以上三个分隔线的渲染效果看起来都一样：
+
+***
+
+#### 2.8.1 分隔线最佳实践
+
+为了兼容性，请在分隔线的前后均添加空白行。
+
+✅ 推荐：
+
+```markdown
+Try to put a blank line before...
+
+---
+
+...and after a horizontal rule.
+```
+
+❌ 不推荐：
+
+```markdown
+Without blank lines, this would be a heading.
+---
+Don't do this!
+```
+
+---
+
+### 2.9 链接语法
+
+链接文本放在中括号内，链接地址放在后面的括号中，链接 title 可选。
+
+```markdown
+[超链接显示名](超链接地址 "超链接title")
+```
+
+示例：
+
+```markdown
+这是一个链接 [Markdown 语法](https://markdown.com.cn)。
+```
+
+渲染效果：这是一个链接 [Markdown 语法](https://markdown.com.cn)。
+
+#### 2.9.1 给链接增加 Title
+
+链接 title 是当鼠标悬停在链接上时会出现的文字，放在圆括号中链接地址后面，跟链接地址之间以空格分隔。
+
+```markdown
+这是一个链接 [Markdown 语法](https://markdown.com.cn "最好的 markdown 教程")。
+```
+
+渲染效果：这是一个链接 [Markdown 语法](https://markdown.com.cn "最好的 markdown 教程")。
+
+#### 2.9.2 网址和 Email 地址
+
+使用尖括号可以很方便地把 URL 或者 email 地址变成可点击的链接。但在 **MDX 中不支持 `<url>` 这种自动链接语法**，请使用标准 Markdown 链接。
+
+```markdown
+[https://markdown.com.cn](https://markdown.com.cn)
+[fake@example.com](mailto:fake@example.com)
+```
+
+渲染效果：[https://markdown.com.cn](https://markdown.com.cn)、[fake@example.com](mailto:fake@example.com)
+
+#### 2.9.3 带格式化的链接
+
+要在链接语法前后增加强调效果，可以直接使用星号或反引号。
+
+```markdown
+I love supporting the **[EFF](https://eff.org)**.
+This is the *[Markdown Guide](https://www.markdownguide.org)*.
+See the section on [`code`](#code).
+```
+
+渲染效果：
+
+I love supporting the **[EFF](https://eff.org)**。
+
+This is the *[Markdown Guide](https://www.markdownguide.org)*。
+
+See the section on [`code`](#27-代码语法)。
+
+#### 2.9.4 引用类型链接
+
+引用样式链接分为两部分：与文本保持内联的部分以及存储在文件中其他位置的部分。
+
+```markdown
+[hobbit-hole][1]
+
+[1]: https://en.wikipedia.org/wiki/Hobbit#Lifestyle "Hobbit lifestyles"
+```
+
+#### 2.9.5 链接最佳实践
+
+不同的 Markdown 应用程序处理 URL 中间的空格方式不一样。为了兼容性，请尽量使用 `%20` 代替空格。
+
+✅ 推荐：`[link](https://www.example.com/my%20great%20page)`
+
+❌ 不推荐：`[link](https://www.example.com/my great page)`
+
+---
+
+### 2.10 图片语法
+
+要添加图像，请使用感叹号 `!`，然后在方括号增加替代文本，图片链接放在圆括号里，括号里的链接后可以增加一个可选的图片 title 文本。
+
+```markdown
+![这是图片](/uploads/example.jpg "Magic Gardens")
+```
+
+对应的 HTML：`<img src="/uploads/example.jpg" alt="这是图片" title="Magic Gardens">`
+
+#### 2.10.1 链接图片
+
+给图片增加链接，请将图像的 Markdown 括在方括号中，然后将链接添加在圆括号中。
+
+```markdown
+[![沙漠中的岩石图片](/uploads/shiprock.jpg "Shiprock")](https://markdown.com.cn)
+```
+
+---
+
+### 2.11 转义字符语法
+
+要显示原本用于格式化 Markdown 文档的字符，请在字符前面添加反斜杠字符 `\`。
+
+```markdown
+\* Without the backslash, this would be a bullet in an unordered list.
+```
+
+渲染效果：\* Without the backslash, this would be a bullet in an unordered list.
+
+#### 2.11.1 可做转义的字符
+
+以下字符都可以通过使用反斜杠字符从而达到转义目的：
+
+| 字符 | 名称 |
+| --- | --- |
+| `\\` | backslash |
+| `` \` `` | backtick |
+| `\*` | asterisk |
+| `\_` | underscore |
+| `\{ }` | curly braces |
+| `\[ ]` | brackets |
+| `\( )` | parentheses |
+| `\#` | pound sign |
+| `\+` | plus sign |
+| `\-` | minus sign |
+| `\.` | dot |
+| `\!` | exclamation mark |
+| `\|` | pipe |
+
+---
+
+### 2.12 内嵌 HTML 标签
+
+对于 Markdown 涵盖范围之外的标签，都可以直接在文件里面用 HTML 本身。如需使用 HTML，不需要额外标注，只需将 HTML 标签添加到 Markdown 文本中即可。
+
+#### 2.12.1 行级内联标签
+
+HTML 的行级内联标签如 `<span>`、`<cite>`、`<del>` 不受限制，可以在 Markdown 的段落、列表或是标题里任意使用。依照个人习惯，甚至可以不用 Markdown 格式，而采用 HTML 标签来格式化。
+
+```markdown
+This **word** is bold. This <em>word</em> is italic.
+```
+
+渲染效果：This **word** is bold. This <em>word</em> is italic.
+
+#### 2.12.2 区块标签
+
+区块元素比如 `<div>`、`<table>`、`<pre>`、`<p>` 等标签，必须在前后加上空行，以便于内容区分。而且这些元素的开始与结尾标签，不可以用 tab 或是空白来缩进。
+
+```markdown
+This is a regular paragraph.
+
+<table>
+  <tr>
+    <td>Foo</td>
+  </tr>
+</table>
+
+This is another regular paragraph.
+```
+
+请注意，Markdown 语法在 HTML 区块标签中将不会被进行处理。例如，你无法在 HTML 区块内使用 Markdown 形式的 `*强调*`。
+
+#### 2.12.3 HTML 用法最佳实践
+
+出于安全原因，并非所有 Markdown 应用程序都支持在 Markdown 文档中添加 HTML。如有疑问，请查看相应 Markdown 应用程序的手册。
+
+在 MDX 中使用 HTML 时，需要遵循 JSX 规则：
+
+- 自闭合标签必须写为 `<br />`、`<hr />`、`<img src="..." />`
+- `class` 属性要写成 `className`
+- `for` 属性要写成 `htmlFor`
+- 注释不能写 `<!-- ... -->`，要写 `{/* ... */}`
+
+---
+
+## 总结
+
+Markdown 的基础语法非常简洁，核心就是：标题、段落、列表、链接、图片、代码、引用、强调、分隔线。掌握这些，再配合 GFM 扩展（如表格、删除线、任务列表）和 MDX（JSX + Markdown），就能写出结构清晰、排版美观的文档。
+
+坚持多用，很快就会从“需要查语法”进化到“行云流水”的状态。
