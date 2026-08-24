@@ -50,6 +50,33 @@ async function findAudioFiles(dir: string): Promise<string[]> {
   }
 }
 
+async function findExistingCover(
+  title: string,
+  artist: string,
+  baseName: string
+): Promise<string | undefined> {
+  const candidates = [
+    // Matches the naming convention produced by metadata extraction.
+    `${safeFileName(title)}_${safeFileName(artist)}.jpg`,
+    `${safeFileName(title)}_${safeFileName(artist)}.png`,
+    // Fallback: cover named after the audio file basename.
+    `${safeFileName(baseName)}.jpg`,
+    `${safeFileName(baseName)}.png`,
+    `${safeFileName(baseName)}.jpeg`,
+    `${safeFileName(baseName)}.webp`,
+  ]
+
+  for (const name of candidates) {
+    try {
+      await fs.access(path.join(COVER_DIR, name))
+      return `/music/covers/${name}`
+    } catch {
+      // candidate not found, try next
+    }
+  }
+  return undefined
+}
+
 export async function GET() {
   try {
     await fs.mkdir(COVER_DIR, { recursive: true })
@@ -78,14 +105,18 @@ export async function GET() {
             const common = metadata.common
             const duration = metadata.format.duration
 
-            let coverUrl: string | undefined
-            if (common.picture && common.picture.length > 0) {
+            const title = common.title || baseName
+            const artist = common.artist || "未知艺术家"
+
+            let coverUrl = await findExistingCover(title, artist, baseName)
+
+            if (!coverUrl && common.picture && common.picture.length > 0) {
               const picture = common.picture[0]
               const ext =
                 picture.format?.toLowerCase().includes("png") ? "png" : "jpg"
-              const coverName = `${safeFileName(
-                common.title || baseName
-              )}_${safeFileName(common.artist || "unknown")}.${ext}`
+              const coverName = `${safeFileName(title)}_${safeFileName(
+                artist === "未知艺术家" ? "unknown" : artist
+              )}.${ext}`
               const coverPath = path.join(COVER_DIR, coverName)
               try {
                 await fs.writeFile(coverPath, picture.data)
@@ -97,8 +128,8 @@ export async function GET() {
 
             return {
               id: `${category.id}-${safeFileName(baseName)}`,
-              title: common.title || baseName,
-              artist: common.artist || "未知艺术家",
+              title,
+              artist,
               album: common.album || undefined,
               category: category.id,
               duration: formatDuration(duration),

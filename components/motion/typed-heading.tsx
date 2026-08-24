@@ -7,8 +7,9 @@ const WORDS = [
   "MY BLOG",
   "InfBlog",
   "MY DIGITAL GARDEN",
-  "MY FOREST",
-  "MY LAB",
+  "MY CODINGLAB",
+  "TECHLAB",
+  "INFINITESCOPE's BLOG"
 ]
 
 const TYPE_MS = 90

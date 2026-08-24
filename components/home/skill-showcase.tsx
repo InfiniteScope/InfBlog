@@ -12,13 +12,15 @@ const TECH_STACK = [
   "TypeScript",
   "Vue 3 / Vite",
   "FastAPI",
-  "Spring",
+  "SpringBoot",
   "Tailwind CSS",
-  "Prisma",
   "SQLite",
+  "MySQL",
+  "JAVA",
+  "Python",
   "Three.js",
   "Motion",
-  "Auth.js",
+  "PostgreSQL",
 ]
 
 /**
