@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Calendar, Clock, Image as ImageIcon, Tag, Type } from "lucide-react"
+import { RefreshCw, Clock, Image as ImageIcon, Tag, Type } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
 import { getAllPosts } from "@/lib/mdx"
@@ -85,8 +85,8 @@ export default async function HomePage() {
                       <div className="flex flex-1 flex-col justify-center space-y-3 p-5">
                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {new Date(post.date).toLocaleDateString("zh-CN")}
+                            <RefreshCw className="h-3.5 w-3.5" />
+                            {new Date(post.updatedAt ?? post.date).toLocaleDateString("zh-CN")}
                           </span>
                           {post.tags.length > 0 && (
                             <span className="flex items-center gap-1">
