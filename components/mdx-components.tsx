@@ -1,21 +1,51 @@
 import Link from "next/link"
-import { ComponentPropsWithoutRef } from "react"
+import { ComponentPropsWithoutRef, ReactNode } from "react"
 
-function Heading2({ className, ...props }: ComponentPropsWithoutRef<"h2">) {
+function getTextFromChildren(children: ReactNode): string {
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children)
+  }
+  if (Array.isArray(children)) {
+    return children.map(getTextFromChildren).join("")
+  }
+  if (children && typeof children === "object" && "props" in children) {
+    return getTextFromChildren(children.props.children)
+  }
+  return ""
+}
+
+function slugifyHeading(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
+function Heading2({ className, children, ...props }: ComponentPropsWithoutRef<"h2">) {
+  const id = slugifyHeading(getTextFromChildren(children))
   return (
     <h2
+      id={id}
       className="mt-10 scroll-m-20 border-b border-border pb-2 font-display text-2xl tracking-tight transition-colors first:mt-0"
       {...props}
-    />
+    >
+      {children}
+    </h2>
   )
 }
 
-function Heading3({ className, ...props }: ComponentPropsWithoutRef<"h3">) {
+function Heading3({ className, children, ...props }: ComponentPropsWithoutRef<"h3">) {
+  const id = slugifyHeading(getTextFromChildren(children))
   return (
     <h3
+      id={id}
       className="mt-8 scroll-m-20 font-display text-xl tracking-tight transition-colors"
       {...props}
-    />
+    >
+      {children}
+    </h3>
   )
 }
 

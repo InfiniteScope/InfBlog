@@ -1,0 +1,442 @@
+---
+title: "TypeScript 入门到进阶全讲解（超全版）"
+date: "2025-04-27"
+description: "从 TypeScript 简介、环境搭建、基础语法、类型系统、泛型、模块、高级特性到工程实践与优化建议的系统教程。"
+tags: ["TypeScript", "前端", "编程"]
+coverImage: ""
+source: "https://blog.csdn.net/idree/article/details/147563077"
+author: "前端极客探险家"
+license: "CC 4.0 BY-SA"
+---
+
+> 本文转载自 CSDN 博主「前端极客探险家」，遵循 [CC 4.0 BY-SA](http://creativecommons.org/licenses/by-sa/4.0/) 版权协议。原文链接：https://blog.csdn.net/idree/article/details/147563077
+
+## 目录
+
+- [一、TypeScript 简介](#一typescript-简介)
+  - [1.1 什么是 TypeScript？](#11-什么是-typescript)
+  - [1.2 为什么要使用 TypeScript？](#12-为什么要使用-typescript)
+- [二、环境搭建与基本使用](#二环境搭建与基本使用)
+  - [2.1 安装 TypeScript](#21-安装-typescript)
+  - [2.2 编译运行 TypeScript](#22-编译运行-typescript)
+  - [2.3 配置 tsconfig.json](#23-配置-tsconfigjson)
+- [三、基础语法](#三基础语法)
+  - [3.1 基础类型](#31-基础类型)
+  - [3.2 枚举（Enum）](#32-枚举enum)
+  - [3.3 接口（Interface）](#33-接口interface)
+  - [3.4 类（Class）](#34-类class)
+  - [3.5 函数](#35-函数)
+- [四、类型系统深入](#四类型系统深入)
+  - [4.1 类型断言（Type Assertion）](#41-类型断言type-assertion)
+  - [4.2 联合类型与交叉类型](#42-联合类型与交叉类型)
+  - [4.3 字面量类型（Literal Types）](#43-字面量类型literal-types)
+- [五、泛型（Generics）](#五泛型generics)
+  - [5.1 基本泛型](#51-基本泛型)
+  - [5.2 泛型接口与泛型类](#52-泛型接口与泛型类)
+  - [5.3 泛型约束（Constraints）](#53-泛型约束constraints)
+- [六、模块与命名空间](#六模块与命名空间)
+  - [6.1 模块导出与导入](#61-模块导出与导入)
+  - [6.2 命名空间](#62-命名空间)
+- [七、高级特性](#七高级特性)
+  - [7.1 装饰器（Decorators）](#71-装饰器decorators)
+  - [7.2 声明合并（Declaration Merging）](#72-声明合并declaration-merging)
+  - [7.3 条件类型（Conditional Types）](#73-条件类型conditional-types)
+- [八、常见错误与排查技巧](#八常见错误与排查技巧)
+- [九、工程应用实践](#九工程应用实践)
+  - [9.1 使用 Vite 搭建 TypeScript 项目](#91-使用-vite-搭建-typescript-项目)
+  - [9.2 React + TypeScript 项目搭建](#92-react-typescript-项目搭建)
+  - [9.3 Node.js + TypeScript 后端项目](#93-nodejs-typescript-后端项目)
+- [十、功能拓展与优化建议](#十功能拓展与优化建议)
+  - [10.1 集成 ESLint + Prettier](#101-集成-eslint-prettier)
+  - [10.2 配置别名路径](#102-配置别名路径)
+  - [10.3 类型体操训练推荐](#103-类型体操训练推荐)
+- [十一、总结](#十一总结)
+
+---
+
+## 一、TypeScript 简介
+
+### 1.1 什么是 TypeScript？
+
+- TypeScript（简称 TS）是 JavaScript 的超集，支持 ECMAScript 标准。
+- 增强了**静态类型检查**、**接口编程**和**面向对象特性**。
+- 最终会被编译为浏览器可以执行的 JavaScript。
+
+### 1.2 为什么要使用 TypeScript？
+
+- **提前发现错误**：在编译阶段就发现大部分潜在问题。
+- **提升开发体验**：智能补全、接口提示、跳转定义。
+- **更适合大型应用开发**：类型约束，代码可维护性提升。
+- **兼容现有 JavaScript 项目**。
+
+---
+
+## 二、环境搭建与基本使用
+
+### 2.1 安装 TypeScript
+
+```bash
+npm install -g typescript
+```
+
+### 2.2 编译运行 TypeScript
+
+创建 `hello.ts`：
+
+```typescript
+const message: string = "Hello, TypeScript!";
+console.log(message);
+```
+
+编译为 JavaScript：
+
+```bash
+tsc hello.ts
+node hello.js
+```
+
+### 2.3 配置 tsconfig.json
+
+生成配置文件：
+
+```bash
+tsc --init
+```
+
+常见配置说明：
+
+```json
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "esModuleInterop": true
+  }
+}
+```
+
+---
+
+## 三、基础语法
+
+### 3.1 基础类型
+
+```typescript
+let isDone: boolean = false;
+let age: number = 25;
+let username: string = "Alice";
+let list: number[] = [1, 2, 3];
+let tuple: [string, number] = ["hello", 10];
+let notSure: any = 4;
+let u: undefined = undefined;
+let n: null = null;
+```
+
+### 3.2 枚举（Enum）
+
+```typescript
+enum Color { Red, Green, Blue }
+let c: Color = Color.Green;
+```
+
+### 3.3 接口（Interface）
+
+```typescript
+interface Person {
+  name: string;
+  age: number;
+}
+
+function greet(person: Person) {
+  console.log(`Hello, ${person.name}`);
+}
+```
+
+### 3.4 类（Class）
+
+```typescript
+class Animal {
+  constructor(public name: string) {}
+
+  move(distance: number = 0) {
+    console.log(`${this.name} moved ${distance}m.`);
+  }
+}
+```
+
+### 3.5 函数
+
+```typescript
+function add(x: number, y: number): number {
+  return x + y;
+}
+
+// 可选参数
+function buildName(firstName: string, lastName?: string): string {
+  return lastName ? `${firstName} ${lastName}` : firstName;
+}
+
+// 剩余参数
+function pushItems(...items: number[]) {
+  return items;
+}
+```
+
+---
+
+## 四、类型系统深入
+
+### 4.1 类型断言（Type Assertion）
+
+```typescript
+let someValue: any = "this is a string";
+let strLength: number = (someValue as string).length;
+```
+
+### 4.2 联合类型与交叉类型
+
+```typescript
+// 联合类型
+function padLeft(value: string, padding: string | number) {
+  // ...
+}
+
+// 交叉类型
+type Admin = {
+  name: string;
+  privileges: string[];
+};
+
+type Employee = {
+  name: string;
+  startDate: Date;
+};
+
+type ElevatedEmployee = Admin & Employee;
+```
+
+### 4.3 字面量类型（Literal Types）
+
+```typescript
+type Direction = "Up" | "Down" | "Left" | "Right";
+```
+
+---
+
+## 五、泛型（Generics）
+
+### 5.1 基本泛型
+
+```typescript
+function identity<T>(arg: T): T {
+  return arg;
+}
+```
+
+### 5.2 泛型接口与泛型类
+
+```typescript
+interface GenericIdentityFn<T> {
+  (arg: T): T;
+}
+
+class GenericNumber<T> {
+  zeroValue: T;
+  add: (x: T, y: T) => T;
+}
+```
+
+### 5.3 泛型约束（Constraints）
+
+```typescript
+interface Lengthwise {
+  length: number;
+}
+
+function loggingIdentity<T extends Lengthwise>(arg: T): T {
+  console.log(arg.length);
+  return arg;
+}
+```
+
+---
+
+## 六、模块与命名空间
+
+### 6.1 模块导出与导入
+
+```typescript
+// math.ts
+export function add(x: number, y: number): number {
+  return x + y;
+}
+
+// app.ts
+import { add } from './math';
+console.log(add(1, 2));
+```
+
+### 6.2 命名空间
+
+```typescript
+namespace Validation {
+  export interface StringValidator {
+    isAcceptable(s: string): boolean;
+  }
+}
+```
+
+---
+
+## 七、高级特性
+
+### 7.1 装饰器（Decorators）
+
+```typescript
+function sealed(constructor: Function) {
+  Object.seal(constructor);
+  Object.seal(constructor.prototype);
+}
+
+@sealed
+class Greeter {
+  greeting: string;
+  constructor(message: string) {
+    this.greeting = message;
+  }
+}
+```
+
+### 7.2 声明合并（Declaration Merging）
+
+```typescript
+interface Box {
+  height: number;
+  width: number;
+}
+
+interface Box {
+  scale: number;
+}
+
+// 合并后 Box 同时具有 height、width、scale
+```
+
+### 7.3 条件类型（Conditional Types）
+
+```typescript
+type IsString<T> = T extends string ? true : false;
+```
+
+---
+
+## 八、常见错误与排查技巧
+
+| 错误信息 | 原因 | 解决方法 |
+|---------|------|---------|
+| Property 'xxx' does not exist on type 'yyy' | 类型不匹配 | 检查类型定义或使用类型断言 |
+| Cannot find name 'xxx' | 未引入模块或变量 | 导入正确模块或声明 |
+| Argument of type 'xxx' is not assignable to parameter of type 'yyy' | 参数类型不匹配 | 修改参数或函数定义 |
+
+---
+
+## 九、工程应用实践
+
+### 9.1 使用 Vite 搭建 TypeScript 项目
+
+```bash
+npm create vite@latest my-ts-app -- --template vanilla-ts
+cd my-ts-app
+npm install
+npm run dev
+```
+
+### 9.2 React + TypeScript 项目搭建
+
+```bash
+npx create-react-app my-react-app --template typescript
+```
+
+### 9.3 Node.js + TypeScript 后端项目
+
+依赖安装：
+
+```bash
+npm install express
+npm install -D typescript ts-node @types/node @types/express
+```
+
+基本服务器代码：
+
+```typescript
+import express from "express";
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Hello from TS Server");
+});
+
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
+```
+
+---
+
+## 十、功能拓展与优化建议
+
+### 10.1 集成 ESLint + Prettier
+
+```bash
+npm install -D eslint prettier eslint-config-prettier eslint-plugin-prettier
+```
+
+`.eslintrc.js`：
+
+```javascript
+module.exports = {
+  parser: "@typescript-eslint/parser",
+  extends: ["plugin:@typescript-eslint/recommended", "prettier"],
+};
+```
+
+### 10.2 配置别名路径
+
+`tsconfig.json`：
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@components/*": ["components/*"]
+    }
+  }
+}
+```
+
+使用时：
+
+```typescript
+import Button from "@components/Button";
+```
+
+### 10.3 类型体操训练推荐
+
+- [type-challenges](https://github.com/type-challenges/type-challenges)
+- 逐步掌握 `infer`、`extends`、条件类型、映射类型
+
+---
+
+## 十一、总结
+
+TypeScript 是现代前端工程化的必备技术。掌握 TS，不仅可以提升项目质量，还可以在大型协作开发中立于不败之地。从入门到进阶，坚持动手实践，你也可以成为 TypeScript 高手！
+
+---
+
+> 原文作者：[前端极客探险家](https://blog.csdn.net/idree)  
+> 原文链接：https://blog.csdn.net/idree/article/details/147563077  
+> 许可协议：[CC 4.0 BY-SA](http://creativecommons.org/licenses/by-sa/4.0/)
