@@ -149,6 +149,43 @@ function Del({ className, ...props }: ComponentPropsWithoutRef<"del">) {
   )
 }
 
+function Table({ className, ...props }: ComponentPropsWithoutRef<"table">) {
+  return (
+    <div className="my-6 overflow-x-auto">
+      <table
+        className="w-full border-collapse text-sm"
+        {...props}
+      />
+    </div>
+  )
+}
+
+function TableHeader({ className, ...props }: ComponentPropsWithoutRef<"thead">) {
+  return <thead className="bg-muted/50" {...props} />
+}
+
+function TableRow({ className, ...props }: ComponentPropsWithoutRef<"tr">) {
+  return (
+    <tr
+      className="border-b border-border transition-colors hover:bg-muted/40"
+      {...props}
+    />
+  )
+}
+
+function TableHead({ className, ...props }: ComponentPropsWithoutRef<"th">) {
+  return (
+    <th
+      className="border border-border px-4 py-2 text-left font-medium"
+      {...props}
+    />
+  )
+}
+
+function TableCell({ className, ...props }: ComponentPropsWithoutRef<"td">) {
+  return <td className="border border-border px-4 py-2 align-top" {...props} />
+}
+
 export const mdxComponents = {
   h2: Heading2,
   h3: Heading3,
@@ -160,4 +197,9 @@ export const mdxComponents = {
   pre: Pre,
   img: Img,
   del: Del,
+  table: Table,
+  thead: TableHeader,
+  tr: TableRow,
+  th: TableHead,
+  td: TableCell,
 }
