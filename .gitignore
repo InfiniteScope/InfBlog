@@ -58,5 +58,8 @@ data/blog.db
 /public/music/covers/*
 !/public/music/covers/.gitkeep
 
+# blog posts (sync separately via scp)
+/content/
+
 # typescript
 *.tsbuildinfo
