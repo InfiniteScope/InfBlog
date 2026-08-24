@@ -62,11 +62,16 @@ export async function getPostBySlug(rawSlug: string): Promise<Post> {
   const { data, content } = matter(fileContent)
   const meta = computeContentMeta(content)
 
+  // Get file system timestamps as fallback
+  const stats = await fs.stat(filePath)
+  const fileDate = stats.birthtime.toISOString()
+  const fileUpdatedAt = stats.mtime.toISOString()
+
   return {
     slug,
     title: data.title ?? slug,
-    date: data.date ?? new Date().toISOString().slice(0, 10),
-    updatedAt: data.updatedAt ?? undefined,
+    date: data.date ?? fileDate,
+    updatedAt: data.updatedAt ?? fileUpdatedAt,
     description: data.description ?? "",
     tags: data.tags ?? [],
     coverImage: data.coverImage ?? undefined,
