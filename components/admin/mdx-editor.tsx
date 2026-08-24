@@ -154,6 +154,7 @@ export function MdxEditor({
         <div className="flex flex-wrap items-center gap-3">
           <Input
             id="coverImage"
+            name="coverImage"
             type="text"
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}

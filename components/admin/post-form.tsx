@@ -62,8 +62,6 @@ export function PostForm({
         setCoverImage={setCoverImage}
       />
 
-      <input type="hidden" name="coverImage" value={coverImage} />
-
       {mode === "edit" && initialDate && (
         <input type="hidden" name="date" value={initialDate} />
       )}
