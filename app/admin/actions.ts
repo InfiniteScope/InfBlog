@@ -50,7 +50,10 @@ const postSchema = z.object({
       "封面图片地址格式不正确"
     )
     .optional(),
-  date: z.string().datetime({ message: "日期格式不正确" }).optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "日期格式不正确" })
+    .optional(),
 })
 
 export type AdminFormState =
@@ -100,7 +103,7 @@ export async function createPost(
         ? validated.data.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [],
       coverImage: validated.data.coverImage || undefined,
-      date: new Date().toISOString(),
+      date: new Date().toISOString().slice(0, 10),
     }
 
     await savePost(post)

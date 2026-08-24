@@ -76,8 +76,17 @@ export function PostForm({
             ? "发布文章"
             : "更新文章"}
         </Button>
-        {state?.success === false && state.message && (
-          <p className="text-sm text-destructive">{state.message}</p>
+        {state?.success === false && (
+          <div className="space-y-1 text-right">
+            {state.message && (
+              <p className="text-sm text-destructive">{state.message}</p>
+            )}
+            {state.errors && Object.values(state.errors).flat().length > 0 && (
+              <p className="text-sm text-destructive">
+                {Object.values(state.errors).flat().join("；")}
+              </p>
+            )}
+          </div>
         )}
       </div>
     </form>
