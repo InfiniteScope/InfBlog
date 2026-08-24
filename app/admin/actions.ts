@@ -52,7 +52,7 @@ const postSchema = z.object({
     .optional(),
   date: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "日期格式不正确" })
+    .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?Z?)?$/, { message: "日期格式不正确" })
     .optional(),
 })
 
@@ -103,7 +103,7 @@ export async function createPost(
         ? validated.data.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [],
       coverImage: validated.data.coverImage || undefined,
-      date: new Date().toISOString().slice(0, 10),
+      date: new Date().toISOString(),
     }
 
     await savePost(post)
@@ -159,8 +159,8 @@ export async function updatePost(
         ? validated.data.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [],
       coverImage: validated.data.coverImage || undefined,
-      date: validated.data.date ?? new Date().toISOString().slice(0, 10),
-      updatedAt: new Date().toISOString().slice(0, 10),
+      date: validated.data.date ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
     await savePost(post)
