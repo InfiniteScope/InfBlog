@@ -1,21 +1,22 @@
 ---
-title: "TypeScript 入门到进阶全讲解（超全版）"
-date: "2025-04-27"
-description: "从 TypeScript 简介、环境搭建、基础语法、类型系统、泛型、模块、高级特性到工程实践与优化建议的系统教程。"
-tags: ["TypeScript", "前端", "编程"]
-coverImage: ""
-source: "https://blog.csdn.net/idree/article/details/147563077"
-author: "前端极客探险家"
-license: "CC 4.0 BY-SA"
+title: TypeScript 入门到进阶全讲解（超全版）
+date: '2025-04-27'
+description: 从 TypeScript 简介、环境搭建、基础语法、类型系统、泛型、模块、高级特性到工程实践与优化建议的系统教程。
+tags:
+  - TypeScript
+  - 前端
+  - 编程
+coverImage: /uploads/mt6ubd6x-9d5ca6cc.jpeg
 ---
 
-> 本文转载自 CSDN 博主「前端极客探险家」，遵循 [CC 4.0 BY-SA](http://creativecommons.org/licenses/by-sa/4.0/) 版权协议。原文链接：https://blog.csdn.net/idree/article/details/147563077
+> 本文主要内容转载自 CSDN 博主「前端极客探险家」，部分内容为本人原创（主要作为原文的补充），遵循 [CC 4.0 BY-SA](http://creativecommons.org/licenses/by-sa/4.0/) 版权协议。原文链接：[https://blog.csdn.net/idree/article/details/147563077](https://blog.csdn.net/idree/article/details/147563077)
 
 ## 目录
 
 - [一、TypeScript 简介](#一typescript-简介)
   - [1.1 什么是 TypeScript？](#11-什么是-typescript)
   - [1.2 为什么要使用 TypeScript？](#12-为什么要使用-typescript)
+  - [1.3为什么要学 TypeScript？](#13-为什么要学-typescript)
 - [二、环境搭建与基本使用](#二环境搭建与基本使用)
   - [2.1 安装 TypeScript](#21-安装-typescript)
   - [2.2 编译运行 TypeScript](#22-编译运行-typescript)
@@ -63,11 +64,30 @@ license: "CC 4.0 BY-SA"
 - 最终会被编译为浏览器可以执行的 JavaScript。
 
 ### 1.2 为什么要使用 TypeScript？
+或许各位在书写JavaScript时遇到过许多难绷的语言设计缺陷，比如...
+
+![图片描述](/uploads/mt6s74pi-280f583a.png)
+
+由于JavaScript是于1995年，网景的一个老哥（Brendan Eich）仅用**10天**开发的脚本语言（最初发明这个语言的动机仅仅是网景希望能在网页上添加一些动态效果），导致该语言在发明之初就具有诸多不完善之处。
+
+所以在2012年，微软开发并开源了**TypeScrpt**作为JavaScript的**超集**（类似C++与C之间的关系），提供了静态类型检查等现代语言常见的规范。所有TS代码在运行前都会被**编译**为JS代码，这也使得开发者所写的TS代码可以在所有支持JS的环境中。
+
+### 1.3为什么要学 TypeScript？
+
+由于web浏览器可使用HTML解释JavaScript，JS在**web开发领域**一直有着很高的市占率。而TS能够完美**兼容**曾经的JS项目且在易用性等方面表现突出，使TS很快获得了大量开发者的喜爱。
+
+- 现在三大主流的前端框架**React / Vue3 / Angular**默认均使用TS进行开发；
+- 后端框架 **Node.js** 也推崇普及TS；
+- 依托npm的强大生态以及ts-node、tsx等工具，TS/JS也是当今**前端/Node开发者发布npm包**以及**AI CLI工具**的主要开发语言；
+- 微软出品的Babylon.js为**网页3D开发**提供了便利，诸如Minecraft的官方网页怀旧版使用的就是框架搭配TS完成开发的。
+
+简而言之，TypeScript具有以下优点：
 
 - **提前发现错误**：在编译阶段就发现大部分潜在问题。
 - **提升开发体验**：智能补全、接口提示、跳转定义。
 - **更适合大型应用开发**：类型约束，代码可维护性提升。
 - **兼容现有 JavaScript 项目**。
+- **开发社区活跃，市占率高**：GitHub2025开源项目贡献代码量，TypeScript超过Python/JavaScript等语言登顶榜首。
 
 ---
 
@@ -433,7 +453,7 @@ import Button from "@components/Button";
 
 ## 十一、总结
 
-TypeScript 是现代前端工程化的必备技术。掌握 TS，不仅可以提升项目质量，还可以在大型协作开发中立于不败之地。从入门到进阶，坚持动手实践，你也可以成为 TypeScript 高手！
+TypeScript 是现代前端工程化的必备技术。掌握 TS，不仅可以提升项目质量，还可以在大型协作开发中立于不败之地。从入门到进阶，坚持动手实践，相信你可以成为 TypeScript 高手！
 
 ---
 
