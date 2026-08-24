@@ -140,6 +140,15 @@ function Img({
   )
 }
 
+function Del({ className, ...props }: ComponentPropsWithoutRef<"del">) {
+  return (
+    <del
+      className="line-through text-muted-foreground"
+      {...props}
+    />
+  )
+}
+
 export const mdxComponents = {
   h2: Heading2,
   h3: Heading3,
@@ -150,4 +159,5 @@ export const mdxComponents = {
   code: Code,
   pre: Pre,
   img: Img,
+  del: Del,
 }

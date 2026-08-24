@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { ImageIcon, Loader2 } from "lucide-react"
 
 import { Textarea } from "@/components/ui/textarea"
@@ -245,8 +246,8 @@ export function MdxEditor({
             <div className="mb-2 border-b border-border pb-2 text-xs text-muted-foreground">
               实时预览（标准 Markdown，MDX 组件以实际发布为准）
             </div>
-            <div className="max-w-none space-y-3 text-sm leading-relaxed [&_h2]:font-display [&_h2]:text-xl [&_h2]:tracking-tight [&_h3]:font-display [&_h3]:text-lg [&_h3]:tracking-tight [&_ul]:ml-5 [&_ul]:list-disc [&_ol]:ml-5 [&_ol]:list-decimal [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:font-mono [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4">
-              <ReactMarkdown>{content}</ReactMarkdown>
+            <div className="max-w-none space-y-3 text-sm leading-relaxed [&_h2]:font-display [&_h2]:text-xl [&_h2]:tracking-tight [&_h3]:font-display [&_h3]:text-lg [&_h3]:tracking-tight [&_ul]:ml-5 [&_ul]:list-disc [&_ol]:ml-5 [&_ol]:list-decimal [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:font-mono [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_del]:line-through [&_del]:text-muted-foreground">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
             </div>
           </div>
         )}

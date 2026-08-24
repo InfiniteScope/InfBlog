@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { Calendar, Tag, ArrowLeft, Pencil, RefreshCw } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
+import remarkGfm from "remark-gfm"
 
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
@@ -110,7 +111,15 @@ export default async function BlogPostPage({ params }: PageProps) {
       </header>
 
       <div className="max-w-none">
-        <MDXRemote source={post.content} components={mdxComponents} />
+        <MDXRemote
+          source={post.content}
+          components={mdxComponents}
+          options={{
+            mdxOptions: {
+              remarkPlugins: [remarkGfm],
+            },
+          }}
+        />
       </div>
 
       <ReadingTracker />
