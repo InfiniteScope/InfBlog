@@ -17,11 +17,8 @@ import type { CollectibleId } from "@/lib/collectibles"
 
 /* ─────────────── 资产加载（pmndrs/market-assets，CC0 低多边形） ───────────────
    banana.gltf 4KB / turntable.gltf 4.1MB / headphones.gltf 273KB
-   全部内嵌 base64，无外部纹理依赖。useGLTF 自带缓存 + DRACO。 */
-
-useGLTF.preload("/models/banana.gltf")
-useGLTF.preload("/models/turntable.gltf")
-useGLTF.preload("/models/headphones.gltf")
+   内嵌 base64，无外部纹理依赖。useGLTF 自带缓存；不在此处 preload——
+   preload 会在模块加载期立即拉取模型（SSR 同样执行），改由渲染时懒加载。 */
 
 /** 目标显示尺寸：所有藏品统一归一化到该包围盒最大边（世界单位） */
 const TARGET_SIZE = 2.2

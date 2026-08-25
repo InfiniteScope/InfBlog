@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 
-import { CollectibleViewer } from "@/components/collectibles/collectible-viewer"
 import { Button } from "@/components/ui/button"
 import {
   COLLECTIBLE_LIST,
@@ -10,6 +10,24 @@ import {
   type CollectibleId,
 } from "@/lib/collectibles"
 import { cn } from "@/lib/utils"
+import { LoadingDots } from "@/components/ui/loading-dots"
+
+// three.js 栈很重：动态导入 + 禁用 SSR，只在对话框打开（点开藏品）时加载，
+// 避免 4MB GLB 与 R3F 打进全站首屏（UserMenu 挂载于所有页面）。
+const CollectibleViewer = dynamic(
+  () =>
+    import("@/components/collectibles/collectible-viewer").then(
+      (m) => m.CollectibleViewer
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full min-h-[110px] items-center justify-center">
+        <LoadingDots />
+      </div>
+    ),
+  }
+)
 
 type CollectibleMetaRarity = "common" | "rare" | "legendary"
 
