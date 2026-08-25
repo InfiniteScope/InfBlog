@@ -53,7 +53,7 @@ export function SkillShowcase() {
             // TECH_STACK
           </h3>
         </div>
-        <div className="marquee-fade-x relative min-h-0 flex-1 overflow-hidden">
+        <div className="marquee-fade-x relative h-28 overflow-hidden lg:h-auto lg:min-h-0 lg:flex-1">
           <TechMarquee items={TECH_STACK} />
         </div>
       </div>
