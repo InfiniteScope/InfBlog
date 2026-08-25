@@ -9,7 +9,10 @@ function getTextFromChildren(children: ReactNode): string {
     return children.map(getTextFromChildren).join("")
   }
   if (children && typeof children === "object" && "props" in children) {
-    return getTextFromChildren(children.props.children)
+    const childProps = (children as { props: { children?: unknown } }).props
+    if (childProps.children !== undefined) {
+      return getTextFromChildren(childProps.children as ReactNode)
+    }
   }
   return ""
 }
