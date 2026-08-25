@@ -303,7 +303,7 @@ export function CollectibleViewer({ itemId, size = 240 }: CollectibleViewerProps
         <directionalLight position={[-5, 4, -6]} intensity={0.55} color="#bcd7ff" />
         <pointLight position={[0, 2, 4]} intensity={12} color="#fff2c4" distance={12} />
 
-        <Environment preset="city" resolution={128} />
+        <Environment files="/environment/potsdamer_platz_1k.hdr" resolution={128} />
 
         {/* AutoCenter：模型几何中心在原点 → Float 旋转、OrbitControls 拖拽都围绕模型中心 */}
         <Suspense fallback={null}>
