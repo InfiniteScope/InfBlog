@@ -41,7 +41,7 @@ export default async function UpdatesPage() {
           <p className="text-muted-foreground">暂无动态</p>
         </div>
       ) : (
-        <section className="relative space-y-8 pl-6 before:absolute before:left-2 before:top-2 before:h-[calc(100%-16px)] before:w-px before:bg-border">
+        <section className="relative space-y-8 pl-6 before:absolute before:left-2 before:top-2 before:h-[calc(100%_-_16px)] before:w-px before:bg-border">
           {updates.map((update) => (
             <div key={update.slug} className="relative">
               <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-accent" />

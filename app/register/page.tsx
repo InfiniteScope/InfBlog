@@ -61,7 +61,7 @@ export default function RegisterPage({
   const passwordError = getFieldError(state, "password")
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-3xl flex-col items-center justify-center px-4 py-12">
+    <div className="mx-auto flex min-h-[calc(100vh_-_3.5rem)] w-full max-w-3xl flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-6 rounded-xl border border-border bg-card/50 p-6">
         <div className="space-y-2 text-center">
           <p className="font-mono text-xs tracking-widest text-accent">
