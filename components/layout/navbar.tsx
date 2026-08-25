@@ -37,7 +37,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
   const { status } = useSession()
   const [loginHref, setLoginHref] = useState("/login")
   const [navOpen, setNavOpen] = useState(false)
-  const aspectRatio = useAspectRatio()
+  const { aspectRatio } = useAspectRatio()
 
   useEffect(() => {
     const current = window.location.pathname + window.location.search

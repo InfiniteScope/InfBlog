@@ -2,14 +2,36 @@
 
 import { useEffect, useState } from "react"
 
-export function useAspectRatio() {
-  const [aspectRatio, setAspectRatio] = useState<number>(
-    typeof window !== "undefined" ? window.innerWidth / window.innerHeight : 1.7
+interface Viewport {
+  width: number
+  height: number
+  aspectRatio: number
+}
+
+const SSR_VIEWPORT: Viewport = {
+  width: 1280,
+  height: 800,
+  aspectRatio: 1.6,
+}
+
+export function useAspectRatio(): Viewport {
+  const [viewport, setViewport] = useState<Viewport>(
+    typeof window !== "undefined"
+      ? {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          aspectRatio: window.innerWidth / window.innerHeight,
+        }
+      : SSR_VIEWPORT
   )
 
   useEffect(() => {
     function update() {
-      setAspectRatio(window.innerWidth / window.innerHeight)
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        aspectRatio: window.innerWidth / window.innerHeight,
+      })
     }
 
     update()
@@ -17,7 +39,8 @@ export function useAspectRatio() {
     return () => window.removeEventListener("resize", update)
   }, [])
 
-  return aspectRatio
+  return viewport
 }
 
-export const ASPECT_RATIO_THRESHOLD = 1.5
+export const ASPECT_RATIO_THRESHOLD = 1.61
+export const DRAWER_BREAKPOINT = 1024

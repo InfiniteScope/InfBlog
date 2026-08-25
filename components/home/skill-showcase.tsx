@@ -31,7 +31,7 @@ const TECH_STACK = [
  */
 export function SkillShowcase() {
   return (
-    <div className="grid h-full min-w-0 grid-cols-[2fr_3fr] items-stretch gap-6">
+    <div className="grid h-full min-w-0 grid-cols-1 gap-5 lg:grid-cols-[2fr_3fr] lg:gap-6">
       {/* GitHub projects（无边框） */}
       <div className="flex min-w-0 flex-col">
         <div className="mb-2 flex items-center gap-2">
