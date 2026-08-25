@@ -21,6 +21,8 @@ import { SearchCommand } from "@/components/search-command"
 import { FlowToggle } from "@/components/flow/flow-toggle"
 import { AppearanceToggle } from "@/components/theme/appearance-toggle"
 import { MusicPlayerMini } from "@/components/music/music-player-mini"
+import { WeatherWidget } from "@/components/weather/weather-widget"
+import { useAspectRatio, ASPECT_RATIO_THRESHOLD } from "@/lib/hooks/use-aspect-ratio"
 import type { Danmaku } from "@prisma/client"
 import type { Post } from "@/lib/mdx"
 
@@ -35,6 +37,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
   const { status } = useSession()
   const [loginHref, setLoginHref] = useState("/login")
   const [navOpen, setNavOpen] = useState(false)
+  const aspectRatio = useAspectRatio()
 
   useEffect(() => {
     const current = window.location.pathname + window.location.search
@@ -85,6 +88,11 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
                     )
                   })}
                 </nav>
+                {aspectRatio < ASPECT_RATIO_THRESHOLD && (
+                  <div className="mt-3 flex justify-center">
+                    <WeatherWidget />
+                  </div>
+                )}
               </div>
               <Sidebar danmaku={danmaku} />
             </SheetContent>
