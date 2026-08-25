@@ -31,9 +31,9 @@ export function WeatherBar() {
     )
   }
 
-  // 尴尬区间：比例窄但无抽屉按钮，主内容区顶部居中（略偏右避开侧栏阴影区）
+  // 尴尬区间：比例窄但无抽屉按钮，与顶部居中条同高，仅向右偏置
   return (
-    <div className="pointer-events-auto fixed left-[calc(50%+56px)] top-[4rem] z-50 -translate-x-1/2">
+    <div className="pointer-events-auto fixed left-[calc(50%+56px)] top-7 z-50 -translate-x-1/2 -translate-y-1/2">
       <WeatherWidget />
     </div>
   )

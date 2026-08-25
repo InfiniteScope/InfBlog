@@ -84,10 +84,10 @@ export function GithubProjects() {
           href={repo.html_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-accent/5"
+          className="group flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-accent/5 sm:gap-2 sm:px-2 sm:py-2"
         >
           <GitBranch className="h-3.5 w-3.5 shrink-0 text-accent/70" />
-          <span className="min-w-0 truncate font-mono text-sm font-medium text-foreground group-hover:text-accent">
+          <span className="min-w-0 truncate text-xs font-medium text-foreground group-hover:text-accent sm:text-sm">
             {repo.name}
           </span>
           {repo.description && (
@@ -95,7 +95,7 @@ export function GithubProjects() {
               {repo.description}
             </span>
           )}
-          <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="ml-auto flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground sm:text-[11px]">
             {repo.language && (
               <span
                 className="h-2 w-2 rounded-full"
