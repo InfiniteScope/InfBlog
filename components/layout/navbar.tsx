@@ -21,7 +21,6 @@ import { SearchCommand } from "@/components/search-command"
 import { FlowToggle } from "@/components/flow/flow-toggle"
 import { AppearanceToggle } from "@/components/theme/appearance-toggle"
 import { MusicPlayerMini } from "@/components/music/music-player-mini"
-import { WeatherWidget } from "@/components/weather/weather-widget"
 import type { Danmaku } from "@prisma/client"
 import type { Post } from "@/lib/mdx"
 
@@ -128,11 +127,6 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
               )
             })}
           </nav>
-        </div>
-
-        {/* Center: Weather Widget */}
-        <div className="hidden flex-1 justify-center xl:flex">
-          <WeatherWidget />
         </div>
 
         {/* Right Actions */}
