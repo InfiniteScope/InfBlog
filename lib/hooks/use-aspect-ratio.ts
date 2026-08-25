@@ -20,4 +20,4 @@ export function useAspectRatio() {
   return aspectRatio
 }
 
-export const ASPECT_RATIO_THRESHOLD = 1.6645
+export const ASPECT_RATIO_THRESHOLD = 1.5
