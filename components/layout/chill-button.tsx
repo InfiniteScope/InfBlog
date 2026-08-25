@@ -132,7 +132,7 @@ export function ChillButton() {
         ])
         setTimeout(() => {
           setRockets((prev) => prev.filter((r) => r.id !== rocketId))
-        }, 3000)
+        }, 3900)
       }
     }
 
@@ -220,10 +220,10 @@ export function ChillButton() {
           style={{ left: rocket.x }}
           initial={{ y: 0, x: "-50%", opacity: 1 }}
           animate={{ y: -window.innerHeight * 0.9, x: "-50%", opacity: [1, 1, 0] }}
-          transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 2.86, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="relative flex flex-col items-center">
-            <Rocket className="h-6 w-6 rotate-45 text-amber-400" />
+            <Rocket className="h-6 w-6 -rotate-45 text-amber-400" />
             <div className="-mt-0.5 flex flex-col items-center">
               <span className="h-2 w-1 rounded-full bg-orange-400/90" />
               <span className="h-2 w-0.5 animate-pulse rounded-full bg-orange-500/70" />

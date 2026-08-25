@@ -14,10 +14,10 @@ export default async function BlogPage() {
   const posts = await getAllPosts()
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-4 md:gap-8 md:py-8">
       <section className="space-y-2">
         <p className="font-mono text-xs tracking-widest text-accent">// BLOG</p>
-        <h1 className="font-display text-4xl tracking-tight">博客</h1>
+        <h1 className="font-display text-3xl tracking-tight md:text-4xl">博客</h1>
         <p className="text-muted-foreground">
           技术、设计与生活的文章集合
         </p>

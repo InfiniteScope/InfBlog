@@ -20,7 +20,6 @@ function buildFragments(): Fragment[] {
   const fragments: Fragment[] = []
   for (let i = 0; i < PIECE_COUNT; i++) {
     const angle = (i / PIECE_COUNT) * Math.PI * 2
-    // jagged radial shards around the center
     const x1 = Math.cos(angle) * 0.3 + 0.5
     const y1 = Math.sin(angle) * 0.3 + 0.5
     const a2 = angle + 0.45
@@ -29,9 +28,9 @@ function buildFragments(): Fragment[] {
     fragments.push({
       id: i,
       clip: `polygon(50% 50%, ${(x1 * 100).toFixed(1)}% ${(y1 * 100).toFixed(1)}%, ${(x2 * 100).toFixed(1)}% ${(y2 * 100).toFixed(1)}%)`,
-      dx: (Math.random() - 0.5) * 160,
-      dy: (Math.random() - 0.5) * 160,
-      rot: (Math.random() - 0.5) * 260,
+      dx: (Math.random() - 0.5) * 120,
+      dy: window.innerHeight + Math.random() * 200,
+      rot: (Math.random() - 0.5) * 360,
     })
   }
   return fragments
@@ -81,12 +80,11 @@ export function ShatterAvatar({
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      {/* base avatar stays, dims while shattered */}
+      {/* base avatar disappears completely while shattered */}
       <div
         className={`${shapeClass} h-full w-full transition-opacity duration-300`}
         style={{
-          opacity: shattered ? 0.3 : 1,
-          filter: shattered ? "blur(0.5px)" : "none",
+          opacity: shattered ? 0 : 1,
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -106,8 +104,18 @@ export function ShatterAvatar({
               key={frag.id}
               className="absolute inset-0"
               initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
-              animate={{ x: frag.dx, y: frag.dy, rotate: frag.rot, opacity: 1 }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              animate={{
+                x: frag.dx,
+                y: frag.dy,
+                rotate: frag.rot,
+                opacity: [1, 1, 0.9, 0],
+              }}
+              transition={{
+                x: { duration: 2.5, ease: "linear" },
+                y: { duration: 2.5, ease: [0.5, 0, 0.75, 0] },
+                rotate: { duration: 2.5, ease: "linear" },
+                opacity: { duration: 2.5, times: [0, 0.6, 0.85, 1] },
+              }}
             >
               <div
                 className="h-full w-full"

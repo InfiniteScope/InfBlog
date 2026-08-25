@@ -32,13 +32,13 @@ export default async function HomePage() {
         <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
           {/* Hero: title left, skill showcase right.
               上/下边缘与音乐播放器（h-56）对齐；标题行 items-start 与 WELCOME 平齐 */}
-          <div className="grid h-[224px] items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+          <div className="grid items-start gap-6 md:h-[224px] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
             <section className="flex flex-col justify-center space-y-4">
               <TypedHeading />
-              <h1 className="font-display text-4xl tracking-tight md:text-5xl lg:text-5xl">
+              <h1 className="font-display text-3xl tracking-tight md:text-5xl lg:text-5xl">
                 {siteConfig.name}
               </h1>
-              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
                 {siteConfig.description}
               </p>
             </section>

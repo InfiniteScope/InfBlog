@@ -75,12 +75,12 @@ export function GuestbookForm() {
         createPortal(
           <div
             className={cn(
-              "fixed bottom-0 right-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6",
+              "fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 px-3 py-2 backdrop-blur-xl sm:px-4 sm:py-3 md:px-6",
               collapsed ? "lg:left-[80px]" : "lg:left-[280px]"
             )}
           >
             <form
-              className="mx-auto flex w-full max-w-3xl items-end gap-3"
+              className="mx-auto flex w-full max-w-3xl items-center gap-2 sm:gap-3"
               onSubmit={(e) => {
                 e.preventDefault()
                 if (!content.trim()) return
@@ -90,15 +90,15 @@ export function GuestbookForm() {
               <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="写下你的想法，支持 Markdown 语法..."
-                className="min-h-[3rem] resize-none rounded-2xl bg-muted/50 px-4 py-2.5"
+                placeholder="写下你的想法..."
+                className="min-h-[2.5rem] max-h-[6rem] resize-none rounded-full bg-muted/50 px-4 py-2 text-sm sm:min-h-[3rem] sm:rounded-2xl sm:px-4 sm:py-2.5"
                 rows={1}
                 maxLength={500}
               />
               <Button
                 type="submit"
                 size="icon"
-                className="h-10 w-10 shrink-0 rounded-full"
+                className="h-9 w-9 shrink-0 rounded-full sm:h-10 sm:w-10"
                 disabled={!content.trim()}
               >
                 <Send className="h-4 w-4" />

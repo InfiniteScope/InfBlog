@@ -16,7 +16,7 @@ export default function AboutPage() {
       <section className="space-y-4 rounded-xl border border-border bg-card/50 p-6">
         <h2 className="font-display text-2xl tracking-tight">关于我</h2>
         <p className="leading-7 text-muted-foreground">
-          你好，我是 {siteConfig.nickname}。这是一个正在建设中的个人博客，
+          你好，我是 {siteConfig.realName}。这是一个正在建设中的个人博客，
           用于记录技术学习、设计思考与生活随笔。
         </p>
         <p className="leading-7 text-muted-foreground">

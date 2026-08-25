@@ -58,10 +58,10 @@ export function MessageCard({
 
   return (
     <article
-      className={`relative break-inside-avoid rounded-lg p-5 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md ${palette}`}
+      className={`relative break-inside-avoid rounded-lg p-4 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md sm:p-5 ${palette}`}
       style={{ transform: `rotate(${rotation}deg)` }}
     >
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-2 flex items-center justify-between gap-2 sm:mb-3">
         <span className="flex items-center gap-1.5 text-xs font-semibold opacity-90">
           <User className="h-3 w-3" />
           {message.isAnonymous ? "匿名用户" : message.author}
@@ -71,7 +71,7 @@ export function MessageCard({
           {message.createdAt.toLocaleDateString("zh-CN")}
         </span>
       </div>
-      <div className="max-w-none text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-bold [&_em]:italic [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:py-0.5 dark:[&_code]:bg-white/10 [&_a]:underline [&_a]:underline-offset-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:ml-4 [&_ol]:list-decimal [&_blockquote]:border-l-2 [&_blockquote]:border-current [&_blockquote]:pl-2 [&_blockquote]:opacity-80">
+      <div className="max-h-[200px] overflow-y-auto text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-bold [&_em]:italic [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:py-0.5 dark:[&_code]:bg-white/10 [&_a]:underline [&_a]:underline-offset-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:ml-4 [&_ol]:list-decimal [&_blockquote]:border-l-2 [&_blockquote]:border-current [&_blockquote]:pl-2 [&_blockquote]:opacity-80">
         <ReactMarkdown>{message.content}</ReactMarkdown>
       </div>
 

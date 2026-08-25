@@ -131,7 +131,7 @@ export function WeatherWidget() {
     <>
       <button
         onClick={() => setDialogOpen(true)}
-        className="group hidden items-center gap-2 rounded-full border border-border/60 bg-background/50 px-3 py-1.5 text-xs backdrop-blur-md transition-all hover:border-accent/60 hover:bg-accent/10 md:flex"
+        className="group hidden items-center gap-2 rounded-full border border-border/60 bg-background/50 px-3 py-1.5 text-xs backdrop-blur-md transition-all hover:border-accent/60 hover:bg-accent/10 lg:flex"
         aria-label="切换天气地区"
       >
         {loading || !weather || !location ? (
