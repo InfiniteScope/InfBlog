@@ -33,6 +33,15 @@ export async function Shell({ children }: ShellProps) {
           <MusicPlayerOverlay />
           <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
             <PageTransition>{children}</PageTransition>
+            <footer className="mt-10 border-t border-border/40 pt-4 pb-2 text-center text-xs text-muted-foreground">
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                蜀ICP备2026049684号
+              </a>
+            </footer>
           </main>
           <BackToTop />
         </FlowProvider>
