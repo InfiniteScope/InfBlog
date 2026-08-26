@@ -16,11 +16,14 @@ export const siteConfig = {
     tools: [
       { name: "GitHub", url: "https://github.com" },
       { name: "Vercel", url: "https://vercel.com" },
-      { name: "TBox导航", url: "https://www.tboxn.com"},
+      { name: "数据结构可视化", url: "https://www.cs.usfca.edu/~galles/visualization/Algorithms.html"},
       { name: "GD音乐台", url: "https://music.gdstudio.xyz"},
+      { name: "AI编程安全插件-npm-safe", url: "https://github.com/nisconder/npm-safe"},
+      { name: "全智能数模Skill", url: "https://github.com/Escap1ng/math-modeling-skill"},
+      
     ],
     friends: [
-      { name: "Soren-ABT", url: "https://github.com/Soren-ABT" },
+      { name: "Soren-ABT 博客", url: "https://soren-s-blog-base.pages.dev/" },
       { name: "Nisconder", url: "https://github.com/Nisconder" },
     ],
   },
