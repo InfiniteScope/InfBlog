@@ -15,11 +15,15 @@ function currentMonthKey(): string {
 }
 
 /** 访客指纹：IP + UA 哈希，用于点赞幂等（无需登录） */
-export function visitorKeyFrom(request: Request): string {
-  const fwd = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || ""
-  const ip = fwd || request.headers.get("x-real-ip") || "unknown"
-  const ua = request.headers.get("user-agent") || ""
+export function visitorKeyFromHeaders(headers: Headers): string {
+  const fwd = headers.get("x-forwarded-for")?.split(",")[0].trim() || ""
+  const ip = fwd || headers.get("x-real-ip") || "unknown"
+  const ua = headers.get("user-agent") || ""
   return createHash("sha256").update(`${ip}|${ua}`).digest("hex").slice(0, 32)
+}
+
+export function visitorKeyFrom(request: Request): string {
+  return visitorKeyFromHeaders(request.headers)
 }
 
 /** 浏览 +1（跨月自动清零月计数），返回最新统计 */

@@ -29,7 +29,8 @@ export async function POST(
   const decoded = decodeURIComponent(slug)
   const ip = clientIp(request)
 
-  if (viewLimiter.limited(ip)) {
+  // 每 IP 每篇 60s 一次（防刷）——IP+slug 组合，避免同 IP 访问不同文章时被误吞
+  if (viewLimiter.limited(`${ip}:${decoded}`)) {
     const stats = await getPostStats(decoded)
     return jsonResponse(stats, 202)
   }

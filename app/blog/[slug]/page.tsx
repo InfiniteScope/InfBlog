@@ -1,26 +1,30 @@
 import { notFound } from "next/navigation"
+import { headers } from "next/headers"
 import {
   Calendar,
   Tag,
   ArrowLeft,
   Pencil,
   RefreshCw,
-  Eye,
-  Heart,
-  Bookmark,
 } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
 
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
-import { getPostStats } from "@/lib/post-stats"
+import {
+  getPostStats,
+  hasLiked,
+  hasFavorited,
+  visitorKeyFromHeaders,
+} from "@/lib/post-stats"
 import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
 import { ReadingTracker } from "@/components/collectibles/reading-tracker"
 import { PostActionsFloat } from "@/components/blog/post-actions-float"
 import { PostViewTracker } from "@/components/blog/post-view-tracker"
+import { PostStatBadges } from "@/components/blog/post-stat-badges"
 import Link from "next/link"
 
 interface PageProps {
@@ -64,6 +68,15 @@ export default async function BlogPostPage({ params }: PageProps) {
   const canManage = session?.user?.role === "OWNER"
   const stats = await getPostStats(slug)
 
+  // SSR 阶段算好“是否已赞/已收藏”：与客户端 API 同源（相同指纹逻辑），
+  // 首帧即为真实状态，避免浮动按钮挂载后状态跳变闪烁
+  const headersList = await headers()
+  const visitorKey = visitorKeyFromHeaders(headersList)
+  const [initialLiked, initialFavorited] = await Promise.all([
+    hasLiked(slug, visitorKey),
+    session?.user ? hasFavorited(slug, session.user.id) : Promise.resolve(false),
+  ])
+
   return (
     <article className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8">
       <div className="flex items-center justify-between gap-4">
@@ -106,21 +119,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </span>
           )}
           <span className="ml-auto flex items-center gap-4">
-            <span
-              className="flex items-center gap-1"
-              title="总浏览量 / 本月浏览量"
-            >
-              <Eye className="h-4 w-4" />
-              {stats.totalViews} / {stats.monthViews}
-            </span>
-            <span className="flex items-center gap-1" title="点赞数">
-              <Heart className="h-4 w-4" />
-              {stats.likes}
-            </span>
-            <span className="flex items-center gap-1" title="收藏数">
-              <Bookmark className="h-4 w-4" />
-              {stats.favorites}
-            </span>
+            <PostStatBadges slug={slug} initial={stats} />
           </span>
         </div>
         <h1 className="font-display text-3xl tracking-tight md:text-4xl">
@@ -157,6 +156,8 @@ export default async function BlogPostPage({ params }: PageProps) {
         slug={slug}
         initialLikes={stats.likes}
         initialFavorites={stats.favorites}
+        initialLiked={initialLiked}
+        initialFavorited={initialFavorited}
       />
     </article>
   )

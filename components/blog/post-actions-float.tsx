@@ -8,11 +8,19 @@ import { Bookmark, BookmarkCheck, Heart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { POST_STATS_EVENT, type PostStatsPayload } from "@/components/blog/post-stat-badges"
+
+function broadcastStats(payload: Partial<PostStatsPayload>) {
+  window.dispatchEvent(new CustomEvent(POST_STATS_EVENT, { detail: payload }))
+}
 
 interface PostActionsFloatProps {
   slug: string
   initialLikes: number
   initialFavorites?: number
+  /** SSR 阶段已算好的状态（与 API 同源），首帧即真实值，避免挂载后跳变闪烁 */
+  initialLiked?: boolean
+  initialFavorited?: boolean
 }
 
 /**
@@ -25,12 +33,14 @@ export function PostActionsFloat({
   slug,
   initialLikes,
   initialFavorites = 0,
+  initialLiked = false,
+  initialFavorited = false,
 }: PostActionsFloatProps) {
   const { status } = useSession()
   const [likes, setLikes] = useState(initialLikes)
-  const [liked, setLiked] = useState(false)
+  const [liked, setLiked] = useState(initialLiked)
   const [favorites, setFavorites] = useState(initialFavorites)
-  const [favorited, setFavorited] = useState(false)
+  const [favorited, setFavorited] = useState(initialFavorited)
   const [showLoginHint, setShowLoginHint] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
   const [favBusy, setFavBusy] = useState(false)
@@ -84,6 +94,7 @@ export function PostActionsFloat({
         const data = await res.json()
         setLikes(data.likes)
         setLiked(Boolean(data.liked))
+        broadcastStats({ likes: data.likes })
       }
     } catch {
       // ignore
@@ -109,7 +120,11 @@ export function PostActionsFloat({
         const data = await res.json()
         setFavorited(Boolean(data.favorited))
         // 收藏/取消后计数更新（+1 / -1）
-        setFavorites((prev) => Math.max(0, prev + (data.favorited ? 1 : -1)))
+        setFavorites((prev) => {
+          const next = Math.max(0, prev + (data.favorited ? 1 : -1))
+          broadcastStats({ favorites: next })
+          return next
+        })
       } else if (res.status === 401) {
         setShowLoginHint(true)
         setTimeout(() => setShowLoginHint(false), 3200)
