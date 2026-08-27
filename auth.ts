@@ -68,6 +68,19 @@ export const {
     }),
   ],
   callbacks: {
+    // 锁定跳转主站：任何登录/退出跳转都在主域名内，避免回退到异常 origin（如 localhost）
+    redirect: async ({ url }) => {
+      const primary = process.env.NEXT_PUBLIC_SITE_URL || "https://infinitescope.site"
+      try {
+        const parsed = new URL(url, primary)
+        if (parsed.origin !== new URL(primary).origin) {
+          return primary + (url.startsWith("/") ? url : "/")
+        }
+        return url
+      } catch {
+        return primary
+      }
+    },
     jwt: async ({ token, user, trigger, session }) => {
       if (user) {
         token.id = user.id

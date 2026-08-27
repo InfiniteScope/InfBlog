@@ -120,8 +120,9 @@ export async function registerUser(
           where: { id: user.id },
           data: { image: url },
         })
-      } catch {
-        // Avatar failure should not block registration.
+      } catch (avatarErr) {
+        // Avatar failure should not block registration, but log for diagnosis.
+        console.error("[registerUser] avatar save failed:", avatarErr)
       }
     }
 

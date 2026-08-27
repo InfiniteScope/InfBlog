@@ -117,7 +117,16 @@ export function AvatarCropDialog({
         OUTPUT_SIZE
       )
 
-      onConfirm(canvas.toDataURL("image/webp", 0.85))
+      // Prefer webp; browsers without webp canvas support fall back to png
+      // (which may exceed the form body limit), so iteratively lower quality.
+      let dataUrl = canvas.toDataURL("image/webp", 0.85)
+      if (dataUrl.length > 1_500_000) {
+        dataUrl = canvas.toDataURL("image/webp", 0.7)
+      }
+      if (dataUrl.length > 1_500_000) {
+        dataUrl = canvas.toDataURL("image/jpeg", 0.8)
+      }
+      onConfirm(dataUrl)
     } catch {
       onCancel()
     } finally {
