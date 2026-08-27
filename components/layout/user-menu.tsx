@@ -27,6 +27,7 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
   const user = session?.user
   const canManage =
     user?.role === "OWNER" || user?.role === "ADMIN"
+  const isOwner = user?.role === "OWNER"
 
   // 角色/资料由后台修改后，回到页面时自动刷新 JWT（后台升级为 ADMIN 即可见）
   useEffect(() => {
@@ -117,7 +118,7 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
               </span>
             </DropdownMenuItem>
           )}
-          {canManage && (
+          {isOwner && (
             <DropdownMenuItem
               onSelect={(e) => {
                 e.preventDefault()

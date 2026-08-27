@@ -51,6 +51,7 @@ const adminItems = [
     title: "藏品图鉴",
     description: "查看全部藏品 3D 模型",
     icon: BookMarked,
+    ownerOnly: true,
   },
 ]
 
@@ -64,6 +65,11 @@ export default async function AdminPage() {
     notFound()
   }
 
+  const isOwner = session.user.role === "OWNER"
+  const visibleItems = adminItems.filter((item) =>
+    "ownerOnly" in item ? item.ownerOnly && isOwner : true
+  )
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <div className="space-y-1">
@@ -74,7 +80,7 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {adminItems.map((item) => (
+        {visibleItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
