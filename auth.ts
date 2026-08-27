@@ -118,6 +118,24 @@ export const {
         session.user.nickname = token.nickname as string | undefined
         session.user.role = token.role as "OWNER" | "ADMIN" | "VISITOR"
         session.user.image = token.image as string | null | undefined
+
+        // DB is the source of truth: refresh role/profile on every session
+        // read, so admin role changes reflect without re-login.
+        if (token.id) {
+          try {
+            const fresh = await prisma.user.findUnique({
+              where: { id: token.id as string },
+              select: { role: true, nickname: true, image: true },
+            })
+            if (fresh) {
+              session.user.role = fresh.role
+              session.user.nickname = fresh.nickname ?? session.user.nickname
+              session.user.image = fresh.image ?? session.user.image
+            }
+          } catch {
+            // fall back to token values on DB errors
+          }
+        }
       }
       return session
     },
