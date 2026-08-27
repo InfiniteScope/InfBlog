@@ -73,6 +73,9 @@ export async function createPost(
   if (!session?.user) {
     return { success: false, errors: {}, message: "请先登录" }
   }
+  if (session.user.role !== "OWNER") {
+    return { success: false, errors: {}, message: "只有站长可以发布文章" }
+  }
 
   const rawData = {
     title: formData.get("title")?.toString() ?? "",
@@ -125,11 +128,14 @@ export async function updatePost(
   _prevState: AdminFormState,
   formData: FormData
 ): Promise<AdminFormState> {
-  const decodedSlug = decodeURIComponent(slug)
-  const session = await auth()
-  if (!session?.user) {
-    return { success: false, errors: {}, message: "请先登录" }
-  }
+    const decodedSlug = decodeURIComponent(slug)
+    const session = await auth()
+    if (!session?.user) {
+      return { success: false, errors: {}, message: "请先登录" }
+    }
+    if (session.user.role !== "OWNER") {
+      return { success: false, errors: {}, message: "只有站长可以修改文章" }
+    }
 
   const rawData = {
     title: formData.get("title")?.toString() ?? "",

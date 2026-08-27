@@ -49,8 +49,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   }
 
   const session = await auth()
-  const canManage =
-    session?.user?.role === "OWNER" || session?.user?.role === "ADMIN"
+  const canManage = session?.user?.role === "OWNER"
 
   return (
     <article className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8">

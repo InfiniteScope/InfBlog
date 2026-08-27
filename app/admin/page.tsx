@@ -27,12 +27,14 @@ const adminItems = [
     title: "文章管理",
     description: "新建、编辑与删除博客文章",
     icon: FileText,
+    ownerOnly: true,
   },
   {
     href: "/admin/updates",
     title: "动态管理",
     description: "发布、编辑与删除站点动态",
     icon: Rss,
+    ownerOnly: true,
   },
   {
     href: "/admin/resources",

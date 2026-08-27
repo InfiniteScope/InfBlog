@@ -9,7 +9,7 @@ export const metadata = {
 
 export default async function NewPostPage() {
   const session = await auth()
-  if (!session?.user || (session.user.role !== "OWNER" && session.user.role !== "ADMIN")) {
+  if (!session?.user || session.user.role !== "OWNER") {
     notFound()
   }
 
