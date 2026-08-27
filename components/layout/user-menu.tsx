@@ -23,10 +23,24 @@ import {
 import type { CollectibleId } from "@/lib/collectibles"
 
 export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const user = session?.user
   const canManage =
     user?.role === "OWNER" || user?.role === "ADMIN"
+
+  // 角色/资料由后台修改后，回到页面时自动刷新 JWT（后台升级为 ADMIN 即可见）
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "visible") void update()
+    }
+    const onFocus = () => void update()
+    window.addEventListener("focus", onFocus)
+    document.addEventListener("visibilitychange", refresh)
+    return () => {
+      window.removeEventListener("focus", onFocus)
+      document.removeEventListener("visibilitychange", refresh)
+    }
+  }, [update])
 
   const [collectibles, setCollectibles] = useState<CollectibleId[]>([])
   const [galleryOpen, setGalleryOpen] = useState(false)

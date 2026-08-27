@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma"
 const JWT_PROFILE_FIELDS = {
   nickname: true,
   image: true,
+  role: true,
 } as const
 
 export const {
@@ -101,6 +102,7 @@ export const {
             if (fresh) {
               token.nickname = fresh.nickname ?? undefined
               token.image = fresh.image
+              token.role = fresh.role
             }
           } catch {
             // keep the previous values on DB errors
