@@ -21,6 +21,7 @@ import { TypedHeading } from "@/components/motion/typed-heading"
 export default async function HomePage() {
   const [posts, updates] = await Promise.all([getAllPosts(), getUpdates()])
   const latestPosts = posts.slice(0, 10)
+  const latestUpdates = updates.slice(0, 5)
   const statsMap = await getPostStatsMap(latestPosts.map((p) => p.slug))
 
   return (
@@ -137,7 +138,7 @@ export default async function HomePage() {
         {/* Right column: music player + widgets packed（第1行右→第2行右连续） */}
         <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1 lg:row-span-2">
           <MusicPlayerExpanded />
-          <TimelineWidget updates={updates} />
+          <TimelineWidget updates={latestUpdates} />
           <TagsWidget posts={posts} />
           <StatsWidget posts={posts} updates={updates} />
         </div>

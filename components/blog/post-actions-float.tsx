@@ -44,9 +44,10 @@ export function PostActionsFloat({
     let cancelled = false
     async function load() {
       try {
-        const [statsRes, favRes] = await Promise.all([
+        const [statsRes, favRes, likeRes] = await Promise.all([
           fetch(`/api/posts/${encodeURIComponent(slug)}/view`),
           fetch(`/api/posts/${encodeURIComponent(slug)}/favorite`),
+          fetch(`/api/posts/${encodeURIComponent(slug)}/like`),
         ])
         if (cancelled) return
         if (statsRes.ok) {
@@ -57,6 +58,10 @@ export function PostActionsFloat({
         if (favRes.ok) {
           const data = await favRes.json()
           setFavorited(Boolean(data.favorited))
+        }
+        if (likeRes.ok) {
+          const data = await likeRes.json()
+          if (typeof data.liked === "boolean") setLiked(data.liked)
         }
       } catch {
         // 静默失败，保持初始值
