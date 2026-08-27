@@ -74,6 +74,7 @@ model User {
   resources        Resource[]
   notifications    Notification[]
   collectibles     UserCollectible[]
+  favorites        PostFavorite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -183,4 +184,42 @@ model UserCollectible {
   @@unique([userId, itemId])
   @@index([userId])
   @@map("user_collectibles")
+}
+
+/** 每篇 MDX 文章的计数（文章本体是文件，DB 只存统计） */
+model PostStats {
+  id         Int    @id @default(autoincrement())
+  slug       String @unique
+  totalViews Int    @default(0)
+  monthKey   String @default("") // "YYYY-MM"，跨月自动清零 monthViews
+  monthViews Int    @default(0)
+  likes      Int    @default(0)
+  favorites  Int    @default(0)
+
+  @@map("post_stats")
+}
+
+/** 点赞去重：同一访客（IP+UA 指纹）对同一篇只计一次 */
+model PostLike {
+  id         Int      @id @default(autoincrement())
+  slug       String
+  visitorKey String
+  createdAt  DateTime @default(now())
+
+  @@unique([slug, visitorKey])
+  @@index([slug])
+  @@map("post_likes")
+}
+
+/** 收藏（登录用户），可增删 */
+model PostFavorite {
+  id        Int      @id @default(autoincrement())
+  slug      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, slug])
+  @@index([userId])
+  @@map("post_favorites")
 }

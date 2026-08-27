@@ -120,7 +120,7 @@ export function AvatarUploader({
       </div>
       <p className="text-xs text-muted-foreground">
         支持 JPG/PNG/WebP，大小限制 {MAX_AVATAR_SIZE_MB}MB。
-        图片将在浏览器中按 1:1 裁切并压缩至 600×600 后上传，不消耗服务器性能。
+        您上传的头像将被压缩至 600*600 后上传。
       </p>
       {error && <p className="text-xs text-destructive">{error}</p>}
 

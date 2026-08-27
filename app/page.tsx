@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { RefreshCw, Clock, Image as ImageIcon, Tag, Type } from "lucide-react"
+import { RefreshCw, Clock, Image as ImageIcon, Tag, Type, Eye } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
 import { getAllPosts } from "@/lib/mdx"
+import { getPostStatsMap } from "@/lib/post-stats"
 import { getUpdates } from "@/lib/updates"
 import { Button } from "@/components/ui/button"
 import { MusicPlayerExpanded } from "@/components/music/music-player-expanded"
@@ -20,6 +21,7 @@ import { TypedHeading } from "@/components/motion/typed-heading"
 export default async function HomePage() {
   const [posts, updates] = await Promise.all([getAllPosts(), getUpdates()])
   const latestPosts = posts.slice(0, 10)
+  const statsMap = await getPostStatsMap(latestPosts.map((p) => p.slug))
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -87,6 +89,14 @@ export default async function HomePage() {
                           <span className="flex items-center gap-1">
                             <RefreshCw className="h-3.5 w-3.5" />
                             {new Date(post.updatedAt ?? post.date).toLocaleDateString("zh-CN")}
+                          </span>
+                          <span
+                            className="flex items-center gap-1"
+                            title="总浏览量 / 本月浏览量"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            {statsMap[post.slug]?.totalViews ?? 0} /{" "}
+                            {statsMap[post.slug]?.monthViews ?? 0}
                           </span>
                           {post.tags.length > 0 && (
                             <span className="flex items-center gap-1">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, BookMarked, LogOut, Settings, Trophy, User } from "lucide-react"
+import { Bell, BookMarked, Bookmark, LogOut, Settings, Trophy, User } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { CollectiblesDialog } from "@/components/collectibles/collectibles-dialog"
+import { FavoritesDialog } from "@/components/blog/favorites-dialog"
 import {
   COLLECTIBLE_REVEAL_EVENT,
   fetchMyCollectibles,
@@ -46,6 +47,7 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
   const [collectibles, setCollectibles] = useState<CollectibleId[]>([])
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [catalogOpen, setCatalogOpen] = useState(false)
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
 
   useEffect(() => {
     if (!user?.id) return
@@ -103,6 +105,16 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
               )}
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault()
+              setFavoritesOpen(true)
+            }}
+            className="cursor-pointer"
+          >
+            <Bookmark className="mr-2 h-4 w-4" />
+            我的收藏
+          </DropdownMenuItem>
           {collectibles.length > 0 && (
             <DropdownMenuItem
               onSelect={(e) => {
@@ -155,6 +167,7 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <FavoritesDialog open={favoritesOpen} onOpenChange={setFavoritesOpen} />
       <CollectiblesDialog
         open={galleryOpen}
         onOpenChange={setGalleryOpen}

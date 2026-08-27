@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { RefreshCw, Clock, Image as ImageIcon, Tag, Type } from "lucide-react"
+import { RefreshCw, Clock, Image as ImageIcon, Tag, Type, Eye } from "lucide-react"
 
 import { getAllPosts } from "@/lib/mdx"
+import { getPostStatsMap } from "@/lib/post-stats"
 
 export const metadata = {
   title: "博客 | InfBlog",
@@ -12,6 +13,7 @@ export const revalidate = 60
 
 export default async function BlogPage() {
   const posts = await getAllPosts()
+  const statsMap = await getPostStatsMap(posts.map((p) => p.slug))
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-4 md:gap-8 md:py-8">
@@ -50,6 +52,14 @@ export default async function BlogPage() {
                     <span className="flex items-center gap-1">
                       <RefreshCw className="h-3.5 w-3.5" />
                       {new Date(post.updatedAt ?? post.date).toLocaleDateString("zh-CN")}
+                    </span>
+                    <span
+                      className="flex items-center gap-1"
+                      title="总浏览量 / 本月浏览量"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      {statsMap[post.slug]?.totalViews ?? 0} /{" "}
+                      {statsMap[post.slug]?.monthViews ?? 0}
                     </span>
                     {post.tags.length > 0 && (
                       <span className="flex items-center gap-1">

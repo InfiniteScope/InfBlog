@@ -14,8 +14,10 @@ interface PageTransitionProps {
  * - 旧页：向上轻滑 + 淡出（exit）
  * - 新页：向下轻滑 + 淡入（initial → animate）
  * - mode="wait"：等旧页完全退场再渲染新页，避免瞬移
- * - 动画结束后清除 transform/filter：确保页内 position:fixed
- *   元素（留言墙输入条等）不被 transform 祖先捕获退化为 absolute
+ * - 注意：不能用 filter/blur 参与 animate——动画结束后内联样式会常驻
+ *   `filter: blur(0px)`，非 none 的 filter 会建立 containing block，
+ *   把所有 position:fixed 后代（悬浮按钮等）捕获成相对定位（沉到页面底部）。
+ *   只用 opacity + y：静止后 motion 写 `transform: none`，不捕获 fixed。
  */
 export function PageTransition({ children, className }: PageTransitionProps) {
   const pathname = usePathname()
@@ -26,9 +28,9 @@ export function PageTransition({ children, className }: PageTransitionProps) {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={pathname}
-        initial={{ opacity: 0, y: 14, filter: "blur(2px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        exit={{ opacity: 0, y: -14, filter: "blur(2px)" }}
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -14 }}
         transition={{
           duration: 0.3,
           ease: [0.22, 1, 0.36, 1],
