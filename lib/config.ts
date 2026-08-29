@@ -20,11 +20,11 @@ export const siteConfig = {
       { name: "GD音乐台", url: "https://music.gdstudio.xyz"},
       { name: "AI编程安全插件-npm-safe", url: "https://github.com/nisconder/npm-safe"},
       { name: "数模Skill", url: "https://github.com/Escap1ng/math-modeling-skill"},
-      { name: "Paste-XRay", url: "https://github.com/nisconder/paste-xray"},
+      { name: "Paste-XRay", url: "https://nisconder.github.io/paste-xray/"},
     ],
     friends: [
       { name: "Soren-ABT博客", url: "https://soren-s-blog-base.pages.dev/" },
-      { name: "Nisconder", url: "https://github.com/nisconder" },
+      { name: "Nisconder博客", url: "https://github.com/nisconder" },
       { name: "Escap1ng", url:"https://github.com/Escap1ng"},
     ],
   },
