@@ -26,6 +26,19 @@ function slugifyHeading(text: string): string {
     .replace(/^-+|-+$/g, "")
 }
 
+function Heading1({ className, children, ...props }: ComponentPropsWithoutRef<"h1">) {
+  const id = slugifyHeading(getTextFromChildren(children))
+  return (
+    <h1
+      id={id}
+      className="mt-10 scroll-m-20 font-display text-4xl tracking-tight transition-colors first:mt-0"
+      {...props}
+    >
+      {children}
+    </h1>
+  )
+}
+
 function Heading2({ className, children, ...props }: ComponentPropsWithoutRef<"h2">) {
   const id = slugifyHeading(getTextFromChildren(children))
   return (
@@ -49,6 +62,54 @@ function Heading3({ className, children, ...props }: ComponentPropsWithoutRef<"h
     >
       {children}
     </h3>
+  )
+}
+
+function Heading4({ className, children, ...props }: ComponentPropsWithoutRef<"h4">) {
+  const id = slugifyHeading(getTextFromChildren(children))
+  return (
+    <h4
+      id={id}
+      className="mt-7 scroll-m-20 font-display text-lg tracking-tight transition-colors"
+      {...props}
+    >
+      {children}
+    </h4>
+  )
+}
+
+function Heading5({ className, children, ...props }: ComponentPropsWithoutRef<"h5">) {
+  const id = slugifyHeading(getTextFromChildren(children))
+  return (
+    <h5
+      id={id}
+      className="mt-6 scroll-m-20 font-display text-base font-semibold tracking-tight transition-colors"
+      {...props}
+    >
+      {children}
+    </h5>
+  )
+}
+
+function Heading6({ className, children, ...props }: ComponentPropsWithoutRef<"h6">) {
+  const id = slugifyHeading(getTextFromChildren(children))
+  return (
+    <h6
+      id={id}
+      className="mt-6 scroll-m-20 font-display text-sm font-semibold tracking-tight transition-colors"
+      {...props}
+    >
+      {children}
+    </h6>
+  )
+}
+
+function Blockquote({ className, ...props }: ComponentPropsWithoutRef<"blockquote">) {
+  return (
+    <blockquote
+      className="my-6 border-l-4 border-accent/40 bg-accent/[0.03] py-1 pl-4 pr-4 text-muted-foreground"
+      {...props}
+    />
   )
 }
 
@@ -190,8 +251,13 @@ function TableCell({ className, ...props }: ComponentPropsWithoutRef<"td">) {
 }
 
 export const mdxComponents = {
+  h1: Heading1,
   h2: Heading2,
   h3: Heading3,
+  h4: Heading4,
+  h5: Heading5,
+  h6: Heading6,
+  blockquote: Blockquote,
   p: Paragraph,
   a: Anchor,
   ul: UnorderedList,
