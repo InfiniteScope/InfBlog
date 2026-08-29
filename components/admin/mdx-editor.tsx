@@ -3,6 +3,9 @@
 import { useRef, useState, useTransition } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
+import rehypeKatex from "rehype-katex"
+import { rehypeStyleObject } from "@/lib/rehype-style-object"
 import { ImageIcon, Loader2 } from "lucide-react"
 
 import { Textarea } from "@/components/ui/textarea"
@@ -248,7 +251,12 @@ export function MdxEditor({
               实时预览（标准 Markdown，MDX 组件以实际发布为准）
             </div>
             <div className="max-w-none space-y-3 text-sm leading-relaxed [&_h1]:font-display [&_h1]:text-3xl [&_h1]:tracking-tight [&_h2]:font-display [&_h2]:text-xl [&_h2]:tracking-tight [&_h3]:font-display [&_h3]:text-lg [&_h3]:tracking-tight [&_h4]:font-display [&_h4]:text-base [&_h4]:tracking-tight [&_h5]:font-semibold [&_h6]:text-xs [&_h6]:font-semibold [&_blockquote]:border-l-4 [&_blockquote]:border-l-current [&_blockquote]:pl-3 [&_blockquote]:opacity-80 [&_ul]:ml-5 [&_ul]:list-disc [&_ol]:ml-5 [&_ol]:list-decimal [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:font-mono [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_del]:line-through [&_del]:text-muted-foreground">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex, rehypeStyleObject]}
+              >
+                {content}
+              </ReactMarkdown>
             </div>
           </div>
         )}

@@ -9,6 +9,9 @@ import {
 } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
+import rehypeKatex from "rehype-katex"
+import { rehypeStyleObject } from "@/lib/rehype-style-object"
 
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
@@ -144,7 +147,8 @@ export default async function BlogPostPage({ params }: PageProps) {
           components={mdxComponents}
           options={{
             mdxOptions: {
-              remarkPlugins: [remarkGfm],
+              remarkPlugins: [remarkGfm, remarkMath],
+              rehypePlugins: [rehypeKatex, rehypeStyleObject],
             },
           }}
         />
