@@ -6,6 +6,10 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { grantCollectible } from "@/lib/collectibles-grant"
+import {
+  cacheResourceIcon,
+  isExternalIconUrl,
+} from "@/lib/resource-icon-cache"
 
 const resourceSchema = z.object({
   name: z.string().min(1, "名称不能为空").max(100, "名称过长"),
@@ -14,7 +18,17 @@ const resourceSchema = z.object({
     .min(1, "缩略简介不能为空")
     .max(30, "缩略简介不能超过 30 字"),
   description: z.string().min(1, "详细介绍不能为空").max(3000, "详细介绍不能超过 3000 字"),
-  icon: z.string().url("图标链接格式不正确").optional().or(z.literal("")),
+  icon: z
+    .string()
+    .refine(
+      (v) =>
+        v === "" ||
+        v.startsWith("/uploads/") ||
+        z.string().url().safeParse(v).success,
+      "图标链接格式不正确"
+    )
+    .optional()
+    .or(z.literal("")),
   homepageUrl: z.string().url("官网链接格式不正确").optional().or(z.literal("")),
   downloadUrl: z.string().url("下载链接格式不正确").min(1, "下载链接不能为空"),
 })
@@ -68,13 +82,18 @@ export async function submitResource(
   const isOwner = user.role === "OWNER" || user.role === "ADMIN"
   const status = isOwner ? "APPROVED" : "PENDING"
 
+  const rawIcon = validated.data.icon || ""
+  const icon = rawIcon && isExternalIconUrl(rawIcon)
+    ? await cacheResourceIcon(rawIcon)
+    : rawIcon || undefined
+
   try {
     const resource = await prisma.resource.create({
       data: {
         name: validated.data.name,
         summary: validated.data.summary,
         description: validated.data.description,
-        icon: validated.data.icon || undefined,
+        icon,
         homepageUrl: validated.data.homepageUrl || undefined,
         downloadUrl: validated.data.downloadUrl,
         status,
@@ -158,6 +177,11 @@ export async function updateResource(
     }
   }
 
+  const rawIcon = validated.data.icon || ""
+  const icon = rawIcon && isExternalIconUrl(rawIcon)
+    ? await cacheResourceIcon(rawIcon)
+    : rawIcon || undefined
+
   try {
     await prisma.resource.update({
       where: { id: resourceId },
@@ -165,7 +189,7 @@ export async function updateResource(
         name: validated.data.name,
         summary: validated.data.summary,
         description: validated.data.description,
-        icon: validated.data.icon || undefined,
+        icon,
         homepageUrl: validated.data.homepageUrl || undefined,
         downloadUrl: validated.data.downloadUrl,
       },
@@ -237,9 +261,15 @@ export async function reviewResource(
   }
 
   try {
+    const data: { status: "APPROVED" | "REJECTED"; icon?: string } = {
+      status: action === "approve" ? "APPROVED" : "REJECTED",
+    }
+    if (action === "approve" && resource.icon && isExternalIconUrl(resource.icon)) {
+      data.icon = await cacheResourceIcon(resource.icon)
+    }
     await prisma.resource.update({
       where: { id: resourceId },
-      data: { status: action === "approve" ? "APPROVED" : "REJECTED" },
+      data,
     })
 
     if (resource.authorId) {

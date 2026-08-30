@@ -39,7 +39,7 @@ function resolveAsAbsolute(base: string, href: string): string {
   }
 }
 
-function sanitizeDomain(url: string): string {
+export function sanitizeDomain(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, "")
   } catch {
@@ -128,7 +128,11 @@ async function assertUrlSafe(input: string): Promise<void> {
   if (addrs.length === 0) throw new Error("域名无解析结果")
 }
 
-async function fetchLimited(url: string, maxBytes: number): Promise<Buffer> {
+export async function fetchLimited(
+  url: string,
+  maxBytes: number,
+  signal?: AbortSignal
+): Promise<Buffer> {
   // SSRF 防线：任何请求、任何跳转前都必须过安全校验
   const target = new URL(url)
   await assertUrlSafe(url)
@@ -138,6 +142,7 @@ async function fetchLimited(url: string, maxBytes: number): Promise<Buffer> {
   for (let hop = 0; hop < 5; hop++) {
     const res = await fetch(current, {
       redirect: "manual",
+      signal,
       headers: {
         "User-Agent": UA,
         Accept: "image/*,text/html,*/*;q=0.1",
@@ -159,7 +164,7 @@ async function fetchLimited(url: string, maxBytes: number): Promise<Buffer> {
   throw new Error("重定向次数过多")
 }
 
-function looksLikeImage(buffer: Buffer): boolean {
+export function looksLikeImage(buffer: Buffer): boolean {
   if (buffer.length < 4) return false
   // ICO
   if (buffer[0] === 0x00 && buffer[1] === 0x00 && buffer[2] === 0x01 && buffer[3] === 0x00)
@@ -223,7 +228,7 @@ export async function resolveFaviconUrl(input: string): Promise<string> {
   throw new Error("未能找到该网站可访问的图标外链")
 }
 
-function guessExt(contentType: string | undefined, url: string): string {
+export function guessExt(contentType: string | undefined, url: string): string {
   if (contentType?.includes("png")) return "png"
   if (contentType?.includes("svg")) return "svg"
   if (contentType?.includes("jpeg") || contentType?.includes("jpg")) return "jpg"

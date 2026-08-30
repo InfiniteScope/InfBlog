@@ -60,3 +60,7 @@ data/blog.db
 
 # typescript
 *.tsbuildinfo
+
+# locally cached resource icons (server-side regenerated)
+/public/uploads/resource-icons/*
+!/public/uploads/resource-icons/.gitkeep

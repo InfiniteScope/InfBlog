@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Calendar, Download, Globe, Pencil, User } from "lucide-react"
+import { ArrowLeft, Calendar, Download, Globe, Pin, User } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 
 import { auth } from "@/auth"
@@ -92,6 +92,12 @@ export default async function ResourceDetailPage({
                 <Calendar className="h-3.5 w-3.5" />
                 {new Date(resource.createdAt).toLocaleString("zh-CN")}
               </span>
+              {resource.isOwnerPost && (
+                <span className="flex items-center gap-1 text-accent">
+                  <Pin className="h-3.5 w-3.5" />
+                  {resource.author?.role === "ADMIN" ? "管理员推荐" : "站长推荐"}
+                </span>
+              )}
             </div>
           </div>
         </div>

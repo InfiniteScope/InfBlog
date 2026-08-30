@@ -22,7 +22,12 @@ import { FlowToggle } from "@/components/flow/flow-toggle"
 import { AppearanceToggle } from "@/components/theme/appearance-toggle"
 import { MusicPlayerMini } from "@/components/music/music-player-mini"
 import { WeatherWidget } from "@/components/weather/weather-widget"
-import { useAspectRatio, ASPECT_RATIO_THRESHOLD } from "@/lib/hooks/use-aspect-ratio"
+import { NavbarMore } from "@/components/layout/navbar-more"
+import {
+  useAspectRatio,
+  ASPECT_RATIO_THRESHOLD,
+  DRAWER_BREAKPOINT,
+} from "@/lib/hooks/use-aspect-ratio"
 import type { Danmaku } from "@prisma/client"
 import type { Post } from "@/lib/mdx"
 
@@ -37,7 +42,12 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
   const { status } = useSession()
   const [loginHref, setLoginHref] = useState("/login")
   const [navOpen, setNavOpen] = useState(false)
-  const { aspectRatio } = useAspectRatio()
+  const viewport = useAspectRatio()
+  const { aspectRatio } = viewport
+  // 细长屏幕（比例 + 宽度双条件，与 WeatherBar 一致）：次要功能收起进"更多"
+  const wideLayout =
+    aspectRatio >= ASPECT_RATIO_THRESHOLD ||
+    viewport.width >= DRAWER_BREAKPOINT
 
   useEffect(() => {
     const current = window.location.pathname + window.location.search
@@ -61,9 +71,12 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
                 <span className="sr-only">打开菜单</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0">
+            <SheetContent
+              side="left"
+              className="flex w-[280px] flex-col overflow-hidden p-0"
+            >
               {/* Mobile nav drawer: 顶部导航列表 */}
-              <div className="border-b border-border/60 p-4">
+              <div className="shrink-0 border-b border-border/60 p-4">
                 <p className="mb-2 font-mono text-[10px] tracking-widest text-accent">
                   // NAVIGATION
                 </p>
@@ -94,7 +107,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
                   </div>
                 )}
               </div>
-              <Sidebar danmaku={danmaku} />
+              <Sidebar danmaku={danmaku} className="min-h-0 flex-1" />
             </SheetContent>
           </Sheet>
 
@@ -140,8 +153,14 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
         {/* Right Actions */}
         <div className="flex items-center gap-1 md:flex-1 md:justify-end">
           <MusicPlayerMini />
-          <AppearanceToggle />
-          <FlowToggle />
+          {wideLayout ? (
+            <>
+              <AppearanceToggle />
+              <FlowToggle />
+            </>
+          ) : (
+            <NavbarMore />
+          )}
           <SearchCommand posts={posts} />
           <ThemeToggle />
 

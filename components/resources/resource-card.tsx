@@ -50,7 +50,7 @@ export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
         {resource.isOwnerPost && (
           <span className="flex shrink-0 items-center gap-0.5 text-accent">
             <Pin className="h-3 w-3" />
-            站长推荐
+            {resource.author?.role === "ADMIN" ? "管理员推荐" : "站长推荐"}
           </span>
         )}
         <span className="ml-auto shrink-0 text-[10px]">
