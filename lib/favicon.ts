@@ -71,6 +71,23 @@ async function readBodyLimited(res: Response, maxBytes: number): Promise<Buffer>
  * 任何一次解析命中私有段即拒绝（防 DNS rebinding 双解析差异）。
  */
 function isPrivateIp(ip: string): boolean {
+  // IPv6：回环 / 未指定 / 链路本地 / ULA / IPv4 映射 / NAT64 一律视为私有
+  if (ip.includes(":")) {
+    const low = ip.toLowerCase()
+    const mapped = low.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)
+    if (mapped) return isPrivateIp(mapped[1])
+    return (
+      low.startsWith("::") ||
+      low.startsWith("fe8") ||
+      low.startsWith("fe9") ||
+      low.startsWith("fea") ||
+      low.startsWith("feb") ||
+      low.startsWith("fc") ||
+      low.startsWith("fd") ||
+      low.startsWith("64:ff9")
+    )
+  }
+
   const parts = ip.split(".").map(Number)
   if (parts.length !== 4 || parts.some((n) => Number.isNaN(n) || n < 0 || n > 255)) {
     return true // 解析不出合法 IPv4 一律拒绝
