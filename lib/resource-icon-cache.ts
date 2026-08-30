@@ -14,7 +14,7 @@ import {
 /** 资源图标本地缓存：下载后统一缩放到 ≤400×400 存为 WebP。 */
 const MAX_DIM = 400
 const ICON_MAX_BYTES = 2 * 1024 * 1024
-const FETCH_TIMEOUT_MS = 15_000
+const FETCH_TIMEOUT_MS = 30_000
 
 export function isExternalIconUrl(url: string): boolean {
   return /^https?:\/\//i.test(url)
