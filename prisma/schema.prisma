@@ -75,6 +75,7 @@ model User {
   notifications    Notification[]
   collectibles     UserCollectible[]
   favorites        PostFavorite[]
+  postLikes        PostLike[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,14 +200,17 @@ model PostStats {
   @@map("post_stats")
 }
 
-/** 点赞去重：同一访客（IP+UA 指纹）对同一篇只计一次 */
+/** 点赞去重：登录用户按账号（userId），匿名访客回退 IP+UA 指纹 */
 model PostLike {
   id         Int      @id @default(autoincrement())
   slug       String
   visitorKey String
+  userId     String? // 登录用户点赞时记录；同账号换设备/换 IP 仍唯一
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
   @@unique([slug, visitorKey])
+  @@unique([userId, slug])
   @@index([slug])
   @@map("post_likes")
 }

@@ -1,4 +1,5 @@
 import { createRateLimiter } from "@/lib/rate-limit"
+import { auth } from "@/auth"
 import {
   likePost,
   visitorKeyFrom,
@@ -24,9 +25,10 @@ export async function GET(
 ) {
   const { slug } = await params
   const decoded = decodeURIComponent(slug)
+  const session = await auth()
   const visitorKey = visitorKeyFrom(request)
   const [liked, stats] = await Promise.all([
-    hasLiked(decoded, visitorKey),
+    hasLiked(decoded, visitorKey, session?.user?.id),
     getPostStats(decoded),
   ])
   return jsonResponse({ liked, likes: stats.likes })
@@ -38,12 +40,13 @@ export async function POST(
 ) {
   const { slug } = await params
   const decoded = decodeURIComponent(slug)
+  const session = await auth()
   const visitorKey = visitorKeyFrom(request)
 
   if (likeLimiter.limited(visitorKey)) {
     return jsonResponse({ message: "操作太频繁，稍后再试" }, 429)
   }
 
-  const result = await likePost(decoded, visitorKey)
+  const result = await likePost(decoded, visitorKey, session?.user?.id)
   return jsonResponse(result)
 }

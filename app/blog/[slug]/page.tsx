@@ -76,7 +76,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const headersList = await headers()
   const visitorKey = visitorKeyFromHeaders(headersList)
   const [initialLiked, initialFavorited] = await Promise.all([
-    hasLiked(slug, visitorKey),
+    hasLiked(slug, visitorKey, session?.user?.id),
     session?.user ? hasFavorited(slug, session.user.id) : Promise.resolve(false),
   ])
 

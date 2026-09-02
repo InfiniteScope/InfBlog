@@ -8,8 +8,8 @@ function jsonResponse(data: unknown, status = 200) {
   })
 }
 
-// 每 IP 每 60s 一次有效浏览计数（防刷新刷量）
-const viewLimiter = createRateLimiter({ windowMs: 60_000, max: 1 })
+// 每 IP 每篇 10s 一次有效浏览计数（防连点刷量，且显著降低共享IP/快速切换误伤）
+const viewLimiter = createRateLimiter({ windowMs: 10_000, max: 1 })
 
 export async function GET(
   _request: Request,
@@ -29,7 +29,7 @@ export async function POST(
   const decoded = decodeURIComponent(slug)
   const ip = clientIp(request)
 
-  // 每 IP 每篇 60s 一次（防刷）——IP+slug 组合，避免同 IP 访问不同文章时被误吞
+  // 每 IP 每篇 10s 一次（防刷）——IP+slug 组合，避免同 IP 访问不同文章时被误吞
   if (viewLimiter.limited(`${ip}:${decoded}`)) {
     const stats = await getPostStats(decoded)
     return jsonResponse(stats, 202)

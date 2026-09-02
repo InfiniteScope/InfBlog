@@ -69,17 +69,64 @@ export async function getPostStatsMap(
   return map
 }
 
-/** 点赞 / 取消点赞（toggle），返回 { likes, liked } */
+/**
+ * 点赞 / 取消点赞（toggle），返回 { likes, liked }。
+ * 登录用户（userId）按账号去重；匿名回退到 IP+UA 指纹。
+ */
 export async function likePost(
   slug: string,
-  visitorKey: string
+  visitorKey: string,
+  userId?: string | null
 ): Promise<{ likes: number; liked: boolean }> {
+  if (userId) {
+    const mine = await prisma.postLike.findUnique({
+      where: { userId_slug: { userId, slug } },
+    })
+
+    if (mine) {
+      // 已赞 → 取消
+      await prisma.$transaction([
+        prisma.postLike.delete({ where: { id: mine.id } }),
+        prisma.postStats.update({
+          where: { slug },
+          data: { likes: { decrement: 1 } },
+        }),
+      ])
+      const stats = await getPostStats(slug)
+      return { likes: Math.max(0, stats.likes), liked: false }
+    }
+
+    // 当前设备匿名赞过（旧记录）→ 升级为账号赞（计数不变，账号唯一）
+    const byVisitor = await prisma.postLike.findUnique({
+      where: { slug_visitorKey: { slug, visitorKey } },
+    })
+    if (byVisitor) {
+      await prisma.postLike.update({
+        where: { id: byVisitor.id },
+        data: { userId },
+      })
+      const stats = await getPostStats(slug)
+      return { likes: stats.likes, liked: true }
+    }
+
+    await prisma.$transaction([
+      prisma.postLike.create({ data: { slug, visitorKey, userId } }),
+      prisma.postStats.upsert({
+        where: { slug },
+        create: { slug, likes: 1 },
+        update: { likes: { increment: 1 } },
+      }),
+    ])
+    const stats = await getPostStats(slug)
+    return { likes: stats.likes, liked: true }
+  }
+
+  // 匿名：按 IP+UA 指纹 toggle
   const existing = await prisma.postLike.findUnique({
     where: { slug_visitorKey: { slug, visitorKey } },
   })
 
   if (existing) {
-    // 已赞 → 取消
     await prisma.$transaction([
       prisma.postLike.delete({ where: { id: existing.id } }),
       prisma.postStats.update({
@@ -91,7 +138,6 @@ export async function likePost(
     return { likes: Math.max(0, stats.likes), liked: false }
   }
 
-  // 未赞 → 点赞
   await prisma.$transaction([
     prisma.postLike.create({ data: { slug, visitorKey } }),
     prisma.postStats.upsert({
@@ -105,11 +151,18 @@ export async function likePost(
   return { likes: stats.likes, liked: true }
 }
 
-/** 当前访客是否已点赞 */
+/** 当前访客是否已点赞（登录优先查账号，回退指纹） */
 export async function hasLiked(
   slug: string,
-  visitorKey: string
+  visitorKey: string,
+  userId?: string | null
 ): Promise<boolean> {
+  if (userId) {
+    const mine = await prisma.postLike.findUnique({
+      where: { userId_slug: { userId, slug } },
+    })
+    if (mine) return true
+  }
   const row = await prisma.postLike.findUnique({
     where: { slug_visitorKey: { slug, visitorKey } },
   })
