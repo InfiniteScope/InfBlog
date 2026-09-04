@@ -76,6 +76,7 @@ model User {
   collectibles     UserCollectible[]
   favorites        PostFavorite[]
   postLikes        PostLike[]
+  resourceComments ResourceComment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -107,12 +108,46 @@ model Resource {
   isOwnerPost Boolean        @default(false) // true = posted by OWNER/ADMIN (pinned + no review)
   authorId    String?
   author      User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  tags        ResourceTag[]
+  comments    ResourceComment[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  @@index([status])
-  @@index([createdAt])
   @@map("resources")
+}
+
+/** 资源标签（可复用，展示/筛选用） */
+model Tag {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  resources ResourceTag[]
+
+  @@map("tags")
+}
+
+/** 资源-标签 关联 */
+model ResourceTag {
+  resourceId String
+  tagId      String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, tagId])
+  @@map("resource_tags")
+}
+
+/** 资源评论区：仅登录用户可发布 */
+model ResourceComment {
+  id         String   @id @default(cuid())
+  resourceId String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String
+  createdAt  DateTime @default(now())
+
+  @@index([resourceId])
+  @@map("resource_comments")
 }
 
 model Notification {

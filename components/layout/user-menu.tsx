@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, BookMarked, Bookmark, LogOut, Settings, Trophy, User } from "lucide-react"
+import { Bell, BookMarked, Bookmark, Box, LogOut, Settings, Trophy, User } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -114,6 +114,12 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
           >
             <Bookmark className="mr-2 h-4 w-4" />
             我的收藏
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/resources/mine" className="cursor-pointer">
+              <Box className="mr-2 h-4 w-4" />
+              资源管理
+            </Link>
           </DropdownMenuItem>
           {collectibles.length > 0 && (
             <DropdownMenuItem

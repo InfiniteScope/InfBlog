@@ -1,13 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { Download, Pin } from "lucide-react"
+import { Download, Globe, Pin } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { ResourceWithAuthor } from "@/lib/resources-types"
 
 export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
   const authorLabel = resource.author?.nickname || resource.author?.name || "匿名"
+  const homepageUrl = resource.homepageUrl || undefined
 
   return (
     <Link
@@ -30,9 +31,34 @@ export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-lg tracking-tight group-hover:text-primary">
-            {resource.name}
-          </h3>
+          <div className="flex min-w-0 items-center gap-1">
+            <h3 className="truncate font-display text-lg tracking-tight group-hover:text-primary">
+              {resource.name}
+            </h3>
+            {homepageUrl && (
+              <span
+                role="link"
+                tabIndex={0}
+                aria-label={`访问 ${resource.name} 官网`}
+                title="访问官网"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  window.open(homepageUrl, "_blank", "noopener,noreferrer")
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    window.open(homepageUrl, "_blank", "noopener,noreferrer")
+                  }
+                }}
+                className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent/10 hover:text-accent"
+              >
+                <Globe className="h-4 w-4" />
+              </span>
+            )}
+          </div>
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
             {resource.summary || resource.description}
           </p>
@@ -51,6 +77,23 @@ export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
           <span className="flex shrink-0 items-center gap-0.5 text-accent">
             <Pin className="h-3 w-3" />
             {resource.author?.role === "ADMIN" ? "管理员推荐" : "站长推荐"}
+          </span>
+        )}
+        {resource.tags.length > 0 && (
+          <span className="hidden min-w-0 flex-wrap items-center gap-1 sm:flex">
+            {resource.tags.slice(0, 2).map((t) => (
+              <span
+                key={t.tag.name}
+                className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none"
+              >
+                #{t.tag.name}
+              </span>
+            ))}
+            {resource.tags.length > 2 && (
+              <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none">
+                +{resource.tags.length - 2}
+              </span>
+            )}
           </span>
         )}
         <span className="ml-auto shrink-0 text-[10px]">

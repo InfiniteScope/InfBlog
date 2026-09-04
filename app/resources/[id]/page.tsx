@@ -4,11 +4,16 @@ import { ArrowLeft, Calendar, Download, Globe, Pin, User } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 
 import { auth } from "@/auth"
-import { getResourceById } from "@/lib/resources"
+import {
+  getAllResourceTags,
+  getResourceById,
+  getResourceComments,
+} from "@/lib/resources"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ResourceForm } from "@/components/resources/resource-form"
 import { DeleteResourceButton } from "@/components/resources/delete-resource-button"
+import { ResourceComments } from "@/components/resources/resource-comments"
 
 export const metadata = {
   title: "资源详情 | InfBlog",
@@ -20,7 +25,12 @@ export default async function ResourceDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [resource, session] = await Promise.all([getResourceById(id), auth()])
+  const [resource, session, allTags, comments] = await Promise.all([
+    getResourceById(id),
+    auth(),
+    getAllResourceTags(),
+    getResourceComments(id),
+  ])
 
   if (!resource || resource.status !== "APPROVED") {
     notFound()
@@ -73,6 +83,8 @@ export default async function ResourceDetailPage({
                     initialIcon={resource.icon ?? ""}
                     initialHomepageUrl={resource.homepageUrl ?? ""}
                     initialDownloadUrl={resource.downloadUrl}
+                    initialTags={resource.tags.map((t) => t.tag.name)}
+                    allTags={allTags}
                   />
                   <DeleteResourceButton resourceId={resource.id} />
                 </div>
@@ -99,6 +111,18 @@ export default async function ResourceDetailPage({
                 </span>
               )}
             </div>
+            {resource.tags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {resource.tags.map((t) => (
+                  <span
+                    key={t.tag.name}
+                    className="rounded bg-muted px-2 py-0.5 text-[10px] text-muted-foreground"
+                  >
+                    #{t.tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -133,6 +157,20 @@ export default async function ResourceDetailPage({
             <ReactMarkdown>{resource.description}</ReactMarkdown>
           </div>
         </div>
+
+        <ResourceComments
+          resourceId={resource.id}
+          initialComments={comments.map((c) => ({
+            id: c.id,
+            content: c.content,
+            createdAt: c.createdAt.toISOString(),
+            user: {
+              nickname: c.user.nickname,
+              name: c.user.name,
+              image: c.user.image,
+            },
+          }))}
+        />
       </div>
     </div>
   )

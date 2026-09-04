@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
-import { ImageIcon, Loader2, Plus, Sparkles } from "lucide-react"
+import { ImageIcon, Loader2, Plus, Sparkles, Tag as TagIcon, X } from "lucide-react"
 
 import {
   submitResource,
@@ -32,6 +32,9 @@ interface ResourceFormProps {
   initialIcon?: string
   initialHomepageUrl?: string
   initialDownloadUrl?: string
+  initialTags?: string[]
+  /** 供选择的已有标签 */
+  allTags: string[]
 }
 
 export function ResourceForm({
@@ -43,6 +46,8 @@ export function ResourceForm({
   initialIcon = "",
   initialHomepageUrl = "",
   initialDownloadUrl = "",
+  initialTags = [],
+  allTags,
 }: ResourceFormProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(initialName)
@@ -51,8 +56,10 @@ export function ResourceForm({
   const [homepageUrl, setHomepageUrl] = useState(initialHomepageUrl)
   const [description, setDescription] = useState(initialDescription)
   const [downloadUrl, setDownloadUrl] = useState(initialDownloadUrl)
-  const [fetchingIcon, setFetchingIcon] = useState(false)
-  const [iconError, setIconError] = useState<string | null>(null)
+  const [fetchingMeta, setFetchingMeta] = useState(false)
+  const [metaError, setMetaError] = useState<string | null>(null)
+  const [tags, setTags] = useState<string[]>(initialTags)
+  const [newTag, setNewTag] = useState("")
 
   const action =
     mode === "create"
@@ -76,39 +83,58 @@ export function ResourceForm({
         setHomepageUrl("")
         setDescription("")
         setDownloadUrl("")
+        setTags([])
+        setNewTag("")
       }
-      setIconError(null)
+      setMetaError(null)
     }
   }, [state, mode])
+
+  const addTag = (raw: string) => {
+    const name = raw.trim().slice(0, 12)
+    if (!name) return
+    if (tags.includes(name) || tags.length >= 5) return
+    setTags((prev) => [...prev, name])
+    setNewTag("")
+  }
+
+  const removeTag = (name: string) => {
+    setTags((prev) => prev.filter((t) => t !== name))
+  }
 
   const errorMessage = (field: string) =>
     state?.success === false ? state.errors?.[field as keyof typeof state.errors]?.[0] : null
 
-  async function handleAutoFetchIcon() {
+  /** 抓取官网信息：图标 + 标题 + 简介 */
+  async function handleAutoFetchMeta() {
     if (!homepageUrl.trim()) {
-      setIconError("请先填写官网链接")
+      setMetaError("请先填写官网链接")
       return
     }
-    setFetchingIcon(true)
-    setIconError(null)
+    setFetchingMeta(true)
+    setMetaError(null)
     try {
-      const res = await fetch("/api/resources/icon", {
+      const res = await fetch("/api/resources/meta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: homepageUrl.trim() }),
       })
       const result = (await res.json()) as
-        | { success: true; url: string }
+        | { success: true; icon?: string; title?: string; description?: string }
         | { success: false; message: string }
       if (result.success) {
-        setIcon(result.url)
+        if (result.icon) setIcon(result.icon)
+        if (result.title && !name.trim()) setName(result.title.slice(0, 100))
+        if (result.description && !summary.trim()) {
+          setSummary(result.description.replace(/\s+/g, " ").slice(0, 30))
+        }
       } else {
-        setIconError(result.message)
+        setMetaError(result.message)
       }
     } catch {
-      setIconError("网络错误，请重试或手动填写图标链接")
+      setMetaError("网络错误，请重试或手动填写")
     } finally {
-      setFetchingIcon(false)
+      setFetchingMeta(false)
     }
   }
 
@@ -137,6 +163,7 @@ export function ResourceForm({
         </DialogHeader>
 
         <form action={formAction} className="space-y-4 pt-2">
+          <input type="hidden" name="tags" value={tags.join(",")} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="name">名称</Label>
@@ -163,30 +190,76 @@ export function ResourceForm({
                   value={icon}
                   onChange={(e) => setIcon(e.target.value)}
                   placeholder="https://... 或点击自动获取"
-                  className={cn(iconError && "border-destructive")}
+                  className={cn(metaError && "border-destructive")}
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  disabled={fetchingIcon || !homepageUrl.trim()}
-                  onClick={handleAutoFetchIcon}
-                  title="根据官网链接自动获取图标"
+                  disabled={fetchingMeta || !homepageUrl.trim()}
+                  onClick={handleAutoFetchMeta}
+                  title="根据官网链接自动获取图标、标题、简介"
                 >
-                  {fetchingIcon ? (
+                  {fetchingMeta ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Sparkles className="h-4 w-4" />
                   )}
                 </Button>
               </div>
-              {iconError ? (
-                <p className="text-xs text-destructive">{iconError}</p>
+              {metaError ? (
+                <p className="text-xs text-destructive">{metaError}</p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  留空则使用默认图标；图标将按 1:1 展示
+                  点击 ✨ 按钮可自动获取官网图标、标题与简介；图标将按 1:1 展示
                 </p>
               )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tag-input">
+              标签
+              <span className="ml-1 font-normal text-muted-foreground">
+                （最多 5 个，可点选已有或用逗号/回车添加）
+              </span>
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {Array.from(new Set([...tags, ...allTags])).map((t) => {
+                const selected = tags.includes(t)
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => (selected ? removeTag(t) : addTag(t))}
+                    className={cn(
+                      "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                      selected
+                        ? "border-accent bg-accent/15 text-accent"
+                        : "border-border bg-muted/40 text-muted-foreground hover:border-accent/50"
+                    )}
+                  >
+                    <TagIcon className="h-3 w-3" />
+                    {t}
+                    {selected && <X className="h-3 w-3" />}
+                  </button>
+                )
+              })}
+              <input
+                id="tag-input"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") {
+                    e.preventDefault()
+                    addTag(newTag)
+                  }
+                }}
+                onBlur={() => newTag.trim() && addTag(newTag)}
+                placeholder="输入新标签..."
+                className="h-7 w-[7rem] rounded-full border border-border bg-muted/40 px-3 text-xs outline-none placeholder:text-muted-foreground/50 focus:border-accent/60"
+                maxLength={12}
+              />
             </div>
           </div>
 
