@@ -477,7 +477,7 @@ body {
 }
 
 .v2-pill-accent {
-  border-color: hsl(var(--accent) / 0.4);
+  border-color: hsl(var(--accent) / 0.3);
   color: hsl(var(--foreground));
 }
 
@@ -697,6 +697,98 @@ input[type="range"].music-slider::-moz-range-thumb {
   background: hsl(var(--accent));
   border: 2px solid hsl(var(--background));
   box-shadow: 0 0 0 2px hsl(var(--accent) / 0.3);
+}
+
+/* ==========================================================================
+   v2 线性信息流扩展：幽灵序号 / 幽灵字 / 数据仪表带 / 横向滚动带
+   ========================================================================== */
+
+/* 文章行的巨大幽灵序号：默认极淡，hover 时染青并微移 */
+.v2-ghost-num {
+  font-family: var(--font-mono);
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1;
+  color: hsl(var(--foreground) / 0.07);
+  user-select: none;
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .v2-ghost-num {
+    color: hsl(var(--accent) / 0.6);
+    transform: translateX(3px);
+  }
+}
+
+/* hero 幽灵底纹字（描边空心，叠于标题之后） */
+.v2-ghost-word {
+  position: absolute;
+  left: -2rem;
+  bottom: -3.5rem;
+  z-index: -1;
+  font-family: var(--font-display);
+  font-size: 12rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px hsl(var(--foreground) / 0.1);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* 数据仪表带：1px gap 网格形成均匀发丝线，单元格实底压断蓝图网格 */
+.v2-data-strip {
+  display: grid;
+  gap: 1px;
+  background: hsl(var(--border) / 0.55);
+  border-top: 1px solid hsl(var(--border) / 0.55);
+  border-bottom: 1px solid hsl(var(--border) / 0.55);
+}
+
+.v2-data-cell {
+  background: hsl(var(--background));
+  padding: 1.25rem 1rem;
+}
+
+.legacy-ui .v2-data-strip {
+  gap: 0.5rem;
+  background: transparent;
+  border-top: none;
+  border-bottom: none;
+}
+
+.legacy-ui .v2-data-cell {
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 4px);
+  background: hsl(var(--card) / 0.5);
+  padding: 0.75rem;
+}
+
+/* 横向滚动带：snap + 隐藏滚动条 + 右侧渐隐（暗示"还有更多"） */
+.v2-strip {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 0.5rem;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+}
+
+.v2-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.v2-strip > * {
+  scroll-snap-align: start;
 }
 
 @media (prefers-reduced-motion: reduce) {

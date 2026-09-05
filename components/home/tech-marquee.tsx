@@ -14,11 +14,11 @@ interface TechMarqueeProps {
 export function TechMarquee({ items, className }: TechMarqueeProps) {
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)}>
-      {/* 斜向带：整体旋转，铺满底部区域 */}
+      {/* 斜向带：整体旋转，铺满底部区域；仅中间一排用 accent 变体（克制） */}
       <div className="absolute inset-x-[-30%] top-6 -rotate-[8deg] space-y-3">
-        <MarqueeRow items={items} direction="left" accent index={0} />
-        <MarqueeRow items={items} direction="right" index={1} />
-        <MarqueeRow items={items} direction="left" accent index={2} offset />
+        <MarqueeRow items={items} direction="left" index={0} />
+        <MarqueeRow items={items} direction="right" accent index={1} />
+        <MarqueeRow items={items} direction="left" index={2} offset />
       </div>
     </div>
   )
@@ -54,7 +54,7 @@ function MarqueeRow({
           <span
             key={`${direction}-${i}`}
             className={cn(
-              "v2-pill flex items-center gap-2 whitespace-nowrap px-5 py-2 text-base font-medium",
+              "v2-pill flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm font-medium",
               accent && "v2-pill-accent"
             )}
           >
