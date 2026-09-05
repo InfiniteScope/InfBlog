@@ -45,9 +45,13 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`871a7a3` feat(resources)：tags+搜索、登录评论、资源管理页、meta 自动抓取、官网按钮 —— 已部署上线并验证。
-- **本地未提交改动（首页信息收纳第一弹，未部署）**：① 顶栏滚动自动收起/展开（`components/layout/navbar-visibility-provider.tsx`，向下 72px 收、向上 32px 放、顶部 64px 恒显，收起时顶部悬浮"展开导航"按钮，WeatherBar 同步收起）；② 侧栏 TOOLS/FRIENDS 超 3 个折叠（`collapsible-link-list.tsx`），关于页底部新增友情链接区；③ SITE_VIEWS 缩小为 STATS 同款卡片并移入首页右列（播放器下方）。typecheck/build 已过。
-- 此前：`7b817d9` 点赞跨设备去重 + 浏览量限流 10s；`125c929` 腾讯云式备案 footer（川公网安备51011202001443号 + gongan.png）。
+- 最新 commit：`a38e378` feat(ui)：v2「Terminal Blueprint」重设计 —— **已推送 GitHub，未部署服务器**（等用户本地验收对比后再说）。
+  - 中性灰阶 + 科技青（#06b6d4 系），按钮单色化；旧「Moss & Sand」配色完整保留在 `.legacy-ui` 作用域。
+  - 语义类：`v2-card`（发丝线卡）、`v2-row`/`v2-list`（文章分行）、`v2-panel`（侧栏无盒分区）、`v2-heading`（编号标题，`components/ui/section-heading.tsx`）、`v2-tag`/`v2-pill`、`.v2-only`（仅新版显示的装饰）、`.v2-grid`（蓝图网格，legacy/flow 隐藏）。`.legacy-ui` 下全部退化为旧盒式。
+  - 旧版开关：`components/layout/ui-version-toggle.tsx`（右下 BackToTop 左侧），localStorage `infblog-ui=legacy`，支持 `?ui=legacy` / `?ui=v2` URL 覆盖；layout.tsx 内联脚本防闪烁。
+  - 首页文章 10→6 篇；文章卡元数据改等宽 ` / ` 分隔纯文本；marquee 药丸中性化；hero 标题升至 7xl。
+  - 验收：typecheck/build 过；headless Chrome 截图核对新旧两版亮色主题（暗色未截图验证，需人工看一眼）。
+- 此前：`098bc72` 顶栏滚动收起、侧栏链接折叠、SITE_VIEWS 入右列（已部署）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
