@@ -45,13 +45,12 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`a38e378` feat(ui)：v2「Terminal Blueprint」重设计 —— **已推送 GitHub，未部署服务器**（等用户本地验收对比后再说）。
-  - 中性灰阶 + 科技青（#06b6d4 系），按钮单色化；旧「Moss & Sand」配色完整保留在 `.legacy-ui` 作用域。
-  - 语义类：`v2-card`（发丝线卡）、`v2-row`/`v2-list`（文章分行）、`v2-panel`（侧栏无盒分区）、`v2-heading`（编号标题，`components/ui/section-heading.tsx`）、`v2-tag`/`v2-pill`、`.v2-only`（仅新版显示的装饰）、`.v2-grid`（蓝图网格，legacy/flow 隐藏）。`.legacy-ui` 下全部退化为旧盒式。
-  - 旧版开关：`components/layout/ui-version-toggle.tsx`（右下 BackToTop 左侧），localStorage `infblog-ui=legacy`，支持 `?ui=legacy` / `?ui=v2` URL 覆盖；layout.tsx 内联脚本防闪烁。
-  - 首页文章 10→6 篇；文章卡元数据改等宽 ` / ` 分隔纯文本；marquee 药丸中性化；hero 标题升至 7xl。
-  - 验收：typecheck/build 过；headless Chrome 截图核对新旧两版亮色主题（暗色未截图验证，需人工看一眼）。
-- 此前：`098bc72` 顶栏滚动收起、侧栏链接折叠、SITE_VIEWS 入右列（已部署）。
+- 最新 commit：`a46fca1` feat(home)：线性信息流重构 —— **已推送 GitHub，未部署服务器**（用户本地验收中）。
+  - 首页从"双栏塞满"改为单列编辑流：HERO（标题+播放器+幽灵 ∞ 底纹）→ 斜向 TECH marquee 全宽纹理带 → 01 文章（FEATURED 大图卡 + 幽灵序号发丝行 ×5）→ 02 SITE_DATA 数据仪表带（合并原 SITE_VIEWS+STATS，1px-gap 网格，`data-strip.tsx`）→ 03 LATEST_UPDATES 横向 scroll-snap 带（`updates-strip.tsx`，右缘渐隐）→ 04 RECENT_PROJECTS → 05 TAGS 不规则延迟飘落（`tags-flow.tsx`）。
+  - 新增运动原语 `components/motion/reveal.tsx`（rise/wipe 两变体，reduced-motion 降级，transform 全字符串写法）；每个信息带动效签名不同。
+  - 已删除旧组件：views-card / stats-widget / tags-widget / skill-showcase / timeline-widget（NumberTicker 移入 data-strip）。
+  - marquee 仅中间排 accent、药丸缩为小号；FEATURED 无封面时单列通栏。
+- 此前：`a38e378` v2「Terminal Blueprint」设计系统（中性色、发丝线语义类、legacy 开关）；`098bc72` 顶栏滚动收起等（已部署）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
