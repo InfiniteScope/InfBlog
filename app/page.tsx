@@ -28,30 +28,23 @@ export default async function HomePage() {
     <div className="mx-auto max-w-7xl">
       {/* 2 列栅格：
           第 1 行：左=hero(标题+技能)，右=音乐播放器
-          第 2 行左：最新文章；第 2 行右：右侧 widgets（紧跟播放器下方）。
-          right column (播放器+widgets) 用 flex-col,Latest Updates 独立对齐 SITE_VIEWS 顶部 */}
+          第 2 行左：最新文章；第 2 行右：widgets（SITE_VIEWS 紧跟播放器，其后 Updates/Tags/Stats） */}
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
-        {/* Left column: hero + views */}
-        <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
-          {/* Hero: title left, skill showcase right.
-              上/下边缘与音乐播放器（h-56）对齐；标题行 items-start 与 WELCOME 平齐 */}
-          <div className="grid items-start gap-6 md:h-[224px] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-            <section className="flex flex-col justify-center space-y-4">
-              <TypedHeading />
-              <h1 className="font-display text-3xl tracking-tight md:text-5xl lg:text-5xl">
-                {siteConfig.name}
-              </h1>
-              <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                {siteConfig.description}
-              </p>
-            </section>
+        {/* Hero: title left, skill showcase right.
+            上/下边缘与音乐播放器（h-56）对齐；标题行 items-start 与 WELCOME 平齐 */}
+        <div className="grid items-start gap-6 md:h-[224px] lg:col-start-1 lg:row-start-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+          <section className="flex flex-col justify-center space-y-4">
+            <TypedHeading />
+            <h1 className="font-display text-3xl tracking-tight md:text-5xl lg:text-5xl">
+              {siteConfig.name}
+            </h1>
+            <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              {siteConfig.description}
+            </p>
+          </section>
 
-            {/* GitHub projects + tech stack showcase */}
-            <SkillShowcase />
-          </div>
-
-          {/* Site views */}
-          <ViewsCard />
+          {/* GitHub projects + tech stack showcase */}
+          <SkillShowcase />
         </div>
 
         {/* Latest Posts（第2行左列） */}
@@ -138,6 +131,7 @@ export default async function HomePage() {
         {/* Right column: music player + widgets packed（第1行右→第2行右连续） */}
         <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1 lg:row-span-2">
           <MusicPlayerExpanded />
+          <ViewsCard />
           <TimelineWidget updates={latestUpdates} />
           <TagsWidget posts={posts} />
           <StatsWidget posts={posts} updates={updates} />

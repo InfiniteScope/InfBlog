@@ -73,23 +73,23 @@ export function ViewsCard() {
         // SITE_VIEWS
       </h3>
       <div className="grid min-w-0 grid-cols-3 gap-2">
-        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-2.5 transition-colors hover:border-accent/40">
+        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40">
           <Eye className="mb-1.5 h-3.5 w-3.5 text-accent" />
-          <p className="truncate font-mono text-base font-medium leading-none tabular-nums">
+          <p className="truncate font-mono text-lg font-medium leading-none tabular-nums">
             {stats ? <NumberTicker value={stats.total} /> : <LoadingDots />}
           </p>
           <p className="mt-1 text-[10px] text-muted-foreground">总浏览量</p>
         </div>
-        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-2.5 transition-colors hover:border-accent/40">
+        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40">
           <TrendingUp className="mb-1.5 h-3.5 w-3.5 text-accent" />
-          <p className="truncate font-mono text-base font-medium leading-none tabular-nums">
+          <p className="truncate font-mono text-lg font-medium leading-none tabular-nums">
             {stats ? <NumberTicker value={stats.week} /> : <LoadingDots />}
           </p>
           <p className="mt-1 text-[10px] text-muted-foreground">近 7 日</p>
         </div>
-        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-2.5 transition-colors hover:border-accent/40">
+        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40">
           <Sun className="mb-1.5 h-3.5 w-3.5 text-accent" />
-          <p className="truncate font-mono text-base font-medium leading-none tabular-nums">
+          <p className="truncate font-mono text-lg font-medium leading-none tabular-nums">
             {stats ? <NumberTicker value={stats.today} /> : <LoadingDots />}
           </p>
           <p className="mt-1 text-[10px] text-muted-foreground">今日</p>

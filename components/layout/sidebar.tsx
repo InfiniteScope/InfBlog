@@ -16,6 +16,7 @@ import { useSidebarCollapse } from "@/components/layout/sidebar-collapse-provide
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ChillButton } from "@/components/layout/chill-button"
+import { CollapsibleLinkList } from "@/components/layout/collapsible-link-list"
 import { ShatterAvatar } from "@/components/collectibles/shatter-avatar"
 import { DanmakuList } from "@/components/danmaku/danmaku-list"
 import { DanmakuForm } from "@/components/danmaku/danmaku-form"
@@ -185,48 +186,12 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
           <div className="space-y-3">
             <div>
               <p className="mb-2 font-mono text-xs text-accent">TOOLS - 实用网站</p>
-              <div className="flex flex-wrap gap-2">
-                {siteConfig.links.tools.map((link) => (
-                  <Button
-                    key={link.name}
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    asChild
-                  >
-                    <Link
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {link.name}
-                    </Link>
-                  </Button>
-                ))}
-              </div>
+              <CollapsibleLinkList links={siteConfig.links.tools} />
             </div>
             <Separator />
             <div>
               <p className="mb-2 font-mono text-xs text-accent">FRIENDS - 友情链接</p>
-              <div className="flex flex-wrap gap-2">
-                {siteConfig.links.friends.map((link) => (
-                  <Button
-                    key={link.name}
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    asChild
-                  >
-                    <Link
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {link.name}
-                    </Link>
-                  </Button>
-                ))}
-              </div>
+              <CollapsibleLinkList links={siteConfig.links.friends} />
             </div>
           </div>
         </div>

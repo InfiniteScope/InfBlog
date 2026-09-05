@@ -11,6 +11,10 @@ import { MusicProvider } from "@/components/music/music-provider"
 import { MusicCollapseController } from "@/components/music/music-collapse-controller"
 import { MusicPlayerOverlay } from "@/components/music/music-player-overlay"
 import { WeatherBar } from "@/components/weather/weather-bar"
+import {
+  NavbarExpandButton,
+  NavbarVisibilityProvider,
+} from "@/components/layout/navbar-visibility-provider"
 import { FlowProvider } from "@/components/flow/flow-provider"
 
 interface ShellProps {
@@ -29,8 +33,11 @@ export async function Shell({ children }: ShellProps) {
       <SidebarCollapseProvider sidebar={<Sidebar danmaku={danmaku} />}>
         <FlowProvider>
           <MusicCollapseController />
-          <WeatherBar />
-          <Navbar danmaku={danmaku} posts={posts} unreadCount={unreadCount} />
+          <NavbarVisibilityProvider>
+            <WeatherBar />
+            <NavbarExpandButton />
+            <Navbar danmaku={danmaku} posts={posts} unreadCount={unreadCount} />
+          </NavbarVisibilityProvider>
           <MusicPlayerOverlay />
           <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
             <PageTransition>{children}</PageTransition>

@@ -1,3 +1,5 @@
+import { ExternalLink } from "lucide-react"
+
 import { siteConfig } from "@/lib/config"
 
 export const metadata = {
@@ -41,6 +43,24 @@ export default function AboutPage() {
             <span className="text-muted-foreground">{siteConfig.location}</span>
           </li>
         </ul>
+      </section>
+
+      <section className="space-y-4 rounded-xl border border-border bg-card/50 p-6">
+        <h2 className="font-display text-2xl tracking-tight">友情链接</h2>
+        <div className="flex flex-wrap gap-3">
+          {siteConfig.links.friends.map((friend) => (
+            <a
+              key={friend.name}
+              href={friend.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-2 rounded-lg border border-border bg-background/50 px-4 py-2.5 text-sm transition-colors hover:border-accent/50 hover:bg-accent/10"
+            >
+              {friend.name}
+              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-accent" />
+            </a>
+          ))}
+        </div>
       </section>
     </div>
   )

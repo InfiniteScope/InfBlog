@@ -46,6 +46,7 @@
 ## 当前状态（2026-09-05）
 
 - 最新 commit：`871a7a3` feat(resources)：tags+搜索、登录评论、资源管理页、meta 自动抓取、官网按钮 —— 已部署上线并验证。
+- **本地未提交改动（首页信息收纳第一弹，未部署）**：① 顶栏滚动自动收起/展开（`components/layout/navbar-visibility-provider.tsx`，向下 72px 收、向上 32px 放、顶部 64px 恒显，收起时顶部悬浮"展开导航"按钮，WeatherBar 同步收起）；② 侧栏 TOOLS/FRIENDS 超 3 个折叠（`collapsible-link-list.tsx`），关于页底部新增友情链接区；③ SITE_VIEWS 缩小为 STATS 同款卡片并移入首页右列（播放器下方）。typecheck/build 已过。
 - 此前：`7b817d9` 点赞跨设备去重 + 浏览量限流 10s；`125c929` 腾讯云式备案 footer（川公网安备51011202001443号 + gongan.png）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
