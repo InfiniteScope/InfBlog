@@ -45,12 +45,12 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`a46fca1` feat(home)：线性信息流重构 —— **已推送 GitHub，未部署服务器**（用户本地验收中）。
-  - 首页从"双栏塞满"改为单列编辑流：HERO（标题+播放器+幽灵 ∞ 底纹）→ 斜向 TECH marquee 全宽纹理带 → 01 文章（FEATURED 大图卡 + 幽灵序号发丝行 ×5）→ 02 SITE_DATA 数据仪表带（合并原 SITE_VIEWS+STATS，1px-gap 网格，`data-strip.tsx`）→ 03 LATEST_UPDATES 横向 scroll-snap 带（`updates-strip.tsx`，右缘渐隐）→ 04 RECENT_PROJECTS → 05 TAGS 不规则延迟飘落（`tags-flow.tsx`）。
-  - 新增运动原语 `components/motion/reveal.tsx`（rise/wipe 两变体，reduced-motion 降级，transform 全字符串写法）；每个信息带动效签名不同。
-  - 已删除旧组件：views-card / stats-widget / tags-widget / skill-showcase / timeline-widget（NumberTicker 移入 data-strip）。
-  - marquee 仅中间排 accent、药丸缩为小号；FEATURED 无封面时单列通栏。
-- 此前：`a38e378` v2「Terminal Blueprint」设计系统（中性色、发丝线语义类、legacy 开关）；`098bc72` 顶栏滚动收起等（已部署）。
+- 最新 commit：`dcdc6d4` feat(home)：「月之暗面 / FAR SIDE」门户彻底重写 —— **已推送 GitHub，未部署服务器**（用户本地验收中）。
+  - 概念：InfBlog = Infinite/探索/月之暗面。HERO 全高（cap 52rem）：纯 CSS 月盘（`.v2-moon`，晨昏线 ::after 180s 旋转模拟月相，reduced-motion 静止）、超宽屏左缘竖排诗行「向月之暗面致意」、`INF = INFINITE · 求索 · 探索 · 致意遥不可及` 铭文、播放器改名 `// EARTH_RADIO`。
+  - 分带任务语言：01 TRANSMISSIONS 信号（文章，FEATURED 卡 + 幽灵序号行 + `ROW_INDENTS` 不规律缩进）、02 TELEMETRY 遥测、03 MISSION_LOG 任务日志（横向）、04 PROBES 探测器、05 FREQUENCIES 频段；页尾 END OF TRANSMISSION 收束行。
+  - 暗色模式下 `.dark .v2-grid` 由蓝图网格变为星野（radial-gradient 星点，含 1 颗青色 accent 星）。
+  - legacy 补充：`.legacy-ui .v2-ghost-num` 隐藏。
+- 此前：`a46fca1` 线性信息流重构（新组件 Reveal/DataStrip/UpdatesStrip/TagsFlow，删 5 个旧 widget）；`a38e378` v2 设计系统（语义类 + legacy 开关）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
