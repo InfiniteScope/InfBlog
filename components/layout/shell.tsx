@@ -6,7 +6,6 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { Navbar } from "@/components/layout/navbar"
 import { SidebarCollapseProvider } from "@/components/layout/sidebar-collapse-provider"
 import { BackToTop } from "@/components/layout/back-to-top"
-import { UiVersionToggle } from "@/components/layout/ui-version-toggle"
 import { PageTransition } from "@/components/motion/page-transition"
 import { MusicProvider } from "@/components/music/music-provider"
 import { MusicCollapseController } from "@/components/music/music-collapse-controller"
@@ -77,7 +76,6 @@ export async function Shell({ children }: ShellProps) {
             </footer>
           </main>
           <BackToTop />
-          <UiVersionToggle />
         </FlowProvider>
       </SidebarCollapseProvider>
     </MusicProvider>

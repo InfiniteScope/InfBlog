@@ -5,10 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ==========================================================================
-   v2 默认主题：「Terminal Blueprint」
-   中性灰阶 + 科技青点缀，对齐 PROJECT.md §3.2 的未来工业风方向。
-   旧版「Moss & Sand」配色完整保留在下方 .legacy-ui 作用域内，
-   由左下角 UI 版本开关（localStorage: infblog-ui=legacy）切换。
+   UI 主题「探索 / FAR SIDE」：「Terminal Blueprint」中性灰阶 + 科技青点缀，
+   对齐 PROJECT.md §3.2 的未来工业风方向。
+   经典主题（默认，html.ui-classic）= 原「Moss & Sand」配色 + 盒式外观，
+   完整保留在下方 .ui-classic 作用域内；切换入口在右上角「外观设置」，
+   localStorage: infblog-ui=explore 即探索主题。
    ========================================================================== */
 
 :root {
@@ -112,12 +113,12 @@
 }
 
 /* ==========================================================================
-   Legacy 主题（旧版界面）：完整保留原「Moss & Sand / Forest Night」配色。
-   特异性说明：:root/.dark/.flow 均为 (0,1,0)~（0,2,0)，.legacy-ui 系列
-   选择器同优先级或更高且书写在后，故 html.legacy-ui[.dark][.flow] 全部覆盖。
+   经典主题（默认）：完整保留原「Moss & Sand / Forest Night」配色。
+   特异性说明：:root/.dark/.flow 均为 (0,1,0)~（0,2,0)，.ui-classic 系列
+   选择器同优先级或更高且书写在后，故 html.ui-classic[.dark][.flow] 全部覆盖。
    ========================================================================== */
 
-.legacy-ui {
+.ui-classic {
   --radius: 0.625rem;
 
   --background: 48 24% 96%;
@@ -141,7 +142,7 @@
   --ring: 155 42% 26%;
 }
 
-.legacy-ui.dark {
+.ui-classic.dark {
   --background: 160 14% 8%;
   --foreground: 80 14% 88%;
   --card: 160 12% 11%;
@@ -163,7 +164,7 @@
   --ring: 140 30% 52%;
 }
 
-.legacy-ui.flow {
+.ui-classic.flow {
   --background: 45 30% 94%;
   --foreground: 150 12% 22%;
   --card: 45 26% 96%;
@@ -185,7 +186,7 @@
   --ring: 155 30% 32%;
 }
 
-.legacy-ui.dark.flow {
+.ui-classic.dark.flow {
   --background: 160 10% 10%;
   --foreground: 80 10% 82%;
   --card: 160 9% 13%;
@@ -299,11 +300,11 @@ body {
 
 /* ==========================================================================
    v2 语义层：发丝线表面 / 区块编号标题 / 蓝图网格 / 十字标记。
-   .legacy-ui 下全部退化为旧版盒式外观。
+   .ui-classic 下全部退化为旧版盒式外观。
    ========================================================================== */
 
 /* 仅在 v2 显示的装饰元素 */
-.legacy-ui .v2-only {
+.ui-classic .v2-only {
   display: none !important;
 }
 
@@ -324,14 +325,14 @@ body {
   }
 }
 
-.legacy-ui .v2-card {
+.ui-classic .v2-card {
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) + 4px);
   background: hsl(var(--card) / 0.5);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .legacy-ui .v2-card:hover {
+  .ui-classic .v2-card:hover {
     border-color: hsl(var(--accent) / 0.4);
     background: hsl(var(--card) / 0.5);
   }
@@ -342,7 +343,7 @@ body {
   border-top: 1px solid hsl(var(--border) / 0.6);
 }
 
-.legacy-ui .v2-list {
+.ui-classic .v2-list {
   display: grid;
   gap: 1rem;
   border-top: none;
@@ -359,7 +360,7 @@ body {
   }
 }
 
-.legacy-ui .v2-row {
+.ui-classic .v2-row {
   overflow: hidden;
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) + 4px);
@@ -367,7 +368,7 @@ body {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .legacy-ui .v2-row:hover {
+  .ui-classic .v2-row:hover {
     background-color: hsl(var(--card));
   }
 }
@@ -395,7 +396,7 @@ body {
   background: hsl(var(--border) / 0.6);
 }
 
-.legacy-ui .v2-heading {
+.ui-classic .v2-heading {
   font-family: var(--font-display);
   font-size: 0.875rem;
   font-weight: 400;
@@ -403,8 +404,8 @@ body {
   text-transform: none;
 }
 
-.legacy-ui .v2-heading-index,
-.legacy-ui .v2-heading-rule {
+.ui-classic .v2-heading-index,
+.ui-classic .v2-heading-rule {
   display: none;
 }
 
@@ -414,7 +415,7 @@ body {
   padding-top: 1.25rem;
 }
 
-.legacy-ui .v2-panel {
+.ui-classic .v2-panel {
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) + 4px);
   background: hsl(var(--card) / 0.5);
@@ -449,7 +450,7 @@ body {
   color: hsl(var(--accent));
 }
 
-.legacy-ui .v2-tag {
+.ui-classic .v2-tag {
   border-radius: 0.5rem;
   background: hsl(var(--card) / 0.5);
   font-family: var(--font-sans);
@@ -485,17 +486,17 @@ body {
   background: hsl(var(--accent) / 0.7);
 }
 
-.legacy-ui .v2-pill {
+.ui-classic .v2-pill {
   background: hsl(var(--card) / 0.6);
 }
 
-.legacy-ui .v2-pill-accent {
+.ui-classic .v2-pill-accent {
   border-color: hsl(var(--accent) / 0.35);
   background: hsl(var(--accent) / 0.05);
   color: hsl(var(--accent));
 }
 
-.legacy-ui .v2-pill-dot {
+.ui-classic .v2-pill-dot {
   background: hsl(var(--accent) / 0.6);
 }
 
@@ -513,7 +514,7 @@ body {
   mask-image: radial-gradient(ellipse 110% 90% at 50% 0%, black 25%, transparent 78%);
 }
 
-.legacy-ui .v2-grid,
+.ui-classic .v2-grid,
 .flow .v2-grid {
   display: none;
 }
@@ -656,6 +657,25 @@ body {
   }
 }
 
+/*
+  UI 主题（经典 ⇄ 探索）日食转场：
+  进入探索 = 月亮掩来（1s 强 ease-in-out，沉静、压场）；
+  回到经典 = 光复（0.8s 强 ease-out，轻亮）。均自点击处展开。
+*/
+html[data-vt="eclipse-in"]::view-transition-new(root) {
+  animation: vt-eclipse 1s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+html[data-vt="eclipse-out"]::view-transition-new(root) {
+  animation: vt-eclipse 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes vt-eclipse {
+  to {
+    clip-path: circle(150% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
@@ -716,7 +736,7 @@ input[type="range"].music-slider::-moz-range-thumb {
     transform 0.25s ease;
 }
 
-.legacy-ui .v2-ghost-num {
+.ui-classic .v2-ghost-num {
   display: none;
 }
 
@@ -756,14 +776,14 @@ input[type="range"].music-slider::-moz-range-thumb {
   padding: 1.25rem 1rem;
 }
 
-.legacy-ui .v2-data-strip {
+.ui-classic .v2-data-strip {
   gap: 0.5rem;
   background: transparent;
   border-top: none;
   border-bottom: none;
 }
 
-.legacy-ui .v2-data-cell {
+.ui-classic .v2-data-cell {
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) + 4px);
   background: hsl(var(--card) / 0.5);
