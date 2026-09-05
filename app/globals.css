@@ -716,6 +716,10 @@ input[type="range"].music-slider::-moz-range-thumb {
     transform 0.25s ease;
 }
 
+.legacy-ui .v2-ghost-num {
+  display: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .group:hover .v2-ghost-num {
     color: hsl(var(--accent) / 0.6);
@@ -789,6 +793,69 @@ input[type="range"].music-slider::-moz-range-thumb {
 
 .v2-strip > * {
   scroll-snap-align: start;
+}
+
+/* ==========================================================================
+   「FAR SIDE / 月之暗面」：月盘、晨昏线、星野
+   ========================================================================== */
+
+/* 月盘：hero 右上天体，半明半暗（::after 为晨昏线阴影，极慢旋转模拟月相） */
+.v2-moon {
+  position: absolute;
+  top: -9rem;
+  right: -9rem;
+  width: 38rem;
+  height: 38rem;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 38% 32%,
+    hsl(var(--foreground) / 0.16),
+    hsl(var(--foreground) / 0.06) 55%,
+    transparent 72%
+  );
+  box-shadow: 0 0 160px 8px hsl(var(--accent) / 0.06);
+}
+
+.v2-moon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 46%,
+    hsl(var(--background) / 0.9) 62%
+  );
+  animation: moon-phase 180s linear infinite;
+}
+
+@keyframes moon-phase {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-moon::after {
+    animation: none;
+  }
+}
+
+/* 暗色模式下蓝图网格化作星野 */
+.dark .v2-grid {
+  background-image:
+    radial-gradient(1px 1px at 8% 18%, hsl(var(--foreground) / 0.55), transparent),
+    radial-gradient(1px 1px at 22% 64%, hsl(var(--foreground) / 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 31% 12%, hsl(var(--foreground) / 0.6), transparent),
+    radial-gradient(1px 1px at 45% 38%, hsl(var(--foreground) / 0.35), transparent),
+    radial-gradient(1px 1px at 58% 82%, hsl(var(--foreground) / 0.45), transparent),
+    radial-gradient(2px 2px at 67% 25%, hsl(var(--accent) / 0.7), transparent),
+    radial-gradient(1px 1px at 74% 55%, hsl(var(--foreground) / 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 85% 14%, hsl(var(--foreground) / 0.55), transparent),
+    radial-gradient(1px 1px at 91% 72%, hsl(var(--foreground) / 0.35), transparent),
+    radial-gradient(1px 1px at 15% 88%, hsl(var(--foreground) / 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 52% 8%, hsl(var(--foreground) / 0.5), transparent),
+    radial-gradient(1px 1px at 96% 42%, hsl(var(--foreground) / 0.4), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
