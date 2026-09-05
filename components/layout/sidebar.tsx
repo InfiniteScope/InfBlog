@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { useSidebarCollapse } from "@/components/layout/sidebar-collapse-provider"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { SectionHeading } from "@/components/ui/section-heading"
 import { ChillButton } from "@/components/layout/chill-button"
 import { CollapsibleLinkList } from "@/components/layout/collapsible-link-list"
 import { ShatterAvatar } from "@/components/collectibles/shatter-avatar"
@@ -89,28 +90,26 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
 
       {/* Personal Info */}
       {!collapsed && (
-        <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4">
-          <h3 className="font-display text-sm tracking-wide text-muted-foreground">
-            // PERSONAL_INFO
-          </h3>
+        <div className="v2-panel space-y-3">
+          <SectionHeading>// PERSONAL_INFO</SectionHeading>
           <ul className="space-y-3 text-sm">
             <li className="flex items-baseline gap-2 leading-relaxed text-muted-foreground">
-              <AtSign className="h-3.5 w-3.5 shrink-0 self-center text-accent" />
-              <span className="shrink-0 font-mono text-xs text-accent">
+              <AtSign className="h-3.5 w-3.5 shrink-0 self-center text-muted-foreground" />
+              <span className="shrink-0 font-mono text-xs text-muted-foreground">
                 NAME
               </span>
               <span className="text-foreground">{siteConfig.realName}</span>
             </li>
             <li className="flex items-start gap-2 leading-relaxed text-muted-foreground">
-              <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+              <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="whitespace-pre-line text-foreground">{siteConfig.email}</span>
             </li>
             <li className="flex items-start gap-2 leading-relaxed text-muted-foreground">
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="text-foreground">{siteConfig.location}</span>
             </li>
             <li className="flex items-start gap-2 leading-relaxed text-muted-foreground">
-              <GraduationCap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+              <GraduationCap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="text-foreground">{siteConfig.education}</span>
             </li>
           </ul>
@@ -179,18 +178,16 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
 
       {/* Tools & Friends */}
       {!collapsed && (
-        <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4">
-          <h3 className="font-display text-sm tracking-wide text-muted-foreground">
-            // LINKS
-          </h3>
+        <div className="v2-panel space-y-3">
+          <SectionHeading>// LINKS</SectionHeading>
           <div className="space-y-3">
             <div>
-              <p className="mb-2 font-mono text-xs text-accent">TOOLS - 实用网站</p>
+              <p className="mb-2 font-mono text-xs text-muted-foreground">TOOLS - 实用网站</p>
               <CollapsibleLinkList links={siteConfig.links.tools} />
             </div>
             <Separator />
             <div>
-              <p className="mb-2 font-mono text-xs text-accent">FRIENDS - 友情链接</p>
+              <p className="mb-2 font-mono text-xs text-muted-foreground">FRIENDS - 友情链接</p>
               <CollapsibleLinkList links={siteConfig.links.friends} />
             </div>
           </div>
@@ -201,10 +198,8 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
 
       {/* Danmaku */}
       {!collapsed && (
-        <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4">
-          <h3 className="font-display text-sm tracking-wide text-muted-foreground">
-            // DANMAKU
-          </h3>
+        <div className="v2-panel space-y-3">
+          <SectionHeading>// DANMAKU</SectionHeading>
           <div className="h-24 overflow-hidden rounded-md border border-border bg-background/50 px-3 py-2">
             <DanmakuList danmaku={danmaku} />
           </div>

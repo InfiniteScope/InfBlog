@@ -2,6 +2,7 @@
 
 import { FileText, Image, Type, Clock } from "lucide-react"
 
+import { SectionHeading } from "@/components/ui/section-heading"
 import type { Update } from "@/lib/updates"
 import type { Post } from "@/lib/mdx"
 
@@ -26,21 +27,15 @@ export function StatsWidget({ posts, updates }: StatsWidgetProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="flex items-center gap-2 font-display text-sm tracking-wide text-muted-foreground">
-        <Clock className="h-3.5 w-3.5 text-accent" />
-        // STATS
-      </h3>
+      <SectionHeading index="05">// STATS</SectionHeading>
       <div className="grid grid-cols-2 gap-2">
         {items.map((item) => (
-          <div
-            key={item.label}
-            className="rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40"
-          >
-            <item.icon className="mb-1.5 h-3.5 w-3.5 text-accent" />
-            <p className="font-mono text-lg font-medium leading-none">
+          <div key={item.label} className="v2-card p-3">
+            <item.icon className="mb-1.5 h-3.5 w-3.5 text-muted-foreground" />
+            <p className="font-mono text-xl font-medium leading-none tabular-nums">
               {item.value}
             </p>
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1.5 font-mono text-[10px] tracking-wider text-muted-foreground">
               {item.label}
             </p>
           </div>

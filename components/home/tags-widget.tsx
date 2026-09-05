@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Hash } from "lucide-react"
 
+import { SectionHeading } from "@/components/ui/section-heading"
 import type { Post } from "@/lib/mdx"
 
 interface TagsWidgetProps {
@@ -20,10 +20,7 @@ export function TagsWidget({ posts }: TagsWidgetProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="flex items-center gap-2 font-display text-sm tracking-wide text-muted-foreground">
-        <Hash className="h-3.5 w-3.5 text-accent" />
-        // TAGS
-      </h3>
+      <SectionHeading index="04">// TAGS</SectionHeading>
       <div className="flex flex-wrap gap-2">
         {tags.length === 0 ? (
           <p className="text-sm text-muted-foreground">暂无标签</p>
@@ -32,14 +29,10 @@ export function TagsWidget({ posts }: TagsWidgetProps) {
             <Link
               key={tag}
               href={`/blog?tag=${encodeURIComponent(tag)}`}
-              className="group inline-flex items-center gap-1.5 rounded-lg border border-border bg-card/50 px-2.5 py-1 text-xs transition-colors hover:border-accent/50 hover:bg-accent/10"
+              className="v2-tag"
             >
-              <span className="text-muted-foreground group-hover:text-foreground">
-                {tag}
-              </span>
-              <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                {count}
-              </span>
+              <span>{tag}</span>
+              <span className="v2-tag-count">{count}</span>
             </Link>
           ))
         )}

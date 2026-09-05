@@ -11,11 +11,13 @@ export default function AboutPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8">
       <section className="space-y-2">
-        <p className="font-mono text-xs tracking-widest text-accent">// ABOUT</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          // ABOUT
+        </p>
         <h1 className="font-display text-4xl tracking-tight">关于</h1>
       </section>
 
-      <section className="space-y-4 rounded-xl border border-border bg-card/50 p-6">
+      <section className="v2-card space-y-4 p-6">
         <h2 className="font-display text-2xl tracking-tight">关于我</h2>
         <p className="leading-7 text-muted-foreground">
           你好，我是 {siteConfig.realName}。这是一个正在建设中的个人博客，
@@ -27,7 +29,7 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section className="space-y-4 rounded-xl border border-border bg-card/50 p-6">
+      <section className="v2-card space-y-4 p-6">
         <h2 className="font-display text-2xl tracking-tight">联系方式</h2>
         <ul className="space-y-2 text-sm">
           <li className="flex gap-2">
@@ -45,7 +47,7 @@ export default function AboutPage() {
         </ul>
       </section>
 
-      <section className="space-y-4 rounded-xl border border-border bg-card/50 p-6">
+      <section className="v2-card space-y-4 p-6">
         <h2 className="font-display text-2xl tracking-tight">友情链接</h2>
         <div className="flex flex-wrap gap-3">
           {siteConfig.links.friends.map((friend) => (
@@ -54,10 +56,10 @@ export default function AboutPage() {
               href={friend.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-2 rounded-lg border border-border bg-background/50 px-4 py-2.5 text-sm transition-colors hover:border-accent/50 hover:bg-accent/10"
+              className="v2-tag group"
             >
               {friend.name}
-              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-accent" />
+              <ExternalLink className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-accent" />
             </a>
           ))}
         </div>

@@ -5,6 +5,7 @@ import { animate, useInView, useReducedMotion } from "motion/react"
 import { Eye, TrendingUp, Sun } from "lucide-react"
 
 import { LoadingDots } from "@/components/ui/loading-dots"
+import { SectionHeading } from "@/components/ui/section-heading"
 
 interface ViewStats {
   total: number
@@ -68,31 +69,34 @@ export function ViewsCard() {
 
   return (
     <div className="space-y-3">
-      <h3 className="flex items-center gap-2 font-display text-sm tracking-wide text-muted-foreground">
-        <Eye className="h-3.5 w-3.5 text-accent" />
-        // SITE_VIEWS
-      </h3>
+      <SectionHeading index="02">// SITE_VIEWS</SectionHeading>
       <div className="grid min-w-0 grid-cols-3 gap-2">
-        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40">
-          <Eye className="mb-1.5 h-3.5 w-3.5 text-accent" />
-          <p className="truncate font-mono text-lg font-medium leading-none tabular-nums">
+        <div className="min-w-0 v2-card p-3">
+          <Eye className="mb-1.5 h-3.5 w-3.5 text-muted-foreground" />
+          <p className="truncate font-mono text-xl font-medium leading-none tabular-nums">
             {stats ? <NumberTicker value={stats.total} /> : <LoadingDots />}
           </p>
-          <p className="mt-1 text-[10px] text-muted-foreground">总浏览量</p>
+          <p className="mt-1.5 font-mono text-[10px] tracking-wider text-muted-foreground">
+            总浏览量
+          </p>
         </div>
-        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40">
-          <TrendingUp className="mb-1.5 h-3.5 w-3.5 text-accent" />
-          <p className="truncate font-mono text-lg font-medium leading-none tabular-nums">
+        <div className="min-w-0 v2-card p-3">
+          <TrendingUp className="mb-1.5 h-3.5 w-3.5 text-muted-foreground" />
+          <p className="truncate font-mono text-xl font-medium leading-none tabular-nums">
             {stats ? <NumberTicker value={stats.week} /> : <LoadingDots />}
           </p>
-          <p className="mt-1 text-[10px] text-muted-foreground">近 7 日</p>
+          <p className="mt-1.5 font-mono text-[10px] tracking-wider text-muted-foreground">
+            近 7 日
+          </p>
         </div>
-        <div className="min-w-0 rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40">
-          <Sun className="mb-1.5 h-3.5 w-3.5 text-accent" />
-          <p className="truncate font-mono text-lg font-medium leading-none tabular-nums">
+        <div className="min-w-0 v2-card p-3">
+          <Sun className="mb-1.5 h-3.5 w-3.5 text-muted-foreground" />
+          <p className="truncate font-mono text-xl font-medium leading-none tabular-nums">
             {stats ? <NumberTicker value={stats.today} /> : <LoadingDots />}
           </p>
-          <p className="mt-1 text-[10px] text-muted-foreground">今日</p>
+          <p className="mt-1.5 font-mono text-[10px] tracking-wider text-muted-foreground">
+            今日
+          </p>
         </div>
       </div>
     </div>

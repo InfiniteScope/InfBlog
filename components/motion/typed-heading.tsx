@@ -61,7 +61,7 @@ export function TypedHeading() {
   }, [display, phase, wordIndex, prefersReducedMotion])
 
   return (
-    <p className="font-mono text-sm tracking-widest text-accent">
+    <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
       {"// WELCOME TO "}
       <span className="text-foreground">{display}</span>
       <span className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-accent" />

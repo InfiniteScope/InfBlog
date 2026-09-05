@@ -54,13 +54,11 @@ function MarqueeRow({
           <span
             key={`${direction}-${i}`}
             className={cn(
-              "flex items-center gap-2 whitespace-nowrap rounded-full border px-5 py-2 text-base font-medium backdrop-blur-sm",
-              accent
-                ? "border-accent/35 bg-accent/5 text-accent"
-                : "border-border/60 bg-card/60 text-muted-foreground"
+              "v2-pill flex items-center gap-2 whitespace-nowrap px-5 py-2 text-base font-medium",
+              accent && "v2-pill-accent"
             )}
           >
-            <span className="h-2 w-2 rounded-full bg-accent/60" />
+            <span className="v2-pill-dot" />
             {item}
           </span>
         ))}

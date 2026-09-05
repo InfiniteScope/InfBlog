@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react"
 import ReactMarkdown from "react-markdown"
-import { Sparkles } from "lucide-react"
 
+import { SectionHeading } from "@/components/ui/section-heading"
 import type { Update } from "@/lib/updates"
 
 interface TimelineWidgetProps {
@@ -13,10 +13,7 @@ interface TimelineWidgetProps {
 export function TimelineWidget({ updates }: TimelineWidgetProps) {
   return (
     <div className="space-y-3">
-      <h3 className="flex items-center gap-2 font-display text-sm tracking-wide text-muted-foreground">
-        <Sparkles className="h-3.5 w-3.5 text-accent" />
-        // LATEST_UPDATES
-      </h3>
+      <SectionHeading index="03">// LATEST_UPDATES</SectionHeading>
       <div className="relative space-y-0">
         {/* Glowing vertical line */}
         <div className="absolute left-[15px] top-3 bottom-3 w-px bg-gradient-to-b from-accent/60 via-accent/30 to-transparent" />
@@ -39,8 +36,8 @@ export function TimelineWidget({ updates }: TimelineWidgetProps) {
               <span className="h-1 w-1 rounded-full bg-background" />
             </span>
 
-            <div className="rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40 hover:bg-card">
-              <p className="mb-1 text-[10px] font-mono text-accent">
+            <div className="v2-card p-3">
+              <p className="mb-1 font-mono text-[10px] text-accent">
                 {new Date(update.date).toLocaleDateString("zh-CN")}
               </p>
               {update.title && (

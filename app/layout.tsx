@@ -37,6 +37,13 @@ export default function RootLayout({
       {/* suppressHydrationWarning：浏览器扩展会向 body 注入 style（如 zoom），
           本地代码无 SSR/CSR 差异，避免误报警告 */}
       <body className="font-sans antialiased" suppressHydrationWarning>
+        {/* UI 版本：渲染前应用旧版标记，避免新旧界面闪烁。
+            支持 ?ui=legacy / ?ui=v2 覆盖并记忆，便于分享对比链接 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var p=new URLSearchParams(location.search).get("ui");if(p==="legacy")localStorage.setItem("infblog-ui","legacy");else if(p==="v2")localStorage.removeItem("infblog-ui");if(localStorage.getItem("infblog-ui")==="legacy")document.documentElement.classList.add("legacy-ui")}catch(e){}`,
+          }}
+        />
         <SessionProvider>
           <ThemeProvider>
             <Toaster theme="system" position="top-center" richColors />
@@ -46,6 +53,8 @@ export default function RootLayout({
             <BackgroundProvider>
               <TimePrecisionProvider>
                 <Background />
+                {/* v2 蓝图网格纹理（legacy/flow 模式下自动隐藏） */}
+                <div className="v2-grid" aria-hidden />
                 <Shell>{children}</Shell>
               </TimePrecisionProvider>
             </BackgroundProvider>
