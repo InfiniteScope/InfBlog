@@ -45,12 +45,13 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`dcdc6d4` feat(home)：「月之暗面 / FAR SIDE」门户彻底重写 —— **已推送 GitHub，未部署服务器**（用户本地验收中）。
-  - 概念：InfBlog = Infinite/探索/月之暗面。HERO 全高（cap 52rem）：纯 CSS 月盘（`.v2-moon`，晨昏线 ::after 180s 旋转模拟月相，reduced-motion 静止）、超宽屏左缘竖排诗行「向月之暗面致意」、`INF = INFINITE · 求索 · 探索 · 致意遥不可及` 铭文、播放器改名 `// EARTH_RADIO`。
-  - 分带任务语言：01 TRANSMISSIONS 信号（文章，FEATURED 卡 + 幽灵序号行 + `ROW_INDENTS` 不规律缩进）、02 TELEMETRY 遥测、03 MISSION_LOG 任务日志（横向）、04 PROBES 探测器、05 FREQUENCIES 频段；页尾 END OF TRANSMISSION 收束行。
-  - 暗色模式下 `.dark .v2-grid` 由蓝图网格变为星野（radial-gradient 星点，含 1 颗青色 accent 星）。
-  - legacy 补充：`.legacy-ui .v2-ghost-num` 隐藏。
-- 此前：`a46fca1` 线性信息流重构（新组件 Reveal/DataStrip/UpdatesStrip/TagsFlow，删 5 个旧 widget）；`a38e378` v2 设计系统（语义类 + legacy 开关）。
+- 最新 commit：`155cdf3` feat(theme)：双主题制 —— **已推送 GitHub，未部署服务器**。
+  - **默认 = 经典主题**（`html.ui-classic`，服务器现行的 Moss & Sand 暖绿盒式外观；新访客所见即线上旧貌，部署后不覆盖老用户体验）；**「探索」主题** = 月之暗面新设计。
+  - 切换入口：右上角「外观设置」新增"界面主题"区（经典/探索），背景效果区保留；右下角旧悬浮按钮已摘除（`ui-version-toggle.tsx` 删除）。
+  - 转场动效：日食 —— `components/theme/ui-theme.ts` 的 `setUiThemeWithTransition` 复用 View Transition（`--vt-origin-*` 点击原点），`html[data-vt="eclipse-in"]`（1s 强 ease-in-out，月掩）/ `eclipse-out`（0.8s 强 ease-out，光复），reduced-motion/不支持时直接切换。
+  - `legacy-ui` 已更名 `ui-classic`；localStorage `infblog-ui=explore` → 探索，其余/缺省 → 经典；`?ui=explore|classic`（兼容旧值 v2/legacy）可 URL 覆盖。
+  - 验收：typecheck/build 过；无参数访问 = 经典、`?ui=explore` = 月之暗面，截图核对通过；转场动效需人工点击确认（无头浏览器无法点击）。
+- 此前：`dcdc6d4` 月之暗面门户、`a46fca1` 线性信息流、`a38e378` v2 设计系统、`098bc72` 已部署的信息收纳。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
