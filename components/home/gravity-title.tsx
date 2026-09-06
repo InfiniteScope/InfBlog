@@ -52,10 +52,14 @@ export function GravityTitle({ text, className }: GravityTitleProps) {
     const timer = setTimeout(compute, 300) // 等字体/布局稳定
     document.fonts?.ready.then(compute).catch(() => {})
     window.addEventListener("resize", compute)
+    /* 月亮被鼠标牵拉时，字母引力实时跟随 */
+    const onMoonMove = () => compute()
+    window.addEventListener("hero-moon-move", onMoonMove)
     return () => {
       cancelAnimationFrame(raf)
       clearTimeout(timer)
       window.removeEventListener("resize", compute)
+      window.removeEventListener("hero-moon-move", onMoonMove)
     }
   }, [])
 

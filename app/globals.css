@@ -877,14 +877,14 @@ input[type="range"].music-slider::-moz-range-thumb {
   background: conic-gradient(
     from calc(300deg + var(--moon-spin, 0deg)),
     transparent 0deg,
-    rgba(255, 255, 255, 0.5) 24deg,
-    rgba(255, 255, 255, 0.6) 32deg,
+    rgba(255, 255, 255, 0.6) 24deg,
+    rgba(255, 255, 255, 0.75) 32deg,
     hsl(var(--accent) / 0.35) 46deg,
     transparent 64deg
   );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
-  filter: blur(6px);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 12px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 12px));
+  filter: blur(7px);
   animation: moon-spin 72s linear infinite;
 }
 
@@ -897,14 +897,72 @@ input[type="range"].music-slider::-moz-range-thumb {
   background: conic-gradient(
     from calc(300deg + var(--moon-spin, 0deg)),
     transparent 0deg,
-    rgba(255, 255, 255, 0.85) 22deg,
-    rgba(255, 255, 255, 0.98) 32deg,
+    rgba(255, 255, 255, 0.9) 22deg,
+    rgba(255, 255, 255, 1) 32deg,
     hsl(var(--accent) / 0.4) 46deg,
     transparent 64deg
   );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
   animation: moon-spin 72s linear infinite;
+}
+
+/* 钻石环珠点：亮弧最热的一端，随亮弧同步绕月缘巡游 */
+.v2-moon-bead-orbit {
+  position: absolute;
+  inset: 0;
+  animation: moon-spin-rot 72s linear infinite;
+}
+
+.v2-moon-bead {
+  position: absolute;
+  left: 26.5%;
+  top: 5.8%;
+  width: 1.8vmin;
+  height: 1.8vmin;
+  border-radius: 9999px;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 10px 3px rgba(255, 255, 255, 0.9),
+    0 0 34px 12px hsl(var(--accent) / 0.35);
+}
+
+@keyframes moon-spin-rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 星尘：月周散布的青白微粒，缓慢明灭 */
+.v2-moon-star {
+  position: absolute;
+  border-radius: 9999px;
+  background: #fff;
+  opacity: 0.35;
+  transform: translate(-50%, -50%);
+  animation: moon-star-twinkle 3.8s ease-in-out infinite;
+}
+
+.v2-moon-star.is-accent {
+  background: hsl(var(--accent));
+}
+
+@keyframes moon-star-twinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-moon-bead-orbit,
+  .v2-moon-star {
+    animation: none;
+  }
 }
 
 /* 引力波文字：字母被月亮引力弯折，并以距离为相位缓缓脉动 */

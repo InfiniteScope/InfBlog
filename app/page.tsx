@@ -106,7 +106,9 @@ export default async function HomePage() {
             +
           </span>
 
-          <div className="relative z-10 flex min-h-[calc(100svh-5rem)] flex-col justify-center space-y-5 py-12">
+          {/* 文本块右缘锚定月心（视口坐标系），标题尾字母探入月盘左缘：
+              引力弯折 + 月食遮蔽在此发生 */}
+          <div className="relative z-10 flex min-h-[calc(100svh-5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[45vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
             <TypedHeading />
             <GravityTitle
               text={siteConfig.name}

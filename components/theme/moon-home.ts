@@ -12,11 +12,23 @@ export function getMoonHome() {
   }
 }
 
-/** 亮弧锚定的月缘角度（canvas 极坐标，上左方；对应 CSS conic from 300deg） */
-export const RIM_ANGLE = -2.2
+/** 亮弧锚定的月缘角度（canvas 极坐标，上左方；对应 CSS conic from 300°±64°） */
+export const RIM_ANGLE = -2.06
 
-/** canvas 版月亮：与 CSS .v2-moon 视觉一致——
- *  近黑盘体（微球面渐变）+ 上左缘亮弧（加宽、白光为主、冕光晕） */
+/** 星尘相对月心的归一化散布（与 CSS .v2-moon-star 同位） */
+const STARS: [number, number, number, boolean][] = [
+  [-0.64, -0.42, 0.017, true],
+  [-0.56, 0.44, 0.011, false],
+  [-0.42, 0.98, 0.014, true],
+  [0.08, -0.64, 0.011, false],
+  [0.36, -0.58, 0.017, true],
+  [0.62, -0.4, 0.011, false],
+  [0.66, 0.24, 0.014, true],
+  [-0.68, 0.08, 0.011, false],
+]
+
+/** canvas 版月亮：与 CSS .v2-moon 严格同构——
+ *  近黑盘体（微球面渐变）+ 加宽亮弧（锐弧 + 冕光晕 + 钻石环珠点）+ 星尘 */
 export function drawMoon(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -56,10 +68,10 @@ export function drawMoon(
   /* 冕光晕（宽而淡的白光） */
   ctx.save()
   ctx.lineCap = "round"
-  ctx.strokeStyle = `rgba(230,240,248,${0.3 * alpha})`
+  ctx.strokeStyle = `rgba(230,240,248,${0.35 * alpha})`
   ctx.lineWidth = R * 0.11
-  ctx.shadowColor = "rgba(255,255,255,0.55)"
-  ctx.shadowBlur = R * 0.2 * alpha
+  ctx.shadowColor = "rgba(255,255,255,0.6)"
+  ctx.shadowBlur = R * 0.22 * alpha
   ctx.beginPath()
   ctx.arc(cx, cy, R - R * 0.05, rimAngle - 0.75, rimAngle + 0.75)
   ctx.stroke()
@@ -70,10 +82,34 @@ export function drawMoon(
   ctx.lineCap = "round"
   ctx.strokeStyle = `rgba(255,255,255,${0.98 * alpha})`
   ctx.lineWidth = Math.max(2, R * 0.022)
-  ctx.shadowColor = "rgba(255,255,255,0.9)"
-  ctx.shadowBlur = R * 0.08 * alpha
+  ctx.shadowColor = "rgba(255,255,255,0.95)"
+  ctx.shadowBlur = R * 0.09 * alpha
   ctx.beginPath()
-  ctx.arc(cx, cy, R - R * 0.02, rimAngle - 0.55, rimAngle + 0.55)
+  ctx.arc(cx, cy, R - R * 0.02, rimAngle - 0.56, rimAngle + 0.56)
   ctx.stroke()
+  ctx.restore()
+
+  /* 钻石环珠点（亮弧最热端） */
+  const beadX = cx + Math.cos(rimAngle) * (R - R * 0.02)
+  const beadY = cy + Math.sin(rimAngle) * (R - R * 0.02)
+  ctx.save()
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`
+  ctx.shadowColor = "rgba(255,255,255,0.95)"
+  ctx.shadowBlur = R * 0.14 * alpha
+  ctx.beginPath()
+  ctx.arc(beadX, beadY, Math.max(2, R * 0.035), 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  /* 星尘 */
+  ctx.save()
+  for (const [ox, oy, sr, accent] of STARS) {
+    ctx.fillStyle = accent
+      ? `rgba(64,200,224,${0.55 * alpha})`
+      : `rgba(255,255,255,${0.5 * alpha})`
+    ctx.beginPath()
+    ctx.arc(cx + ox * R, cy + oy * R, Math.max(1, sr * R), 0, Math.PI * 2)
+    ctx.fill()
+  }
   ctx.restore()
 }
