@@ -24,6 +24,7 @@ import { TagsFlow } from "@/components/home/tags-flow"
 import { GithubProjects } from "@/components/home/github-projects"
 import { TechMarquee } from "@/components/home/tech-marquee"
 import { TypedHeading } from "@/components/motion/typed-heading"
+import { GravityTitle } from "@/components/home/gravity-title"
 import {
   StaggerContainer,
   StaggerItem,
@@ -85,7 +86,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ==================== 探索主题「月之暗面」 ==================== */}
-      <div className="ui-explore-only relative mx-auto max-w-6xl pb-8">
+      <div className="ui-explore-only relative pb-8">
         {/* 竖排诗行：贴内容区左缘，仅在超宽屏落笔 */}
         <p
           className="v2-only absolute -left-12 top-[34vh] hidden font-mono text-[10px] tracking-[0.5em] text-muted-foreground/50 min-[1500px]:block"
@@ -94,10 +95,9 @@ export default async function HomePage() {
           向月之暗面致意 · TO THE FAR SIDE
         </p>
 
-        {/* 00 // 门户：月之暗面 */}
-        <div className="relative isolate flex min-h-[60vh] flex-col justify-center overflow-hidden py-12 lg:min-h-[min(74vh,52rem)]">
-          {/* 月盘：晨昏线 180s 一周，暗色下背景网格化作星野 */}
-          <div className="v2-only v2-moon" aria-hidden />
+        {/* 00 // 门户：月之暗面。月亮实体的位置与转场动画终点同位（内容区 62% / hero 42%） */}
+        <div className="relative min-h-[calc(100svh-5rem)]">
+          <div className="v2-only v2-moon" id="hero-moon" aria-hidden />
           <span className="v2-only v2-cross left-0 top-2" aria-hidden>
             +
           </span>
@@ -105,23 +105,23 @@ export default async function HomePage() {
             +
           </span>
 
-          <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_420px]">
-            <section className="space-y-5">
-              <TypedHeading />
-              <h1 className="font-display text-7xl tracking-tight md:text-8xl lg:text-9xl">
-                {siteConfig.name}
-              </h1>
-              <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-                INF = INFINITE · 求索 · 探索 · 致意遥不可及
-              </p>
-              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
-                {siteConfig.description}
-              </p>
-            </section>
-            <div className="relative z-10">
-              <SectionHeading className="mb-3">// EARTH_RADIO</SectionHeading>
-              <MusicPlayerExpanded />
-            </div>
+          <div className="relative z-10 flex min-h-[calc(100svh-5rem)] flex-col justify-center space-y-5 py-12">
+            <TypedHeading />
+            <GravityTitle
+              text={siteConfig.name}
+              className="font-future text-7xl font-bold tracking-tight md:text-8xl lg:text-9xl"
+            />
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+              INF = INFINITE · 求索 · 探索 · 致意遥不可及
+            </p>
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
+              {siteConfig.description}
+            </p>
+          </div>
+
+          <div className="relative z-10 pb-2 lg:absolute lg:bottom-10 lg:right-0 lg:w-[380px] lg:pb-0">
+            <SectionHeading className="mb-3">// EARTH_RADIO</SectionHeading>
+            <MusicPlayerExpanded />
           </div>
         </div>
 
@@ -133,6 +133,7 @@ export default async function HomePage() {
           <TechMarquee items={TECH_STACK} />
         </Reveal>
 
+      <div className="mx-auto max-w-6xl">
         {/* 01 // 信号 TRANSMISSIONS：FEATURED 编辑卡 + 幽灵序号发丝行 */}
         <section className="py-14 lg:py-20">
           <Reveal>
@@ -357,6 +358,7 @@ export default async function HomePage() {
         <p className="v2-only pt-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60">
           —— END OF TRANSMISSION · 我们在月之暗面见 ——
         </p>
+      </div>
       </div>
 
       {/* ==================== 经典主题（098bc72 服务器版） ==================== */}
