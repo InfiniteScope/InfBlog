@@ -820,13 +820,20 @@ input[type="range"].music-slider::-moz-range-thumb {
    「FAR SIDE / 月之暗面」：月亮实体、亮面旋转、引力波文字、星野
    ========================================================================== */
 
-/* 月亮实体（探索主题 hero 地标）——参照 moonshot.ai 的日食形态：
-   近黑盘体（微球面渐变、远缘一线透光=虚实相生）+ 上左缘亮弧沿边缘缓慢巡游 + 冕光。
-   位置：内容区 58% / hero 42%，与转场引擎的月心公式严格一致。 */
-.v2-moon {
+/* 月亮实体（探索主题地标）——参照 moonshot.ai 的日食形态。
+   独立成 body 级图层（portal）：视口坐标系定位，收起侧栏不偏移；
+   z 层高于 hero 文字（字母被引力拉向月缘时会被盘体遮蔽，如月食）。
+   位置与转场引擎 moon-home.ts 的公式严格一致（58vw / 80+42%·(100svh-80)）。 */
+.v2-moon-layer {
   position: absolute;
-  left: 58%;
-  top: 42%;
+  left: 58vw;
+  top: calc(80px + (100svh - 80px) * 0.42);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.v2-moon {
+  position: relative;
   width: 36vmin;
   height: 36vmin;
   transform: translate(-50%, -50%);
@@ -839,6 +846,13 @@ input[type="range"].music-slider::-moz-range-thumb {
     rgba(5, 7, 10, 0.82) 100%
   );
   box-shadow: 0 0 140px 12px hsl(var(--accent) / 0.1);
+}
+
+/* 窄屏不渲染（避免遮挡移动端正文） */
+@media (max-width: 1023px) {
+  .v2-moon-layer {
+    display: none;
+  }
 }
 
 /* 亮弧旋转驱动（@property 使 conic 角度可动画；不支持时静态呈现） */
@@ -854,7 +868,7 @@ input[type="range"].music-slider::-moz-range-thumb {
   }
 }
 
-/* 冕光（亮弧的外晕，模糊加宽） */
+/* 冕光（亮弧的外晕，模糊加宽、白光为主） */
 .v2-moon::after {
   content: "";
   position: absolute;
@@ -863,17 +877,18 @@ input[type="range"].music-slider::-moz-range-thumb {
   background: conic-gradient(
     from calc(300deg + var(--moon-spin, 0deg)),
     transparent 0deg,
-    rgba(255, 255, 255, 0.55) 18deg,
-    hsl(var(--accent) / 0.5) 30deg,
-    transparent 48deg
+    rgba(255, 255, 255, 0.5) 24deg,
+    rgba(255, 255, 255, 0.6) 32deg,
+    hsl(var(--accent) / 0.35) 46deg,
+    transparent 64deg
   );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
-  filter: blur(5px);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px));
+  filter: blur(6px);
   animation: moon-spin 72s linear infinite;
 }
 
-/* 亮弧（锐利主弧，沿月缘缓慢旋转） */
+/* 亮弧（锐利主弧，加宽加白，沿月缘缓慢旋转） */
 .v2-moon::before {
   content: "";
   position: absolute;
@@ -882,12 +897,13 @@ input[type="range"].music-slider::-moz-range-thumb {
   background: conic-gradient(
     from calc(300deg + var(--moon-spin, 0deg)),
     transparent 0deg,
-    rgba(255, 255, 255, 0.95) 18deg,
-    hsl(var(--accent) / 0.8) 30deg,
-    transparent 48deg
+    rgba(255, 255, 255, 0.85) 22deg,
+    rgba(255, 255, 255, 0.98) 32deg,
+    hsl(var(--accent) / 0.4) 46deg,
+    transparent 64deg
   );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
   animation: moon-spin 72s linear infinite;
 }
 

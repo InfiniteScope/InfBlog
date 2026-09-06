@@ -21,8 +21,10 @@ export function GravityTitle({ text, className }: GravityTitleProps) {
 
     const compute = () => {
       const moon = document.getElementById("hero-moon")
+      // 月亮未挂载或被隐藏（display:none 尺寸为 0）时保持原位
       if (!moon || !el.isConnected) return
       const m = moon.getBoundingClientRect()
+      if (!m.width) return
       const mcx = m.left + m.width / 2
       const mcy = m.top + m.height / 2
       const R = m.width / 2
@@ -46,9 +48,15 @@ export function GravityTitle({ text, className }: GravityTitleProps) {
     }
 
     compute()
+    const raf = requestAnimationFrame(compute) // 等 portal 月亮挂载
+    const timer = setTimeout(compute, 300) // 等字体/布局稳定
     document.fonts?.ready.then(compute).catch(() => {})
     window.addEventListener("resize", compute)
-    return () => window.removeEventListener("resize", compute)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(timer)
+      window.removeEventListener("resize", compute)
+    }
   }, [])
 
   return (

@@ -1,26 +1,22 @@
 /** 月亮在屏幕上的"家"：探索主题 hero 的月亮与转场引擎共用同一公式，
  *  保证转场结束时月亮精确停留在主界面月亮所在位置。
- *  几何：内容区 = 视口 - 侧栏(280px, lg+) - 主区 padding；hero 顶 = 56(navbar)+24(main pt)。 */
+ *  纯视口坐标系（58vw / 80+42%·(H-80)），与侧栏开合、内容流均解耦。 */
 export function getMoonHome() {
   const W = window.innerWidth
   const H = window.innerHeight
-  const sideW = W >= 1024 ? 280 : 0
-  const padX = W >= 1024 ? 32 : W >= 768 ? 24 : 16
-  const contentL = sideW + padX
-  const contentW = W - sideW - padX * 2
   const R = Math.min(W, H) * 0.18
   return {
-    cx: contentL + contentW * 0.58,
+    cx: W * 0.58,
     cy: 80 + (H - 80) * 0.42,
     R,
   }
 }
 
-/** 亮弧锚定的月缘角度（canvas 极坐标，上左方） */
-export const RIM_ANGLE = -2.3
+/** 亮弧锚定的月缘角度（canvas 极坐标，上左方；对应 CSS conic from 300deg） */
+export const RIM_ANGLE = -2.2
 
 /** canvas 版月亮：与 CSS .v2-moon 视觉一致——
- *  近黑盘体（微球面渐变）+ 上左缘亮弧（锐弧 + 冕光晕）+ 极淡 accent 冕辉 */
+ *  近黑盘体（微球面渐变）+ 上左缘亮弧（加宽、白光为主、冕光晕） */
 export function drawMoon(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -31,9 +27,9 @@ export function drawMoon(
 ) {
   if (alpha <= 0.001) return
 
-  /* accent 冕辉（大范围的色晕，日食氛围） */
+  /* accent 冕辉（大范围的色晕，日食氛围，压蓝增白） */
   const corona = ctx.createRadialGradient(cx, cy, R * 0.5, cx, cy, R * 2.4)
-  corona.addColorStop(0, `rgba(64,200,224,${0.05 * alpha})`)
+  corona.addColorStop(0, `rgba(64,200,224,${0.04 * alpha})`)
   corona.addColorStop(1, "rgba(64,200,224,0)")
   ctx.fillStyle = corona
   ctx.beginPath()
@@ -57,27 +53,27 @@ export function drawMoon(
   ctx.arc(cx, cy, R, 0, Math.PI * 2)
   ctx.fill()
 
-  /* 亮弧冕光（宽而淡，模糊辉光） */
+  /* 冕光晕（宽而淡的白光） */
   ctx.save()
   ctx.lineCap = "round"
-  ctx.strokeStyle = `rgba(220,235,245,${0.22 * alpha})`
-  ctx.lineWidth = R * 0.09
-  ctx.shadowColor = "rgba(255,255,255,0.6)"
-  ctx.shadowBlur = R * 0.18 * alpha
+  ctx.strokeStyle = `rgba(230,240,248,${0.3 * alpha})`
+  ctx.lineWidth = R * 0.11
+  ctx.shadowColor = "rgba(255,255,255,0.55)"
+  ctx.shadowBlur = R * 0.2 * alpha
   ctx.beginPath()
-  ctx.arc(cx, cy, R - R * 0.045, rimAngle - 0.62, rimAngle + 0.62)
+  ctx.arc(cx, cy, R - R * 0.05, rimAngle - 0.75, rimAngle + 0.75)
   ctx.stroke()
   ctx.restore()
 
-  /* 亮弧主弧（锐利） */
+  /* 锐利主弧（加宽加白） */
   ctx.save()
   ctx.lineCap = "round"
-  ctx.strokeStyle = `rgba(255,255,255,${0.95 * alpha})`
-  ctx.lineWidth = Math.max(1.5, R * 0.018)
+  ctx.strokeStyle = `rgba(255,255,255,${0.98 * alpha})`
+  ctx.lineWidth = Math.max(2, R * 0.022)
   ctx.shadowColor = "rgba(255,255,255,0.9)"
-  ctx.shadowBlur = R * 0.06 * alpha
+  ctx.shadowBlur = R * 0.08 * alpha
   ctx.beginPath()
-  ctx.arc(cx, cy, R - R * 0.02, rimAngle - 0.42, rimAngle + 0.42)
+  ctx.arc(cx, cy, R - R * 0.02, rimAngle - 0.55, rimAngle + 0.55)
   ctx.stroke()
   ctx.restore()
 }

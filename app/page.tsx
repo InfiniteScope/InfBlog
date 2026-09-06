@@ -25,6 +25,7 @@ import { GithubProjects } from "@/components/home/github-projects"
 import { TechMarquee } from "@/components/home/tech-marquee"
 import { TypedHeading } from "@/components/motion/typed-heading"
 import { GravityTitle } from "@/components/home/gravity-title"
+import { HeroMoon } from "@/components/home/hero-moon"
 import {
   StaggerContainer,
   StaggerItem,
@@ -95,9 +96,9 @@ export default async function HomePage() {
           向月之暗面致意 · TO THE FAR SIDE
         </p>
 
-        {/* 00 // 门户：月之暗面。月亮实体的位置与转场动画终点同位（内容区 62% / hero 42%） */}
+        {/* 00 // 门户：月之暗面。月亮为 body 级独立图层（HeroMoon portal） */}
         <div className="relative min-h-[calc(100svh-5rem)]">
-          <div className="v2-only v2-moon" id="hero-moon" aria-hidden />
+          <HeroMoon />
           <span className="v2-only v2-cross left-0 top-2" aria-hidden>
             +
           </span>
