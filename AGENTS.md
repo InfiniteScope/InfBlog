@@ -45,13 +45,12 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`68c9e3b` feat(theme)：月亮独立为 body 级 portal 图层 —— **已推送 GitHub，未部署服务器**。
-  - `components/home/hero-moon.tsx`：createPortal 到 body，`.v2-moon-layer` 视口坐标（left 58vw；top calc(80px + (100svh-80px)·0.42)），z-20 高于 hero 文字（字母被引力拉向月缘时遭盘体遮蔽=月食交叠），收起侧栏不偏移；`<lg` 隐藏；`.v2-only` 随经典主题隐藏。
-  - 落点公式改纯视口（`moon-home.ts` getMoonHome：W·0.58 / 80+(H-80)·0.42 / 18vmin），转场 canvas 与主页 CSS 月亮严格同位同形同色（RIM_ANGLE=-2.2 ↔ conic from 300deg）。
-  - 亮弧加宽加白：锐弧 48°→64°、白度 0.95→0.98、冕光白色主导（accent 压至 0.35/0.04），canvas 弧 ±0.55rad 同步。
-  - GravityTitle：月亮缺失/隐藏（width=0）时跳过计算；rAF+300ms 补偿 portal 挂载时序。
-  - 已知：经典转场月显时的月亮也从该公式升起（非首页时月亮仍在 hero 位置浮现，属预期）。
-- 此前：`ff10d3e` 日食月+玻璃碎裂、`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72。
+- 最新 commit：`6e321f1` feat(theme)：钻石环亮弧 + 鼠标引力 + hero/月亮耦合 —— **已推送 GitHub，未部署服务器**。
+  - 亮弧升级（对照用户提供的 moonshot 截图）：锐利主弧更亮更宽 + 弧端"钻石环"珠点（`.v2-moon-bead` 随 72s 轨道巡游）+ 冕光晕 + 8 颗青白星尘明灭（`.v2-moon-star`）；canvas `drawMoon` 同构（含珠点与星尘，弧角 RIM_ANGLE=-2.06 ↔ conic 300°）。
+  - 鼠标引力：HeroMoon 监听 mousemove，月亮被向指针方向牵拉（平方衰减、上限 26px、spring 42/14 回复），位移广播 `hero-moon-move`，GravityTitle 实时重算字母弯折。
+  - hero 文本块：lg 下绝对定位、右缘锚定月心（`right: 45vw`，即 55vw 处），尾字母探入月盘左缘被引力弯折 + 盘体遮蔽；description 底线弦少量遮挡属预期诗意。
+  - 验收：typecheck/build 过；截图确认文本-月亮交叠（"InfBl" 清晰、"o/g" 探入月缘）、钻石环珠点、星尘、转场帧同形。暗色模式探索主题未截图（无头无法强制 dark），需人工过目。
+- 此前：`68c9e3b` 月亮 portal 图层化、`ff10d3e` 日食月+玻璃碎裂、`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
