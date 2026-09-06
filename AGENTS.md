@@ -52,7 +52,6 @@
   - GravityTitle：月亮缺失/隐藏（width=0）时跳过计算；rAF+300ms 补偿 portal 挂载时序。
   - 已知：经典转场月显时的月亮也从该公式升起（非首页时月亮仍在 hero 位置浮现，属预期）。
 - 此前：`ff10d3e` 日食月+玻璃碎裂、`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72。
-- 此前：`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72（双结构树）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
