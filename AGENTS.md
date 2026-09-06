@@ -45,13 +45,12 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`155cdf3` feat(theme)：双主题制 —— **已推送 GitHub，未部署服务器**。
-  - **默认 = 经典主题**（`html.ui-classic`，服务器现行的 Moss & Sand 暖绿盒式外观；新访客所见即线上旧貌，部署后不覆盖老用户体验）；**「探索」主题** = 月之暗面新设计。
-  - 切换入口：右上角「外观设置」新增"界面主题"区（经典/探索），背景效果区保留；右下角旧悬浮按钮已摘除（`ui-version-toggle.tsx` 删除）。
-  - 转场动效：日食 —— `components/theme/ui-theme.ts` 的 `setUiThemeWithTransition` 复用 View Transition（`--vt-origin-*` 点击原点），`html[data-vt="eclipse-in"]`（1s 强 ease-in-out，月掩）/ `eclipse-out`（0.8s 强 ease-out，光复），reduced-motion/不支持时直接切换。
-  - `legacy-ui` 已更名 `ui-classic`；localStorage `infblog-ui=explore` → 探索，其余/缺省 → 经典；`?ui=explore|classic`（兼容旧值 v2/legacy）可 URL 覆盖。
-  - 验收：typecheck/build 过；无参数访问 = 经典、`?ui=explore` = 月之暗面，截图核对通过；转场动效需人工点击确认（无头浏览器无法点击）。
-- 此前：`dcdc6d4` 月之暗面门户、`a46fca1` 线性信息流、`a38e378` v2 设计系统、`098bc72` 已部署的信息收纳。
+- 最新 commit：`d425b1d` feat(theme)：经典主题完整回到 098bc72 布局 —— **已推送 GitHub，未部署服务器**。
+  - **双结构树**：首页与博客页各含两棵 DOM 树，`ui-explore-only` / `ui-classic-only` 按 `html.ui-classic` 显隐（globals.css 工具类）。经典树 = 098bc72 服务器版原样（双栏、右侧 widget 列、盒式文章卡带图标元信息、accent 版 TypedHeading）；探索树 = 月之暗面。
+  - 从 git 098bc72 取回 5 个旧组件：`views-card / stats-widget / tags-widget / skill-showcase / timeline-widget`（探索树不再引用它们）。
+  - 冲突处理：`music-player-expanded` 观察器对 `offsetParent===null`（被隐藏树）跳过，双播放器实例共享 MusicProvider 唯一 `<audio>`；ViewsCard/DataStrip 各自拉一次 /api/views（可接受的冗余）。
+  - 切换入口：外观设置 → 界面主题（经典/探索），日食转场（`ui-theme.ts`）。
+- 此前：`155cdf3` 双主题制+日食转场、`dcdc6d4` 月之暗面门户、`a46fca1` 线性信息流、`a38e378` v2 设计系统、`098bc72` 已部署的信息收纳（= 经典主题原型）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
