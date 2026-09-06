@@ -18,7 +18,12 @@ const HOLD_MS = 1600
 
 type Phase = "typing" | "holding" | "deleting"
 
-export function TypedHeading() {
+interface TypedHeadingProps {
+  /** 覆盖 kicker 的样式类（经典主题传旧版 accent 风格） */
+  className?: string
+}
+
+export function TypedHeading({ className }: TypedHeadingProps) {
   const prefersReducedMotion = useReducedMotion()
   const [wordIndex, setWordIndex] = useState(0)
   const [display, setDisplay] = useState("")
@@ -61,7 +66,12 @@ export function TypedHeading() {
   }, [display, phase, wordIndex, prefersReducedMotion])
 
   return (
-    <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+    <p
+      className={
+        className ??
+        "font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground"
+      }
+    >
       {"// WELCOME TO "}
       <span className="text-foreground">{display}</span>
       <span className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-accent" />

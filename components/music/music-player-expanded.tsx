@@ -16,6 +16,8 @@ export function MusicPlayerExpanded() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        // 双主题树并存：被整体隐藏（display:none）的树不接管折叠状态
+        if (!entry.isIntersecting && sentinel.offsetParent === null) return
         setCollapsed(!entry.isIntersecting)
       },
       {

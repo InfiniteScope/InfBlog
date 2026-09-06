@@ -303,9 +303,22 @@ body {
    .ui-classic 下全部退化为旧版盒式外观。
    ========================================================================== */
 
-/* 仅在 v2 显示的装饰元素 */
+/* 仅在探索主题显示的装饰元素 */
 .ui-classic .v2-only {
   display: none !important;
+}
+
+/* 双主题结构树显隐：经典模式隐藏探索树，探索模式隐藏经典树 */
+.ui-classic .ui-explore-only {
+  display: none !important;
+}
+
+.ui-classic-only {
+  display: none !important;
+}
+
+.ui-classic .ui-classic-only {
+  display: block !important;
 }
 
 /* 卡片：v2 = 发丝线 + 近透明底；legacy = 旧版 border + bg-card/50 盒子 */
