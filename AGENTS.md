@@ -45,12 +45,13 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`f3efa4b` feat(theme)：主题切换编排转场 —— **已推送 GitHub，未部署服务器**。
-  - 主题切换改由全屏 canvas 2D 编排动画完成（`components/theme/ui-theme-transition.tsx` provider + `transition-explore.ts` / `transition-classic.ts` 引擎，rAF 时间线，满幕瞬间 `applyUiTheme`），取代原 View Transition 日食（eclipse CSS 已移除，深浅色 vt-reveal 保留）。
-  - 探索「月升·棱镜」2.65s：夜幕 → 月升 → 三棱镜浮现 → 白光左入射 → 七色光分化（lighter 加法混合发光）→ 整组绕棱镜旋转 -12° → 满幕换肤 → 月光渐隐。
-  - 经典「无限·碎形涟漪」2.45s：14 枚锐利多边形飞入重组为晶环（末端颤动）→ 破碎 → 幕布合拢换肤 → 水滴坠入屏心（拖尾残影）→ 三环涟漪错峰荡开揭示经典界面；幕布/碎片/涟漪色取经典主题 HSL（深浅色自适应）。
-  - 外观设置点选主题即关闭对话框再播转场；reduced-motion 直接切换；调试参数 `?transition=explore|classic`（配合 `?ui=` 可逆向演示）。
-- 此前：`d425b1d` 经典主题完整回归 098bc72（双结构树）、`155cdf3` 双主题制。
+- 最新 commit：`4953724` feat(theme)：月亮实体化 + 双转场升级 —— **已推送 GitHub，未部署服务器**。
+  - **月亮实体**（`.v2-moon` 重写）：环形山纹理 + 半透明暗面（虚实相生，可透出背景星野）+ `@property --moon-spin` 边缘亮面 72s 旋转；位置固定于内容区 58% / hero 42%（36vmin），与转场引擎共用 `components/theme/moon-home.ts` 的落点公式 → 转场结束月亮无缝留在 hero（公式按展开侧栏 280px 计算，收起侧栏时偏移 ~124px 属已知妥协）。
+  - **引力波文字**：`components/home/gravity-title.tsx` 逐字母按平方反比向月心弯折（--gx/--gy/--gr），以距离为相位 5s 脉动；hero 标题换 Orbitron（新依赖 @fontsource/orbitron，已 import 进 layout；若 dev server 未识别需重启）。
+  - 探索 hero 全宽重构：min-h=100svh-80px，播放器绝对定位右下。
+  - 探索转场放慢至 3.45s，棱镜改黑玻（专辑原样）；经典转场重写「月显→凝霜冰纹→46 枚多边形玻璃碎裂（散布全屏、三角/四边/五边随机）→水滴→引力涟漪折射双环」3.35s。
+  - 验收：typecheck/build 过；截图确认 Orbitron 标题、引力弯折（g 字母被拉向月）、黑棱镜月、冰纹、多形态碎裂、涟漪；虚拟时间无法抓到动画末帧属工具限制，真实浏览器跑 wall-clock 时间线。
+- 此前：`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72（双结构树）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
