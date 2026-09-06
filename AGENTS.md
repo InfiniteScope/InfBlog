@@ -45,12 +45,12 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`d425b1d` feat(theme)：经典主题完整回到 098bc72 布局 —— **已推送 GitHub，未部署服务器**。
-  - **双结构树**：首页与博客页各含两棵 DOM 树，`ui-explore-only` / `ui-classic-only` 按 `html.ui-classic` 显隐（globals.css 工具类）。经典树 = 098bc72 服务器版原样（双栏、右侧 widget 列、盒式文章卡带图标元信息、accent 版 TypedHeading）；探索树 = 月之暗面。
-  - 从 git 098bc72 取回 5 个旧组件：`views-card / stats-widget / tags-widget / skill-showcase / timeline-widget`（探索树不再引用它们）。
-  - 冲突处理：`music-player-expanded` 观察器对 `offsetParent===null`（被隐藏树）跳过，双播放器实例共享 MusicProvider 唯一 `<audio>`；ViewsCard/DataStrip 各自拉一次 /api/views（可接受的冗余）。
-  - 切换入口：外观设置 → 界面主题（经典/探索），日食转场（`ui-theme.ts`）。
-- 此前：`155cdf3` 双主题制+日食转场、`dcdc6d4` 月之暗面门户、`a46fca1` 线性信息流、`a38e378` v2 设计系统、`098bc72` 已部署的信息收纳（= 经典主题原型）。
+- 最新 commit：`f3efa4b` feat(theme)：主题切换编排转场 —— **已推送 GitHub，未部署服务器**。
+  - 主题切换改由全屏 canvas 2D 编排动画完成（`components/theme/ui-theme-transition.tsx` provider + `transition-explore.ts` / `transition-classic.ts` 引擎，rAF 时间线，满幕瞬间 `applyUiTheme`），取代原 View Transition 日食（eclipse CSS 已移除，深浅色 vt-reveal 保留）。
+  - 探索「月升·棱镜」2.65s：夜幕 → 月升 → 三棱镜浮现 → 白光左入射 → 七色光分化（lighter 加法混合发光）→ 整组绕棱镜旋转 -12° → 满幕换肤 → 月光渐隐。
+  - 经典「无限·碎形涟漪」2.45s：14 枚锐利多边形飞入重组为晶环（末端颤动）→ 破碎 → 幕布合拢换肤 → 水滴坠入屏心（拖尾残影）→ 三环涟漪错峰荡开揭示经典界面；幕布/碎片/涟漪色取经典主题 HSL（深浅色自适应）。
+  - 外观设置点选主题即关闭对话框再播转场；reduced-motion 直接切换；调试参数 `?transition=explore|classic`（配合 `?ui=` 可逆向演示）。
+- 此前：`d425b1d` 经典主题完整回归 098bc72（双结构树）、`155cdf3` 双主题制。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
