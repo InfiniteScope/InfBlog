@@ -670,25 +670,6 @@ body {
   }
 }
 
-/*
-  UI 主题（经典 ⇄ 探索）日食转场：
-  进入探索 = 月亮掩来（1s 强 ease-in-out，沉静、压场）；
-  回到经典 = 光复（0.8s 强 ease-out，轻亮）。均自点击处展开。
-*/
-html[data-vt="eclipse-in"]::view-transition-new(root) {
-  animation: vt-eclipse 1s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-}
-
-html[data-vt="eclipse-out"]::view-transition-new(root) {
-  animation: vt-eclipse 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes vt-eclipse {
-  to {
-    clip-path: circle(150% at var(--vt-origin-x, 50%) var(--vt-origin-y, 50%));
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root) {

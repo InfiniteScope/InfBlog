@@ -14,11 +14,8 @@ import {
   type BackgroundType,
   useBackground,
 } from "@/components/theme/background-provider"
-import {
-  getUiTheme,
-  setUiThemeWithTransition,
-  type UiTheme,
-} from "@/components/theme/ui-theme"
+import { getUiTheme, type UiTheme } from "@/components/theme/ui-theme"
+import { useUiThemeTransition } from "@/components/theme/ui-theme-transition"
 import { cn } from "@/lib/utils"
 
 const uiThemeOptions: { value: UiTheme; label: string; description: string }[] =
@@ -67,11 +64,13 @@ export function AppearanceSettings({
   onOpenChange,
 }: AppearanceSettingsProps) {
   const { background, setBackground } = useBackground()
+  const { start } = useUiThemeTransition()
   const [uiTheme, setUiTheme] = useState<UiTheme>("classic")
 
+  /* 每次打开时同步真实主题（切换后 class 已变） */
   useEffect(() => {
-    setUiTheme(getUiTheme())
-  }, [])
+    if (open) setUiTheme(getUiTheme())
+  }, [open])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,7 +80,7 @@ export function AppearanceSettings({
           <DialogDescription>界面主题与背景效果</DialogDescription>
         </DialogHeader>
 
-        {/* 界面主题：经典 / 探索（日食转场） */}
+        {/* 界面主题：经典 / 探索（专属编排转场） */}
         <div className="space-y-2 pt-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             // 界面主题
@@ -90,12 +89,11 @@ export function AppearanceSettings({
             {uiThemeOptions.map((option) => (
               <button
                 key={option.value}
-                onClick={(e) => {
-                  setUiThemeWithTransition(option.value, {
-                    x: e.clientX,
-                    y: e.clientY,
-                  })
-                  setUiTheme(option.value)
+                onClick={() => {
+                  if (option.value === uiTheme) return
+                  // 先收起设置面板，让转场动画完整呈现
+                  onOpenChange(false)
+                  start(option.value)
                 }}
                 className={cn(
                   "flex items-start gap-3 rounded-xl border p-3 text-left transition-colors",

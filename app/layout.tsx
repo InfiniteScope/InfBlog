@@ -13,6 +13,7 @@ import "katex/dist/katex.min.css"
 import "./globals.css"
 import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
+import { UiThemeTransitionProvider } from "@/components/theme/ui-theme-transition"
 import { SessionProvider } from "@/components/session-provider"
 import { Shell } from "@/components/layout/shell"
 import { BackgroundProvider } from "@/components/theme/background-provider"
@@ -46,7 +47,8 @@ export default function RootLayout({
         />
         <SessionProvider>
           <ThemeProvider>
-            <Toaster theme="system" position="top-center" richColors />
+            <UiThemeTransitionProvider>
+              <Toaster theme="system" position="top-center" richColors />
             <CollectibleReveal />
             <LoginReturnTracker />
             <ViewsTracker />
@@ -58,6 +60,7 @@ export default function RootLayout({
                 <Shell>{children}</Shell>
               </TimePrecisionProvider>
             </BackgroundProvider>
+            </UiThemeTransitionProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>
