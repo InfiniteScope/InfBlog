@@ -820,9 +820,9 @@ input[type="range"].music-slider::-moz-range-thumb {
    「FAR SIDE / 月之暗面」：月亮实体、亮面旋转、引力波文字、星野
    ========================================================================== */
 
-/* 月亮实体（探索主题 hero 地标）：
-   环形山纹理 + 受光面渐变 + 边缘柔光 = 实；暗面半透明、可透出背景星野 = 虚。
-   位置：内容区 62% / hero 42%，与转场引擎的月心公式严格一致。 */
+/* 月亮实体（探索主题 hero 地标）——参照 moonshot.ai 的日食形态：
+   近黑盘体（微球面渐变、远缘一线透光=虚实相生）+ 上左缘亮弧沿边缘缓慢巡游 + 冕光。
+   位置：内容区 58% / hero 42%，与转场引擎的月心公式严格一致。 */
 .v2-moon {
   position: absolute;
   left: 58%;
@@ -831,60 +831,64 @@ input[type="range"].music-slider::-moz-range-thumb {
   height: 36vmin;
   transform: translate(-50%, -50%);
   border-radius: 9999px;
-  background:
-    radial-gradient(circle at 30% 34%, hsl(var(--foreground) / 0.1) 0%, transparent 9%),
-    radial-gradient(circle at 45% 54%, hsl(var(--foreground) / 0.08) 0%, transparent 7%),
-    radial-gradient(circle at 27% 58%, hsl(var(--foreground) / 0.07) 0%, transparent 6%),
-    radial-gradient(circle at 53% 29%, hsl(var(--foreground) / 0.06) 0%, transparent 5%),
-    radial-gradient(circle at 37% 35%, hsl(var(--foreground) / 0.24), hsl(var(--foreground) / 0.08) 55%, hsl(var(--foreground) / 0.03) 72%, transparent 82%);
-  box-shadow:
-    0 0 0 1px hsl(var(--foreground) / 0.05),
-    0 0 140px 10px hsl(var(--accent) / 0.08),
-    inset -18px -14px 60px hsl(var(--background) / 0.45);
-}
-
-/* 暗面（晨昏线以东）：半透明遮罩，星野隐约可透 */
-.v2-moon::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    115deg,
-    transparent 44%,
-    hsl(var(--background) / 0.55) 62%,
-    hsl(var(--background) / 0.75) 100%
+  background: radial-gradient(
+    circle at 38% 32%,
+    #181c22 0%,
+    #0a0d12 55%,
+    rgba(5, 7, 10, 0.96) 88%,
+    rgba(5, 7, 10, 0.82) 100%
   );
+  box-shadow: 0 0 140px 12px hsl(var(--accent) / 0.1);
 }
 
-/* 亮面沿月球边缘缓慢旋转（conic 高光扫过） */
+/* 亮弧旋转驱动（@property 使 conic 角度可动画；不支持时静态呈现） */
 @property --moon-spin {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
 }
 
-.v2-moon::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: conic-gradient(
-    from var(--moon-spin),
-    transparent 0deg,
-    hsl(var(--foreground) / 0.14) 50deg,
-    transparent 105deg,
-    transparent 200deg,
-    hsl(var(--foreground) / 0.06) 255deg,
-    transparent 305deg
-  );
-  animation: moon-spin 72s linear infinite;
-}
-
 @keyframes moon-spin {
   to {
     --moon-spin: 360deg;
   }
+}
+
+/* 冕光（亮弧的外晕，模糊加宽） */
+.v2-moon::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from calc(300deg + var(--moon-spin, 0deg)),
+    transparent 0deg,
+    rgba(255, 255, 255, 0.55) 18deg,
+    hsl(var(--accent) / 0.5) 30deg,
+    transparent 48deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+  filter: blur(5px);
+  animation: moon-spin 72s linear infinite;
+}
+
+/* 亮弧（锐利主弧，沿月缘缓慢旋转） */
+.v2-moon::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from calc(300deg + var(--moon-spin, 0deg)),
+    transparent 0deg,
+    rgba(255, 255, 255, 0.95) 18deg,
+    hsl(var(--accent) / 0.8) 30deg,
+    transparent 48deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+  animation: moon-spin 72s linear infinite;
 }
 
 /* 引力波文字：字母被月亮引力弯折，并以距离为相位缓缓脉动 */

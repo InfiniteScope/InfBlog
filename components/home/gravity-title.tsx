@@ -35,7 +35,7 @@ export function GravityTitle({ text, className }: GravityTitleProps) {
         const dy = mcy - ly
         const d = Math.max(Math.hypot(dx, dy), 1)
         // 平方反比引力，月缘处最强，远处趋零
-        const pull = Math.min(28, Math.pow((R * 1.35) / d, 2) * 24)
+        const pull = Math.min(34, Math.pow((R * 1.35) / d, 2) * 24)
         const ux = dx / d
         const uy = dy / d
         letter.style.setProperty("--gx", `${(ux * pull).toFixed(1)}px`)

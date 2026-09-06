@@ -16,87 +16,68 @@ export function getMoonHome() {
   }
 }
 
-/** 环形山（相对月心的归一化坐标与半径比例） */
-const CRATERS: [number, number, number][] = [
-  [-0.28, -0.18, 0.1],
-  [0.06, 0.22, 0.075],
-  [-0.33, 0.28, 0.06],
-  [0.14, -0.27, 0.05],
-  [0.3, 0.05, 0.04],
-]
+/** 亮弧锚定的月缘角度（canvas 极坐标，上左方） */
+export const RIM_ANGLE = -2.3
 
-/** canvas 版月亮：与 CSS .v2-moon 视觉一致（受光面 + 环形山 + 晨昏线 + 光晕） */
+/** canvas 版月亮：与 CSS .v2-moon 视觉一致——
+ *  近黑盘体（微球面渐变）+ 上左缘亮弧（锐弧 + 冕光晕）+ 极淡 accent 冕辉 */
 export function drawMoon(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
   R: number,
-  alpha: number
+  alpha: number,
+  rimAngle: number = RIM_ANGLE
 ) {
   if (alpha <= 0.001) return
 
-  /* 光晕 */
-  const glow = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 2.2)
-  glow.addColorStop(0, `rgba(210,225,235,${0.1 * alpha})`)
-  glow.addColorStop(1, "rgba(210,225,235,0)")
-  ctx.fillStyle = glow
+  /* accent 冕辉（大范围的色晕，日食氛围） */
+  const corona = ctx.createRadialGradient(cx, cy, R * 0.5, cx, cy, R * 2.4)
+  corona.addColorStop(0, `rgba(64,200,224,${0.05 * alpha})`)
+  corona.addColorStop(1, "rgba(64,200,224,0)")
+  ctx.fillStyle = corona
   ctx.beginPath()
-  ctx.arc(cx, cy, R * 2.2, 0, Math.PI * 2)
+  ctx.arc(cx, cy, R * 2.4, 0, Math.PI * 2)
   ctx.fill()
 
-  /* 月盘 */
+  /* 暗盘（近黑球面渐变） */
   const disc = ctx.createRadialGradient(
-    cx - R * 0.3,
-    cy - R * 0.35,
+    cx - R * 0.28,
+    cy - R * 0.32,
     R * 0.1,
     cx,
     cy,
     R
   )
-  disc.addColorStop(0, `rgba(246,247,244,${0.98 * alpha})`)
-  disc.addColorStop(0.65, `rgba(196,203,208,${0.9 * alpha})`)
-  disc.addColorStop(1, `rgba(150,160,168,${0.75 * alpha})`)
+  disc.addColorStop(0, `rgba(24,28,34,${alpha})`)
+  disc.addColorStop(0.55, `rgba(10,13,18,${alpha})`)
+  disc.addColorStop(1, `rgba(5,7,10,${alpha})`)
   ctx.fillStyle = disc
   ctx.beginPath()
   ctx.arc(cx, cy, R, 0, Math.PI * 2)
   ctx.fill()
 
+  /* 亮弧冕光（宽而淡，模糊辉光） */
   ctx.save()
+  ctx.lineCap = "round"
+  ctx.strokeStyle = `rgba(220,235,245,${0.22 * alpha})`
+  ctx.lineWidth = R * 0.09
+  ctx.shadowColor = "rgba(255,255,255,0.6)"
+  ctx.shadowBlur = R * 0.18 * alpha
   ctx.beginPath()
-  ctx.arc(cx, cy, R, 0, Math.PI * 2)
-  ctx.clip()
+  ctx.arc(cx, cy, R - R * 0.045, rimAngle - 0.62, rimAngle + 0.62)
+  ctx.stroke()
+  ctx.restore()
 
-  /* 环形山 */
-  for (const [ox, oy, or_] of CRATERS) {
-    const cr = or_ * R * 2
-    const crater = ctx.createRadialGradient(
-      cx + ox * R,
-      cy + oy * R,
-      0,
-      cx + ox * R,
-      cy + oy * R,
-      cr
-    )
-    crater.addColorStop(0, `rgba(90,100,110,${0.16 * alpha})`)
-    crater.addColorStop(1, "rgba(90,100,110,0)")
-    ctx.fillStyle = crater
-    ctx.beginPath()
-    ctx.arc(cx + ox * R, cy + oy * R, cr, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  /* 晨昏线（暗面） */
-  const term = ctx.createLinearGradient(
-    cx - R,
-    cy - R * 0.2,
-    cx + R,
-    cy + R * 0.2
-  )
-  term.addColorStop(0, "rgba(4,6,10,0)")
-  term.addColorStop(0.46, "rgba(4,6,10,0)")
-  term.addColorStop(0.62, `rgba(4,6,10,${0.72 * alpha})`)
-  term.addColorStop(1, `rgba(4,6,10,${0.85 * alpha})`)
-  ctx.fillStyle = term
-  ctx.fillRect(cx - R, cy - R, R * 2, R * 2)
+  /* 亮弧主弧（锐利） */
+  ctx.save()
+  ctx.lineCap = "round"
+  ctx.strokeStyle = `rgba(255,255,255,${0.95 * alpha})`
+  ctx.lineWidth = Math.max(1.5, R * 0.018)
+  ctx.shadowColor = "rgba(255,255,255,0.9)"
+  ctx.shadowBlur = R * 0.06 * alpha
+  ctx.beginPath()
+  ctx.arc(cx, cy, R - R * 0.02, rimAngle - 0.42, rimAngle + 0.42)
+  ctx.stroke()
   ctx.restore()
 }

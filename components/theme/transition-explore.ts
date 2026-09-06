@@ -154,7 +154,7 @@ export function playExploreTransition(
       ctx.lineTo(px + s * 0.9, py + s * 0.62)
       ctx.lineTo(px - s * 0.9, py + s * 0.62)
       ctx.closePath()
-      ctx.fillStyle = "rgba(2,4,8,0.82)"
+      ctx.fillStyle = "rgba(255,255,255,0.07)"
       ctx.fill()
       ctx.strokeStyle = "rgba(255,255,255,0.85)"
       ctx.lineWidth = 1.5

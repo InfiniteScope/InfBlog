@@ -32,19 +32,23 @@ interface Shard {
   accent: boolean
   spin: number
   delay: number
+  apex: [number, number]
 }
 
 interface Crack {
   points: [number, number][]
 }
 
-const SWAP_AT = 1.18
-const DURATION = 3.35
-const SHARD_COUNT = 46
+const SWAP_AT = 1.32
+const SHATTER_START = SWAP_AT + 0.16
+const DROP_START = 2.15
+const IMPACT_AT = 2.5
+const DURATION = 3.8
+const SHARD_COUNT = 40
 
 /**
- * 「从想象之境回到现实」：月显（探索的月亮浮现于夜空）→ 世界凝成玻璃
- * （凝霜 + 冰纹）→ 整屏碎裂为形态多样的多边形四散 → 水滴坠入屏心
+ * 「从想象之境回到现实」：月显（日食月浮现）→ 世界凝成玻璃（凝霜+冰纹）
+ * → 整屏碎裂为大块多边形玻璃（折射渐变 + 反光刃边 + 色散）→ 水滴坠入屏心
  * → 引力涟漪荡开，经典界面浮现。表达"无限"主题的归返面。
  */
 export function playClassicTransition(
@@ -73,11 +77,11 @@ export function playClassicTransition(
   /* 经典主题（Moss & Sand）目标配色，按当前深浅色选取 */
   const dark = document.documentElement.classList.contains("dark")
   const veilColor = dark ? "160 14% 8%" : "48 24% 96%"
-  const shardColor = dark ? "80 14% 88%" : "150 18% 15%"
+  const shardStroke = dark ? "255 255 255" : "255 255 255"
   const accentColor = dark ? "180 35% 50%" : "180 45% 38%"
   const ringColor = dark ? "0 0% 100%" : "150 18% 15%"
 
-  /* 预生成玻璃碎片：散布全屏、形态多样（三角/四边/五边）、大小随机 */
+  /* 预生成玻璃碎片：散布全屏、形态多样（3-5 边）、大块、确定性 */
   const rng = rand(20260905)
   const shards: Shard[] = Array.from({ length: SHARD_COUNT }, (_, i) => {
     const x = rng() * W
@@ -86,7 +90,7 @@ export function playClassicTransition(
     const dy = y - cy
     const d = Math.max(Math.hypot(dx, dy), 1)
     const sideCount = 3 + Math.floor(rng() * 3)
-    const size = base * (0.018 + rng() * 0.045)
+    const size = base * (0.035 + rng() * 0.055)
     const baseAng = rng() * Math.PI * 2
     const verts: [number, number][] = Array.from(
       { length: sideCount },
@@ -95,6 +99,10 @@ export function playClassicTransition(
         const rr = size * (0.55 + rng() * 0.6)
         return [Math.cos(a) * rr, Math.sin(a) * rr]
       }
+    )
+    /* 棱面高光的顶点：取离中心最远的一个 */
+    const apex = verts.reduce((a, b) =>
+      Math.hypot(b[0], b[1]) > Math.hypot(a[0], a[1]) ? b : a
     )
     return {
       x,
@@ -105,8 +113,9 @@ export function playClassicTransition(
       size,
       verts,
       accent: i % 6 === 0,
-      spin: (rng() - 0.5) * 7,
-      delay: (1 - d / (Math.hypot(W, H) / 2)) * 0.18, // 中心先碎
+      spin: (rng() - 0.5) * 6,
+      delay: (1 - d / (Math.hypot(W, H) / 2)) * 0.2, // 中心先碎
+      apex,
     }
   })
 
@@ -127,6 +136,71 @@ export function playClassicTransition(
     return { points }
   })
 
+  const drawShard = (s: Shard, gx: number, gy: number, rot: number, alpha: number) => {
+    ctx.save()
+    ctx.translate(gx, gy)
+    ctx.rotate(rot)
+
+    const path = () => {
+      ctx.beginPath()
+      s.verts.forEach(([vx, vy], j) => {
+        if (j === 0) ctx.moveTo(vx, vy)
+        else ctx.lineTo(vx, vy)
+      })
+      ctx.closePath()
+    }
+
+    /* 色散（折射色边）：红蓝微偏移双线 */
+    ctx.save()
+    ctx.translate(0.9, 0)
+    path()
+    ctx.strokeStyle = `rgba(255,110,90,${0.3 * alpha})`
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.restore()
+    ctx.save()
+    ctx.translate(-0.9, 0)
+    path()
+    ctx.strokeStyle = `rgba(90,160,255,${0.3 * alpha})`
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.restore()
+
+    /* 玻璃体：受光面 → 体色 → 背光面的折射渐变 */
+    const g = ctx.createLinearGradient(-s.size, -s.size, s.size, s.size)
+    if (s.accent) {
+      g.addColorStop(0, `hsla(${accentColor} / ${0.95 * alpha})`)
+      g.addColorStop(0.55, `hsla(${accentColor} / ${0.75 * alpha})`)
+      g.addColorStop(1, `hsla(${accentColor} / ${0.5 * alpha})`)
+    } else {
+      g.addColorStop(0, `rgba(255,255,255,${0.95 * alpha})`)
+      g.addColorStop(0.5, `hsla(${veilColor} / ${0.92 * alpha})`)
+      g.addColorStop(1, `hsla(${dark ? "160 10% 22%" : "150 8% 62%"} / ${0.85 * alpha})`)
+    }
+    path()
+    ctx.fillStyle = g
+    ctx.fill()
+
+    /* 反光刃边 */
+    path()
+    ctx.strokeStyle = `rgba(${shardStroke} / ${0.8 * alpha})`
+    ctx.lineWidth = 1.2
+    ctx.stroke()
+
+    /* 棱面高光：质心射向最锐顶点的一线亮 */
+    const sg = ctx.createLinearGradient(0, 0, s.apex[0], s.apex[1])
+    sg.addColorStop(0, "rgba(255,255,255,0)")
+    sg.addColorStop(1, `rgba(255,255,255,${0.55 * alpha})`)
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.lineTo(s.apex[0] * 0.72, s.apex[1] * 0.72)
+    ctx.strokeStyle = sg
+    ctx.lineWidth = 1.4
+    ctx.stroke()
+
+    ctx.restore()
+  }
+
   let raf = 0
   let swapped = false
   const t0 = performance.now()
@@ -135,14 +209,14 @@ export function playClassicTransition(
     const t = (now - t0) / 1000
     ctx.clearRect(0, 0, W, H)
 
-    /* 第一幕·月显：探索的月亮自夜空中显现、增亮 */
-    const nightA = easeOutCubic(clamp01(t / 0.9)) * 0.55
-    const frostIn = easeInOutCubic(clamp01((t - 0.9) / 0.28))
+    /* 第一幕·月显：日食月自夜空显现、增亮 */
+    const nightA = easeOutCubic(clamp01(t / 1.0)) * 0.55
+    const frostIn = easeInOutCubic(clamp01((t - 1.0) / 0.32))
     if (nightA > 0.001) {
       ctx.fillStyle = `rgba(4,6,10,${nightA * (1 - frostIn)})`
       ctx.fillRect(0, 0, W, H)
     }
-    const moonP = easeOutCubic(clamp01((t - 0.1) / 0.7))
+    const moonP = easeOutCubic(clamp01((t - 0.1) / 0.8))
     const moonPulse = 1 + Math.sin(clamp01(t) * Math.PI) * 0.02
     if (frostIn < 1) {
       drawMoon(
@@ -187,46 +261,25 @@ export function playClassicTransition(
       }
     }
 
-    /* 第三幕·碎裂：整屏玻璃炸开为形态多样的多边形（碎片即霜幕本身） */
-    const shatterActive = t >= SWAP_AT + 0.08
-    if (shatterActive) {
-      /* 霜幕残余随碎片四散而消退，露出换肤后的经典界面 */
-      const frostLeft = 1 - easeInOutCubic(clamp01((t - SWAP_AT - 0.08) / 0.55))
+    /* 第三幕·碎裂：整屏玻璃炸开（碎片即霜幕本身，碎块越大越真实） */
+    if (t >= SHATTER_START) {
+      const frostLeft = 1 - easeInOutCubic(clamp01((t - SHATTER_START) / 0.62))
       if (frostLeft > 0.001) {
         ctx.fillStyle = `hsla(${veilColor} / ${frostLeft})`
         ctx.fillRect(0, 0, W, H)
       }
       for (const s of shards) {
-        const p = clamp01((t - SWAP_AT - 0.08 - s.delay) / 0.6)
+        const p = clamp01((t - SHATTER_START - s.delay) / 1.1)
         if (p <= 0 || p >= 1) continue
         const fly = easeInQuad(p)
-        const gx = s.x + s.dirX * fly * (s.dist + base * 0.55)
-        const gy =
-          s.y + s.dirY * fly * (s.dist + base * 0.55) + 140 * p * p // 微重力下坠
-        ctx.save()
-        ctx.translate(gx, gy)
-        ctx.rotate(s.spin * p)
-        ctx.globalAlpha = 1 - easeInQuad(p) * 0.9
-        ctx.beginPath()
-        s.verts.forEach(([vx, vy], j) => {
-          if (j === 0) ctx.moveTo(vx, vy)
-          else ctx.lineTo(vx, vy)
-        })
-        ctx.closePath()
-        ctx.fillStyle = s.accent
-          ? `hsla(${accentColor} / 0.85)`
-          : `hsla(${veilColor} / 0.9)`
-        ctx.fill()
-        ctx.strokeStyle = `hsla(${shardColor} / 0.65)`
-        ctx.lineWidth = 1
-        ctx.stroke()
-        ctx.restore()
+        const gx = s.x + s.dirX * fly * (s.dist + base * 0.5)
+        const gy = s.y + s.dirY * fly * (s.dist + base * 0.5) + 150 * p * p
+        drawShard(s, gx, gy, s.spin * p, 1 - easeInQuad(p) * 0.92)
       }
-      ctx.globalAlpha = 1
     }
 
-    /* 第四幕·水滴：坠入屏心，拖三枚残影 */
-    const dropP = easeInQuad(clamp01((t - 1.95) / 0.3))
+    /* 第四幕·水滴：碎裂尾声中提前坠入（重叠节奏），拖三枚残影 */
+    const dropP = easeInQuad(clamp01((t - DROP_START) / (IMPACT_AT - DROP_START)))
     if (dropP > 0 && dropP < 1) {
       const dropY = lerp(-40, cy, dropP)
       for (let k = 1; k <= 3; k++) {
@@ -246,7 +299,7 @@ export function playClassicTransition(
     }
 
     /* 冲击闪光 */
-    const flashP = clamp01((t - 2.25) / 0.14)
+    const flashP = clamp01((t - IMPACT_AT) / 0.14)
     if (flashP > 0 && flashP < 1) {
       const fr = base * 0.16 * easeOutCubic(flashP)
       const flash = ctx.createRadialGradient(cx, cy, 0, cx, cy, fr)
@@ -258,10 +311,10 @@ export function playClassicTransition(
       ctx.fill()
     }
 
-    /* 第五幕·引力涟漪：四环错峰荡开 + 透镜微凸（参考月面引力波） */
+    /* 第五幕·引力涟漪：四环错峰荡开 + 折射副环（月面引力波的双影） */
     const maxR = Math.hypot(W, H) / 2 + 40
     for (let k = 0; k < 4; k++) {
-      const p = clamp01((t - 2.25 - k * 0.14) / 1.0)
+      const p = clamp01((t - IMPACT_AT - k * 0.15) / 1.15)
       if (p <= 0 || p >= 1) continue
       const rr = maxR * easeOutCubic(p)
       ctx.beginPath()
@@ -269,7 +322,6 @@ export function playClassicTransition(
       ctx.strokeStyle = `hsla(${ringColor} / ${(1 - p) * (k === 0 ? 0.45 : 0.28)})`
       ctx.lineWidth = lerp(3.5, 0.75, p)
       ctx.stroke()
-      /* 折射副环（引力波的双影） */
       ctx.beginPath()
       ctx.arc(cx, cy, Math.max(rr - 7, 0), 0, Math.PI * 2)
       ctx.strokeStyle = `hsla(${accentColor} / ${(1 - p) * 0.18})`
