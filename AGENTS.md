@@ -45,12 +45,11 @@
 
 ## 当前状态（2026-09-05）
 
-- 最新 commit：`4953724` feat(theme)：月亮实体化 + 双转场升级 —— **已推送 GitHub，未部署服务器**。
-  - **月亮实体**（`.v2-moon` 重写）：环形山纹理 + 半透明暗面（虚实相生，可透出背景星野）+ `@property --moon-spin` 边缘亮面 72s 旋转；位置固定于内容区 58% / hero 42%（36vmin），与转场引擎共用 `components/theme/moon-home.ts` 的落点公式 → 转场结束月亮无缝留在 hero（公式按展开侧栏 280px 计算，收起侧栏时偏移 ~124px 属已知妥协）。
-  - **引力波文字**：`components/home/gravity-title.tsx` 逐字母按平方反比向月心弯折（--gx/--gy/--gr），以距离为相位 5s 脉动；hero 标题换 Orbitron（新依赖 @fontsource/orbitron，已 import 进 layout；若 dev server 未识别需重启）。
-  - 探索 hero 全宽重构：min-h=100svh-80px，播放器绝对定位右下。
-  - 探索转场放慢至 3.45s，棱镜改黑玻（专辑原样）；经典转场重写「月显→凝霜冰纹→46 枚多边形玻璃碎裂（散布全屏、三角/四边/五边随机）→水滴→引力涟漪折射双环」3.35s。
-  - 验收：typecheck/build 过；截图确认 Orbitron 标题、引力弯折（g 字母被拉向月）、黑棱镜月、冰纹、多形态碎裂、涟漪；虚拟时间无法抓到动画末帧属工具限制，真实浏览器跑 wall-clock 时间线。
+- 最新 commit：`ff10d3e` feat(theme)：月亮改日食形态 + 经典转场玻璃碎裂升级 —— **已推送 GitHub，未部署服务器**。
+  - 月亮参照 moonshot.ai hero（其源码为 Unicorn Studio WebGL 场景：gradient/godrays/voronoi/ripple/liquify/beam 等 13 层 + 文字透镜扭曲；形态上为**日食月**：近黑盘体遮挡文字、上左缘亮弧、引力波纹）。本站自绘实现：`.v2-moon` 近黑球面渐变盘 + 锐弧（`::before`，conic+mask 细环）+ 冕光（`::after`，加宽模糊环）沿月缘 72s 巡游；canvas 版 `drawMoon`（moon-home.ts）同构（暗盘+冕辉+锐弧，弧角可调）。
+  - 经典转场 3.8s：月显 0–1.0 → 凝霜+冰纹 1.0–1.48（swap 1.32）→ 碎裂 1.48–2.6（40 枚大块多边形，折射渐变+反光刃边+红蓝色散+棱面高光，中心先碎）→ 水滴 2.15 提前重叠坠入 → 涟漪 2.5–3.8（四环+折射副环）。
+  - 引力波拉力上限 34px（日食月视觉质量更大）。
+  - 验收：typecheck/build 过；截图确认日食月 hero、棱镜光谱帧、冰纹帧、玻璃碎片帧；高 budget 空白帧为无头虚拟时钟假象（直接访问 ?ui=classic 渲染完整）。
 - 此前：`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72（双结构树）。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
