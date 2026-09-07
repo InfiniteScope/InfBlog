@@ -45,7 +45,11 @@
 
 ## 当前状态（2026-09-07）
 
-- 最新改动（**已部署服务器 2026-09-07，pm2 online，公网 200 验证通过**）：探索 hero 画布两处修复 + 用户自改文案（hero 副文案改「Take Me To See What I Can't Reach ... - Infinitely」/「去编织意义，去留下痕迹」，勿覆盖）——
+- 最新改动（**已部署服务器 2026-09-07，pm2 online，公网 200 验证通过**）：探索 hero 收尾两项（commit `1c1b5df`）——
+  1. **HTML 侧 InfBlog 字样全部隐藏**：shader 已渲染折射 InfBlog 大字，`.v2-hero-title`（h1）与打字机 kicker（TypedHeading，加 `v2-hero-typed` 类）在 `.webgl-on` 下均 `display:none`；两行副文案（用户自改文案「Take Me To See What I Can't Reach ... - Infinitely」/「去编织意义，去留下痕迹」，勿覆盖）移出 shader 色带——窄屏沉 hero 底部（justify-end），lg 锚定 `top:68%`（色带下缘 ~64%），不再叠在大字上；WebGL 不可用时整块照旧居中兜底。
+  2. **收起侧边栏防闪烁**：`moon-scene.ts` resize() 实际改尺寸后若 ready&&!paused 同帧补绘 `render(lastT)`，消除 backing store 重设的黑帧（此前已加 RO 观察画布自身解决布局拉伸）。
+  - 验收：tsc/build 过；playwright 实测 kicker/h1 display:none、副文案落在色带下方（668–730px）、收侧边栏连拍 10 帧月亮区最低亮度 67（黑帧阈值 ~10）无闪烁；服务器 build=0、local3000/site 200、线上含 v2-hero-typed 标记。
+- 上一轮改动：探索 hero 画布两处修复——
   1. **侧边栏收起不再压缩画布**：`moon-scene.ts` 内置 ResizeObserver 观察画布自身（侧边栏 280↔80 是 padding 过渡，不触发 window.resize，原实现 backing store 停在旧宽度导致画面拉伸）；`hero-moon-canvas.tsx` 的 window resize 监听已删（RO 覆盖）。
   2. **hero 全出血铺满**：`.v2-hero-night` 加 `-mx-4 -mt-6 md:-mx-6 lg:-mx-8`（负 margin 抵消 main 的 px/py 内边距）+ 同值 px 补偿内容缩进，min-h 由 `calc(100svh-5rem)` 改 `calc(100svh-3.5rem)`；EARTH_RADIO 块 `lg:right-0`→`lg:right-8`。画布顶缘=导航栏下缘（57px）、左右到视口边缘、底到 100svh，不再露出 `.v2-grid` 星野条。
   - 验收：typecheck/build 过；playwright 实测画布 top=57、收起侧边栏前后 backing/css 比例恒 1.000、截图无星野露头。
