@@ -24,8 +24,7 @@ import { TagsFlow } from "@/components/home/tags-flow"
 import { GithubProjects } from "@/components/home/github-projects"
 import { TechMarquee } from "@/components/home/tech-marquee"
 import { TypedHeading } from "@/components/motion/typed-heading"
-import { GravityTitle } from "@/components/home/gravity-title"
-import { HeroMoon } from "@/components/home/hero-moon"
+import { HeroMoonCanvas } from "@/components/home/hero-moon-canvas"
 import {
   StaggerContainer,
   StaggerItem,
@@ -96,36 +95,38 @@ export default async function HomePage() {
           向月之暗面致意 · TO THE FAR SIDE
         </p>
 
-        {/* 00 // 门户：月之暗面。月亮为 body 级独立图层（HeroMoon portal）。
-            moonshot 式整幅画面：纯黑夜景 + 白色艺术大标题横穿月盘
-            （穿透可见、月缘被 liquify 液态折射）+ 扫描线纹理。 */}
-        <div className="v2-hero-night relative min-h-[calc(100svh-5rem)]">
-          <HeroMoon />
+        {/* 00 // 门户：月之暗面。hero 为 WebGL「月之暗面」场景
+            （日食月 + 棱镜光束 + shader 内折射标题，用户的原型改造）。
+            WebGL 不可用时 .webgl-on 不会被加上，HTML 标题兜底显示。
+            负 margin 抵消 main 的内边距，画布全出血铺到视口顶/侧缘，
+            不再露出 .v2-grid 星野；内层 px 补偿保持原内容缩进。 */}
+        <div className="v2-hero-night relative -mx-4 -mt-6 min-h-[calc(100svh-3.5rem)] px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
+          <HeroMoonCanvas text={siteConfig.name} />
           <span className="v2-only v2-cross left-0 top-2" aria-hidden>
             +
           </span>
           <span className="v2-only v2-cross bottom-2 right-0" aria-hidden>
             +
           </span>
-          <div className="v2-hero-scanlines" aria-hidden />
 
-          {/* 文本块右缘锚定月心（视口坐标系），标题横穿月盘：
-               白色大字穿透月亮，盘内被 liquify 液态折射（moonshot 机制） */}
-          <div className="relative z-10 flex min-h-[calc(100svh-5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[38vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
+          {/* WebGL 激活后标题由 shader 渲染（.webgl-on 隐藏 HTML 标题），
+              文本块其余内容（打字机/副文案）悬浮在场景之上 */}
+          <div className="relative z-10 flex min-h-[calc(100svh-3.5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[38vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
             <TypedHeading />
-            <GravityTitle
-              text={siteConfig.name}
+            <h1
               className="v2-hero-title font-future text-[clamp(4.5rem,13vmin,12.5rem)] leading-none tracking-tight lg:whitespace-nowrap"
-            />
+            >
+              {siteConfig.name}
+            </h1>
             <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-neutral-400">
-              INF = INFINITE · 求索 · 探索 · 致意遥不可及
+              Take Me To See What I Can't Reach ... - Infinitely
             </p>
             <p className="max-w-xl text-sm leading-relaxed text-neutral-400 md:text-base">
-              {siteConfig.description}
+              去编织意义，去留下痕迹
             </p>
           </div>
 
-          <div className="relative z-10 pb-2 lg:absolute lg:bottom-10 lg:right-0 lg:w-[380px] lg:pb-0">
+          <div className="relative z-10 pb-2 lg:absolute lg:bottom-10 lg:right-8 lg:w-[380px] lg:pb-0">
             <SectionHeading className="mb-3">// EARTH_RADIO</SectionHeading>
             <MusicPlayerExpanded />
           </div>
@@ -370,112 +371,115 @@ export default async function HomePage() {
       {/* ==================== 经典主题（098bc72 服务器版） ==================== */}
       <div className="ui-classic-only">
         <div className="mx-auto max-w-7xl">
-          {/* 2 列栅格：
-              第 1 行：左=hero(标题+技能)，右=音乐播放器
-              第 2 行左：最新文章；第 2 行右：widgets（SITE_VIEWS 紧跟播放器） */}
+          {/* 2 列栅格：左列（hero + 最新文章）纵向排列，
+              右列（播放器 + widgets）独立成列。
+              不再用跨行 item，避免右列高度把左列行轨道撑出空白 */}
           <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
-            {/* Hero: title left, skill showcase right.
-                上/下边缘与音乐播放器（h-56）对齐 */}
-            <div className="grid items-start gap-6 md:h-[224px] lg:col-start-1 lg:row-start-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-              <section className="flex flex-col justify-center space-y-4">
-                <TypedHeading className="font-mono text-sm tracking-widest text-accent" />
-                <h1 className="font-display text-3xl tracking-tight md:text-5xl lg:text-5xl">
-                  {siteConfig.name}
-                </h1>
-                <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                  {siteConfig.description}
-                </p>
-              </section>
+            {/* 左列：hero + Latest Posts */}
+            <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
+              {/* Hero: title left, skill showcase right.
+                  上/下边缘与音乐播放器（h-56）对齐 */}
+              <div className="grid items-start gap-6 md:h-[224px] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+                <section className="flex flex-col justify-center space-y-4">
+                  <TypedHeading className="font-mono text-sm tracking-widest text-accent" />
+                  <h1 className="font-display text-3xl tracking-tight md:text-5xl lg:text-5xl">
+                    {siteConfig.name}
+                  </h1>
+                  <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                    {siteConfig.description}
+                  </p>
+                </section>
 
-              {/* GitHub projects + tech stack showcase */}
-              <SkillShowcase />
+                {/* GitHub projects + tech stack showcase */}
+                <SkillShowcase />
+              </div>
+
+              {/* Latest Posts */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display text-2xl tracking-tight">最新文章</h2>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/blog">查看全部</Link>
+                  </Button>
+                </div>
+                {classicPosts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border bg-card/30 p-8 text-center">
+                    <p className="text-muted-foreground">博客文章即将上线</p>
+                  </div>
+                ) : (
+                  <StaggerContainer className="grid gap-4">
+                    {classicPosts.map((post) => (
+                      <StaggerItem key={post.slug}>
+                        <article className="group overflow-hidden rounded-xl border border-border bg-card/50 transition-colors hover:bg-card">
+                          <Link
+                            href={`/blog/${post.slug}`}
+                            className="flex flex-col sm:flex-row-reverse"
+                          >
+                            {post.coverImage && (
+                              <div className="relative aspect-video w-full shrink-0 overflow-hidden sm:aspect-square sm:w-40">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={post.coverImage}
+                                  alt={post.title}
+                                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                              </div>
+                            )}
+                            <div className="flex flex-1 flex-col justify-center space-y-3 p-5">
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <RefreshCw className="h-3.5 w-3.5" />
+                                  {new Date(
+                                    post.updatedAt ?? post.date
+                                  ).toLocaleDateString("zh-CN")}
+                                </span>
+                                <span
+                                  className="flex items-center gap-1"
+                                  title="总浏览量 / 本月浏览量"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  {statsMap[post.slug]?.totalViews ?? 0} /{" "}
+                                  {statsMap[post.slug]?.monthViews ?? 0}
+                                </span>
+                                {post.tags.length > 0 && (
+                                  <span className="flex items-center gap-1">
+                                    <Tag className="h-3.5 w-3.5" />
+                                    {post.tags.join(", ")}
+                                  </span>
+                                )}
+                              </div>
+                              <h3 className="font-display text-xl tracking-tight transition-colors group-hover:text-primary">
+                                {post.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {post.description}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] text-muted-foreground">
+                                <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
+                                  <Type className="h-3 w-3" />
+                                  {post.wordCount?.toLocaleString("zh-CN") ?? 0} 字
+                                </span>
+                                <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
+                                  <ImageIcon className="h-3 w-3" />
+                                  {post.imageCount ?? 0} 图
+                                </span>
+                                <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
+                                  <Clock className="h-3 w-3" />
+                                  {post.readingTime ?? "1 分钟"}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        </article>
+                      </StaggerItem>
+                    ))}
+                  </StaggerContainer>
+                )}
+              </section>
             </div>
 
-            {/* Latest Posts（第2行左列） */}
-            <section className="space-y-4 lg:col-start-1 lg:row-start-2">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-2xl tracking-tight">最新文章</h2>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/blog">查看全部</Link>
-                </Button>
-              </div>
-              {classicPosts.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border bg-card/30 p-8 text-center">
-                  <p className="text-muted-foreground">博客文章即将上线</p>
-                </div>
-              ) : (
-                <StaggerContainer className="grid gap-4">
-                  {classicPosts.map((post) => (
-                    <StaggerItem key={post.slug}>
-                      <article className="group overflow-hidden rounded-xl border border-border bg-card/50 transition-colors hover:bg-card">
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          className="flex flex-col sm:flex-row-reverse"
-                        >
-                          {post.coverImage && (
-                            <div className="relative aspect-video w-full shrink-0 overflow-hidden sm:aspect-square sm:w-40">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={post.coverImage}
-                                alt={post.title}
-                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            </div>
-                          )}
-                          <div className="flex flex-1 flex-col justify-center space-y-3 p-5">
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <RefreshCw className="h-3.5 w-3.5" />
-                                {new Date(
-                                  post.updatedAt ?? post.date
-                                ).toLocaleDateString("zh-CN")}
-                              </span>
-                              <span
-                                className="flex items-center gap-1"
-                                title="总浏览量 / 本月浏览量"
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                {statsMap[post.slug]?.totalViews ?? 0} /{" "}
-                                {statsMap[post.slug]?.monthViews ?? 0}
-                              </span>
-                              {post.tags.length > 0 && (
-                                <span className="flex items-center gap-1">
-                                  <Tag className="h-3.5 w-3.5" />
-                                  {post.tags.join(", ")}
-                                </span>
-                              )}
-                            </div>
-                            <h3 className="font-display text-xl tracking-tight transition-colors group-hover:text-primary">
-                              {post.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {post.description}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] text-muted-foreground">
-                              <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
-                                <Type className="h-3 w-3" />
-                                {post.wordCount?.toLocaleString("zh-CN") ?? 0} 字
-                              </span>
-                              <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
-                                <ImageIcon className="h-3 w-3" />
-                                {post.imageCount ?? 0} 图
-                              </span>
-                              <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
-                                <Clock className="h-3 w-3" />
-                                {post.readingTime ?? "1 分钟"}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      </article>
-                    </StaggerItem>
-                  ))}
-                </StaggerContainer>
-              )}
-            </section>
-
             {/* Right column: music player + widgets packed */}
-            <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+            <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1">
               <MusicPlayerExpanded />
               <ViewsCard />
               <TimelineWidget updates={latestUpdates} />

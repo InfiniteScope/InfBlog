@@ -16,6 +16,7 @@ import {
 } from "@/components/theme/ui-theme"
 import { playExploreTransition } from "@/components/theme/transition-explore"
 import { playClassicTransition } from "@/components/theme/transition-classic"
+import { ExploreDarkSync } from "@/components/theme/explore-dark-sync"
 
 interface UiThemeTransitionValue {
   start: (theme: UiTheme) => void
@@ -30,10 +31,10 @@ export function useUiThemeTransition() {
 }
 
 /**
- * UI 主题转场编排：经典 ⇄ 探索各有一段 canvas 编排动画
- * （探索 = 月升棱镜；经典 = 碎形涟漪），满幕瞬间完成换肤。
- * 月亮不再由 canvas 另画——引擎直接驱动首页那只 #hero-moon 本体
- * （同一个 DOM 元素），转场与主界面共享同一个月亮。
+ * UI 主题转场编排：经典 ⇄ 探索各有一段全屏覆盖层动画
+ * （探索 = WebGL 月升；经典 = 碎形涟漪），满幕瞬间完成换肤。
+ * 覆盖层 fixed inset-0 z-100，盖住导航栏/侧边栏/全部界面——转场是全局的。
+ * 「探索」强制深色由 ExploreDarkSync 随换肤生效/还原。
  * reduced-motion 直接切换无动画。
  */
 export function UiThemeTransitionProvider({
@@ -66,6 +67,7 @@ export function UiThemeTransitionProvider({
 
   return (
     <UiThemeTransitionContext.Provider value={{ start }}>
+      <ExploreDarkSync />
       {children}
       {active && <TransitionOverlay theme={active} onDone={handleDone} />}
     </UiThemeTransitionContext.Provider>
@@ -88,22 +90,18 @@ function TransitionOverlay({
       onDone()
       return
     }
-    /* 首页那只月亮（portal 月层）——转场与主界面共用的同一个元素。
-       veil = 月亮下方的夜幕层（z-15 < 月亮 z-20）：入夜氛围不暗化月体；
-       canvas（z-100）在月亮之上，承担霜幕/碎裂等需要盖过月面的特效。 */
-    const moon = {
-      rise: document.getElementById("hero-moon-rise"),
-      veil: veilRef.current,
-    }
+    /* 覆盖层 canvas（z-100）盖住整个视口（导航/侧栏在内）；
+       veil（z-60，导航之上）是经典转场的入夜铺垫层。 */
+    const veil = veilRef.current
     return theme === "explore"
       ? playExploreTransition(canvas, {
           onSwap: () => applyUiTheme("explore"),
           onDone,
-        }, moon)
+        })
       : playClassicTransition(canvas, {
           onSwap: () => applyUiTheme("classic"),
           onDone,
-        }, moon)
+        }, veil)
   }, [theme, onDone])
 
   return (
@@ -111,7 +109,7 @@ function TransitionOverlay({
       <div
         ref={veilRef}
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[15] bg-[#020408] opacity-0"
+        className="pointer-events-none fixed inset-0 z-[60] bg-[#020408] opacity-0"
       />
       <canvas
         ref={canvasRef}

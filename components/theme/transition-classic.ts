@@ -1,4 +1,4 @@
-import { getMoonHome, type MoonHandle } from "@/components/theme/moon-home"
+import { getMoonHome } from "@/components/theme/moon-home"
 
 interface EngineCallbacks {
   onSwap: () => void
@@ -54,7 +54,7 @@ const SHARD_COUNT = 40
 export function playClassicTransition(
   canvas: HTMLCanvasElement,
   cb: EngineCallbacks,
-  moon: MoonHandle
+  veil: HTMLElement | null
 ): () => void {
   const ctx = canvas.getContext("2d")
   if (!ctx) {
@@ -82,23 +82,10 @@ export function playClassicTransition(
   const accentColor = dark ? "180 35% 50%" : "180 45% 38%"
   const ringColor = dark ? "0 0% 100%" : "150 18% 15%"
 
-  /* —— 同一个月亮：开场脉动（DOM），碎裂时在霜幕后隐去 —— */
-  const riseEl = moon.rise
-  const veilEl = moon.veil
-  const moonVisible = !!riseEl && riseEl.getBoundingClientRect().width > 0
+  /* —— 夜幕层：开场轻压入夜感，凝霜起时让位（月亮本体在 hero 场景内，
+      换肤后随探索树隐藏，无需另行退场） —— */
+  const veilEl = veil
   document.documentElement.classList.add("ui-theme-transitioning")
-  let pulseAnim: Animation | null = null
-  if (moonVisible) {
-    pulseAnim = riseEl.animate(
-      [
-        { transform: "scale(0.97)" },
-        { transform: "scale(1.03)" },
-        { transform: "scale(1)" },
-      ],
-      { duration: 1100, easing: "ease-in-out", fill: "both" }
-    )
-    pulseAnim.onfinish = () => pulseAnim?.cancel()
-  }
 
   /* 预生成玻璃碎片：散布全屏、形态多样（3-5 边）、大块、确定性 */
   const rng = rand(20260905)
@@ -223,19 +210,10 @@ export function playClassicTransition(
   let raf = 0
   let swapped = false
   let finished = false
-  let moonHidden = false
   const t0 = performance.now()
-
-  const hideMoon = () => {
-    if (moonHidden || !riseEl) return
-    moonHidden = true
-    riseEl.style.opacity = "0"
-  }
 
   const dispose = () => {
     cancelAnimationFrame(raf)
-    pulseAnim?.cancel()
-    if (riseEl) riseEl.style.opacity = ""
     if (veilEl) veilEl.style.opacity = ""
     document.documentElement.classList.remove("ui-theme-transitioning")
   }
@@ -358,8 +336,7 @@ export function playClassicTransition(
 
     if (!swapped && t >= SWAP_AT) {
       swapped = true
-      /* 霜幕已合拢，月亮本体在幕后退场（换肤后 ui-classic 自动隐藏） */
-      hideMoon()
+      /* 霜幕已合拢，换肤（探索树隐藏 → hero 场景一并退场） */
       cb.onSwap()
     }
     if (t >= DURATION) {

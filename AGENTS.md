@@ -45,13 +45,17 @@
 
 ## 当前状态（2026-09-07）
 
-- 最新改动（本地已验证，**未部署服务器**）：修复「探索」主题对 moonshot.ai 的错解,并按用户要求进一步对齐官网——
-  1. **月亮严格还原为日食环**：纯黑盘 + 细白环弧（全环 5% 底光、12 点热点 ±90° 渐隐、`--moon-spin` **100s/圈**、纯灰白无青色），删除钻石环珠点/8 颗星尘/青色 accent（moonshot 真实场景没有这些；逆向自其 UnicornStudio 场景 JSON：beam 层 radius .27H、fract(t*.01) 巡游、angularFading 90°、#D0D0D0 additive）。**尺寸 36vmin→54vmin**（≈0.54×屏高），`getMoonHome` R 同步 0.18→0.27。
-  2. **文字扭曲改为 liquify 液态折射**：`GravityTitle` 双层文字（原始层 + `.hero-liquify-wrap` 拷贝层），拷贝层过 `#moon-liquify` SVG filter（feTurbulence 位移场 0.0022/0.02 横向拉丝 + feDisplacementMap scale 30 + R/B 通道 ±2.6px 反偏 feBlend screen 合成=色差），mask 以月心为圆心、半径 R*1.4 径向衰减（对应 liquify dist=max(0,1-d*4), mix .21）。GravityTitle 监听 html.ui-classic 的 MutationObserver——换肤后必须重算 mask，否则 mask 停兜底值导致整行标题被扭曲。
-  3. **转场月亮 = 首页月亮（同一个 DOM）**：删除 canvas `drawMoon`（moon-home.ts 只剩 getMoonHome + MoonHandle）；转场引擎直接 WAAPI 驱动 `#hero-moon-rise`（classic→explore：月升 translateY(H*0.55+R)→0，1.5s cubic(0.16,1,0.3,1)，onfinish cancel 防残留；explore→classic：脉动 scale 0.97→1.03→1，霜幕后 opacity 0 退场）。夜幕改为月亮**下方**的 DOM veil 层（z-15 < 月 z-20 < 特效 canvas z-100），入夜氛围不暗化月体；月亮显隐由 `.ui-classic .v2-moon-layer{display:none}` + `.ui-theme-transitioning .v2-moon-layer{display:block}` 控制（后者必须写在后者之后以赢同级特异性）。非首页/窄屏转场无月亮（宽度 0 检测跳过）。
-  4. **hero 对标 moonshot 版式（用户二次要求"抄官网设计"）**：探索 hero 恒黑夜景（`.v2-hero-night`，勿加 isolation/transform/filter——会自建层叠上下文把内部 z-10 文本关进 z-0 层输给 body 月 z-5！）+ 白色艺术大标题（`.v2-hero-title`，`text-[clamp(4.5rem,13vmin,12.5rem)]` 横穿月盘）+ 扫描线纹理（`.v2-hero-scanlines` z-7，在文字 z-10 下、月亮 z-5 上，模拟 retro_screen）+ **盘体不再遮字**：`.v2-moon-layer` z-index 20→5，文字（z-10）穿透月亮可见、盘内被 liquify 扭曲（moonshot 机理）。
-  - 验收：typecheck/build 过；截图确认暗色/浅色（hero 恒黑）首页：白字大标题穿透月盘、盘内字母液态折射+色差、日食环、扫描线；月升帧、霜幕帧、转场结束态均正常。
-- 鼠标引力保留：HeroMoon mousemove 牵拉（上限 26px、spring 42/14）广播 `hero-moon-move`，GravityTitle 重算字母弯折与 liquify mask。
+- 最新改动（本地已验证，**未部署服务器**）：探索 hero 画布两处修复 + 用户自改文案（hero 副文案改「Take Me To See What I Can't Reach ... - Infinitely」/「去编织意义，去留下痕迹」，勿覆盖）——
+  1. **侧边栏收起不再压缩画布**：`moon-scene.ts` 内置 ResizeObserver 观察画布自身（侧边栏 280↔80 是 padding 过渡，不触发 window.resize，原实现 backing store 停在旧宽度导致画面拉伸）；`hero-moon-canvas.tsx` 的 window resize 监听已删（RO 覆盖）。
+  2. **hero 全出血铺满**：`.v2-hero-night` 加 `-mx-4 -mt-6 md:-mx-6 lg:-mx-8`（负 margin 抵消 main 的 px/py 内边距）+ 同值 px 补偿内容缩进，min-h 由 `calc(100svh-5rem)` 改 `calc(100svh-3.5rem)`；EARTH_RADIO 块 `lg:right-0`→`lg:right-8`。画布顶缘=导航栏下缘（57px）、左右到视口边缘、底到 100svh，不再露出 `.v2-grid` 星野条。
+  - 验收：typecheck/build 过；playwright 实测画布 top=57、收起侧边栏前后 backing/css 比例恒 1.000、截图无星野露头。
+- 上一轮改动：经典首页/顶栏四项体验修复——
+  1. **最新文章上移**：经典主题 grid 原用跨行 item（右列 row-span-2），右列高度会把左列行轨道等分撑高（行1 224→348px），顶部留 ~124px 莫名空白；改为左右两个独立纵向列（左=hero+最新文章 `flex flex-col gap-8`，右=播放器+widgets），空白回到精确 gap-8。
+  2. **展开导航按钮 → 老式拉线开关**：`NavbarExpandButton` 重做为从视口上缘垂下的细线+开关拉珠（`fixed right-10 top-0 md:right-14`，即导航栏最右侧偏左）；悬浮线拉长/拉珠下沉并弹「展开导航」mono 小提示，单击拉珠下坠回弹（pulling state 450ms）同时顶栏落下；顶栏可见时整根线 -translate-y-20 收出视口。语义＝"拉一下开灯"。
+  3. **顶栏下缘热区**：navbar header 内 `absolute top-full` 的全宽 h-3 热区按钮，悬浮弹出「∧ 单击收起导航栏」胶囊提示，单击 `collapse()` 手动收起（随顶栏 -translate-y-full 一起滑走）。visibility context 新增 `collapse` 方法。
+  4. **首页滚动不收顶栏**：`NavbarVisibilityProvider` 滚动效果内 `pathname === "/"` 时向下滚动 exempt（accUp 仍清零），其他页面照常 HIDE_DELTA/MIN_HIDE_SCROLL_Y 收起；首页手动收起后向上滚仍会展开。
+  - 验收：typecheck/build 过；playwright 实测 heroBottom→h2Top 空白=32px、首页滚 800 顶栏不收、热区单击收起、拉线开关单击展开、/blog 滚 900 照常收起；浅色/深色拉珠截图均清晰。
+- 上一轮改动：旧「FAR SIDE/月之暗面」CSS hero 已删除（globals.css 819–1022 行块 + `hero-moon.tsx`/`gravity-title.tsx`），探索 hero 由 `components/home/hero-moon-canvas.tsx` + `components/theme/moon-scene.ts` WebGL 场景渲染，`explore-dark-sync.tsx` 强制深色。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
 - 可选待办：部署服务器；备份/运维文档化；本站 MDX/KaTeX 公式速查文章。

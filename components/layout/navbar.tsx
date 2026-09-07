@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Loader2, Menu, User } from "lucide-react"
+import { Loader2, Menu, User, ChevronUp } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { siteConfig } from "@/lib/config"
@@ -45,7 +45,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
   const [navOpen, setNavOpen] = useState(false)
   const viewport = useAspectRatio()
   const { aspectRatio } = viewport
-  const { hidden } = useNavbarVisibility()
+  const { hidden, collapse } = useNavbarVisibility()
   // 细长屏幕（比例 + 宽度双条件，与 WeatherBar 一致）：次要功能收起进"更多"
   const wideLayout =
     aspectRatio >= ASPECT_RATIO_THRESHOLD ||
@@ -186,6 +186,22 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
           )}
         </div>
       </div>
+
+      {/* 下缘热区：悬浮提示单击可收起顶栏（随顶栏一起滑出视口） */}
+      <button
+        type="button"
+        onClick={collapse}
+        aria-label="收起导航栏"
+        className="group absolute inset-x-0 top-full z-10 flex h-3 cursor-pointer items-start justify-center"
+      >
+        <span
+          aria-hidden
+          className="flex -translate-y-1 items-center gap-1 rounded-full border border-border/60 bg-background/95 px-2 py-0.5 text-[10px] leading-none text-muted-foreground opacity-0 shadow-sm backdrop-blur-md transition-all duration-200 group-hover:translate-y-1 group-hover:opacity-100"
+        >
+          <ChevronUp className="h-3 w-3" />
+          单击收起导航栏
+        </span>
+      </button>
     </header>
   )
 }

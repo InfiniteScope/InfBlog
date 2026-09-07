@@ -1,24 +1,26 @@
-/** 月亮在屏幕上的"家"：探索主题 hero 的月亮（#hero-moon）与转场引擎共用
- *  同一公式。转场不再另画月亮——直接驱动这个 DOM 元素，月升/碎裂都是
- *  同一个月亮本体的动画。纯视口坐标系（58vw / 80+42%·(H-80)），
- *  与侧栏开合、内容流均解耦。 */
+/** 月亮在屏幕上的"家"（视口像素坐标）：以 hero 的 WebGL 场景画布
+ *  （#hero-moon-canvas）为基准——月亮在场景 uv (0.44, 0.5)、R=0.13（高度比），
+ *  与 moon-scene.ts 的常量严格一致。转场引擎用它定位冰纹放射原点等。 */
 export function getMoonHome() {
   const W = window.innerWidth
   const H = window.innerHeight
-  const R = Math.min(W, H) * 0.27 // 54vmin（moonshot 月亮 ≈ 0.54×屏高）
-  return {
-    cx: W * 0.58,
-    cy: 80 + (H - 80) * 0.42,
-    R,
+  const el = document.getElementById("hero-moon-canvas")
+  const r = el?.getBoundingClientRect()
+  if (r && r.width > 0 && r.height > 0) {
+    return {
+      cx: r.left + r.width * 0.44,
+      cy: r.top + r.height * 0.5,
+      R: r.height * 0.13,
+    }
   }
+  const base = Math.min(W, H)
+  return { cx: W * 0.5, cy: H * 0.5, R: base * 0.13 }
 }
 
-/** 转场引擎拿到的"月亮句柄"——就是首页那只月亮（#hero-moon 的升层），
- *  不再另画 canvas 副本：月升/碎裂均为月亮本体的 DOM 动画。
- *  veil = 月亮下方的夜幕层（z-15 < 月 z-20 < 特效 canvas z-100）。 */
+/** 转场引擎拿到的"夜幕层"句柄（经典转场在霜幕后用作入夜铺垫） */
 export interface MoonHandle {
-  /** .v2-moon-rise（#hero-moon-rise）：承载升/落/脉动动画的 wrapper */
-  rise: HTMLElement | null
+  /** 旧 DOM 月亮已移除（月亮现为 hero WebGL 场景），恒为 null */
+  rise: null
   /** 夜幕层（转场引擎逐帧驱动透明度） */
   veil: HTMLElement | null
 }

@@ -41,10 +41,12 @@ export default function RootLayout({
           本地代码无 SSR/CSR 差异，避免误报警告 */}
       <body className="font-sans antialiased" suppressHydrationWarning>
         {/* UI 主题：渲染前应用经典标记，避免新旧界面闪烁。默认经典；
-            「探索」= 无 ui-classic 类。支持 ?ui=explore / ?ui=classic 覆盖并记忆 */}
+            「探索」= 无 ui-classic 类 + 强制深色（记住用户原偏好到
+            infblog-prev-theme，切回经典时由 ExploreDarkSync 还原）。
+            支持 ?ui=explore / ?ui=classic 覆盖并记忆 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var p=new URLSearchParams(location.search).get("ui");if(p==="explore"||p==="v2")localStorage.setItem("infblog-ui","explore");else if(p==="classic"||p==="legacy")localStorage.removeItem("infblog-ui");if(localStorage.getItem("infblog-ui")==="explore"){document.documentElement.classList.remove("ui-classic")}else{localStorage.removeItem("infblog-ui");document.documentElement.classList.add("ui-classic")}}catch(e){}`,
+            __html: `try{var p=new URLSearchParams(location.search).get("ui");if(p==="explore"||p==="v2")localStorage.setItem("infblog-ui","explore");else if(p==="classic"||p==="legacy")localStorage.removeItem("infblog-ui");if(localStorage.getItem("infblog-ui")==="explore"){document.documentElement.classList.remove("ui-classic");var th=localStorage.getItem("theme");if(th!=="dark"){localStorage.setItem("infblog-prev-theme",th||"system");localStorage.setItem("theme","dark")}document.documentElement.classList.add("dark")}else{localStorage.removeItem("infblog-ui");document.documentElement.classList.add("ui-classic")}}catch(e){}`,
           }}
         />
         <SessionProvider>

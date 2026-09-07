@@ -817,208 +817,36 @@ input[type="range"].music-slider::-moz-range-thumb {
 }
 
 /* ==========================================================================
-   「FAR SIDE / 月之暗面」：月亮实体、亮面旋转、引力波文字、星野
+   「FAR SIDE / 月之暗面」：hero WebGL 场景（moon-scene.ts）
    ========================================================================== */
 
-/* 月亮实体（探索主题地标）——严格参照 moonshot.ai hero 的日食月：
-   纯黑盘体几乎隐入夜色，只有一圈细白环弧——全环保留极微弱底光，
-   热点处（顶部）在约 90° 内亮至峰值，随 --moon-spin 以 100s/圈巡游
-   （对应官网 UnicornStudio beam 层：radius .27H、fract(t*.01) 巡游、
-   angularFading 90°、灰白 #D0D0D0、additive）。
-   独立成 body 级图层（portal）：视口坐标系定位，收起侧栏不偏移；
-   z 层高于 hero 文字（字母被引力拉向月缘时会被盘体遮蔽，如月食）。
-   位置与转场引擎 moon-home.ts 的公式严格一致（58vw / 80+42%·(100svh-80)）。
-   转场期间用 <html>.ui-theme-transitioning 强制可见（同一 DOM 元素升月/碎裂）。 */
-.v2-moon-layer {
+/* hero 的 WebGL 场景画布：铺满 hero（日食月 + 棱镜光束 + shader 折射标题）。
+   .webgl-on 由组件在 WebGL 初始化成功后挂上——隐藏 HTML 标题（shader 渲染），
+   WebGL 不可用时标题兜底显示。 */
+.v2-hero-canvas {
   position: absolute;
-  left: 58vw;
-  top: calc(80px + (100svh - 80px) * 0.42);
-  /* 月盘在 hero 文字之下（文字穿越月亮可见，仅在盘上被 liquify 扭曲——moonshot 式），
-     盘上的日食环辉光与文字交叠处由 blend 自然呈亮 */
-  z-index: 5;
-  pointer-events: none;
-}
-
-.ui-classic .v2-moon-layer {
-  display: none;
-}
-
-.ui-theme-transitioning .v2-moon-layer {
+  inset: 0;
+  z-index: 0;
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.v2-moon {
-  position: relative;
-  width: 54vmin;
-  height: 54vmin;
-  transform: translate(-50%, -50%);
-  border-radius: 9999px;
-  /* 纯黑盘体（微球面，完全隐入黑幕——moonshot 盘体不可见，只靠亮弧定义轮廓） */
-  background: radial-gradient(
-    circle at 50% 42%,
-    #06080b 0%,
-    #030407 58%,
-    #020306 100%
-  );
-  /* godrays 级的整体微辉（纯白灰，无色偏） */
-  box-shadow: 0 0 150px 10px rgba(216, 221, 232, 0.08);
+.v2-hero-night.webgl-on .v2-hero-title {
+  visibility: hidden;
 }
 
-/* 窄屏不渲染（避免遮挡移动端正文） */
-@media (max-width: 1023px) {
-  .v2-moon-layer {
-    display: none;
-  }
-}
-
-/* 亮弧旋转驱动（@property 使 conic 角度可动画；不支持时静态呈现）。
-   周期 100s：moonshot beam 的 fract(angleVal + t*0.01 + phase) → 100s/圈 */
-@property --moon-spin {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes moon-spin {
-  to {
-    --moon-spin: 360deg;
-  }
-}
-
-/* 环弧亮度分布（热点在 12 点方向，±90° 渐隐至 4% 底光）：
-   conic 0deg = 正上方。色标顺序 0→360 顺时针，峰在 356°~360°（wrap）。 */
-
-/* 细锐环弧（mask 成 2px 细线） */
-.v2-moon::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from var(--moon-spin, 0deg),
-    rgba(222, 227, 238, 0.05) 0deg,
-    rgba(222, 227, 238, 0.05) 262deg,
-    rgba(228, 233, 243, 0.22) 310deg,
-    rgba(238, 241, 248, 0.6) 338deg,
-    rgba(248, 250, 255, 1) 356deg,
-    rgba(248, 250, 255, 1) 360deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
-  animation: moon-spin 100s linear infinite;
-}
-
-/* 环弧辉光（同一分布加宽模糊——beam 的 pow(1-ringDist,3) 柔光衰减） */
-.v2-moon::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from var(--moon-spin, 0deg),
-    rgba(222, 227, 238, 0.03) 0deg,
-    rgba(222, 227, 238, 0.03) 262deg,
-    rgba(228, 233, 243, 0.14) 310deg,
-    rgba(238, 241, 248, 0.4) 338deg,
-    rgba(248, 250, 255, 0.85) 356deg,
-    rgba(248, 250, 255, 0.85) 360deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 10px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 10px));
-  filter: blur(6px);
-  animation: moon-spin 100s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .v2-moon::before,
-  .v2-moon::after {
-    animation: none;
-  }
-}
-
-/* moonshot 式探索 hero：整幅"黑底 + 白字艺术标题 + 日食月 + 扫描线"画面。
-   注意：不要加 isolation/transform/filter——它们会自建层叠上下文，
-   把内部 z-10 文本关进 z-0 层，输给 body 层的 z-5 月亮。 */
+/* moonshot 式探索 hero 底色（场景加载前后的兜底纯黑）。
+   注意：不要加 isolation/transform/filter——会自建层叠上下文影响子层级。 */
 .v2-hero-night {
   background: #000;
 }
 
-/* 屏幕扫描线纹理（moonshot retro_screen 层）：横向细线，覆盖整幅，微光 */
-.v2-hero-scanlines {
-  position: absolute;
-  inset: 0;
-  z-index: 7; /* 文字(z-10)下、月亮(z-5)上：文字与盘面都带条纹纹理 */
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.035) 0px,
-    rgba(255, 255, 255, 0.035) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-}
-
-/* hero 白色艺术大标题：横穿画面、穿透月亮（moonshot 式），
-   在月盘区域内由 GravityTitle 的 liquify 层做液态折射 */
+/* hero 白色艺术大标题（与 shader 内渲染的标题同款观感的兜底） */
 .v2-hero-title {
   color: #f2f2f2;
-  mix-blend-mode: normal;
   font-weight: 500;
   letter-spacing: -0.02em;
-}
-
-/* 引力波文字：字母被月亮引力弯折，并以距离为相位缓缓脉动 */
-.gravity-letter {
-  display: inline-block;
-  transform: translate(var(--gx, 0px), var(--gy, 0px)) rotate(var(--gr, 0deg));
-}
-
-/* liquify 文字扭曲层（严格参照 moonshot.ai 的 liquify 层）：
-   同一标题的第二份拷贝，经 SVG filter（feTurbulence 位移场 + 色散）
-   做液态扭曲，再用以月心为圆心的径向 mask 限定作用域——
-   月盘半径内文字"融化折射"（dist = max(0, 1 - d*4)，半径 ≈ 1.4R 线性衰减），
-   月盘外与底层像素级重合、不可感知。月心坐标由 GravityTitle 写入变量。 */
-.hero-liquify-wrap {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  filter: url(#moon-liquify);
-  -webkit-mask-image: radial-gradient(
-    circle var(--liq-r, 40vmin) at var(--liq-x, 50%) var(--liq-y, 50%),
-    rgb(0 0 0 / 1) 0%,
-    rgb(0 0 0 / 0.55) 62%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    circle var(--liq-r, 40vmin) at var(--liq-x, 50%) var(--liq-y, 50%),
-    rgb(0 0 0 / 1) 0%,
-    rgb(0 0 0 / 0.55) 62%,
-    transparent 100%
-  );
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-liquify-wrap {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .gravity-letter {
-    animation: gravity-wave 5s ease-in-out infinite;
-    animation-delay: var(--gd, 0s);
-  }
-}
-
-@keyframes gravity-wave {
-  0%,
-  100% {
-    transform: translate(var(--gx, 0px), var(--gy, 0px)) rotate(var(--gr, 0deg));
-  }
-  50% {
-    transform: translate(calc(var(--gx, 0px) * 1.45), calc(var(--gy, 0px) * 1.45))
-      rotate(calc(var(--gr, 0deg) * 1.3));
-  }
 }
 
 /* 暗色模式下蓝图网格化作星野 */
