@@ -820,10 +820,15 @@ input[type="range"].music-slider::-moz-range-thumb {
    「FAR SIDE / 月之暗面」：月亮实体、亮面旋转、引力波文字、星野
    ========================================================================== */
 
-/* 月亮实体（探索主题地标）——参照 moonshot.ai 的日食形态。
+/* 月亮实体（探索主题地标）——严格参照 moonshot.ai hero 的日食月：
+   纯黑盘体几乎隐入夜色，只有一圈细白环弧——全环保留极微弱底光，
+   热点处（顶部）在约 90° 内亮至峰值，随 --moon-spin 以 100s/圈巡游
+   （对应官网 UnicornStudio beam 层：radius .27H、fract(t*.01) 巡游、
+   angularFading 90°、灰白 #D0D0D0、additive）。
    独立成 body 级图层（portal）：视口坐标系定位，收起侧栏不偏移；
    z 层高于 hero 文字（字母被引力拉向月缘时会被盘体遮蔽，如月食）。
-   位置与转场引擎 moon-home.ts 的公式严格一致（58vw / 80+42%·(100svh-80)）。 */
+   位置与转场引擎 moon-home.ts 的公式严格一致（58vw / 80+42%·(100svh-80)）。
+   转场期间用 <html>.ui-theme-transitioning 强制可见（同一 DOM 元素升月/碎裂）。 */
 .v2-moon-layer {
   position: absolute;
   left: 58vw;
@@ -832,20 +837,29 @@ input[type="range"].music-slider::-moz-range-thumb {
   pointer-events: none;
 }
 
+.ui-classic .v2-moon-layer {
+  display: none;
+}
+
+.ui-theme-transitioning .v2-moon-layer {
+  display: block;
+}
+
 .v2-moon {
   position: relative;
   width: 36vmin;
   height: 36vmin;
   transform: translate(-50%, -50%);
   border-radius: 9999px;
+  /* 纯黑盘体（微球面，几乎隐入夜色——moonshot 盘体不可见，只靠亮弧定义轮廓） */
   background: radial-gradient(
-    circle at 38% 32%,
-    #181c22 0%,
-    #0a0d12 55%,
-    rgba(5, 7, 10, 0.96) 88%,
-    rgba(5, 7, 10, 0.82) 100%
+    circle at 50% 42%,
+    #06080b 0%,
+    #030407 58%,
+    #020306 100%
   );
-  box-shadow: 0 0 140px 12px hsl(var(--accent) / 0.1);
+  /* godrays 级的整体微辉（纯白灰，无色偏） */
+  box-shadow: 0 0 130px 6px rgba(216, 221, 232, 0.07);
 }
 
 /* 窄屏不渲染（避免遮挡移动端正文） */
@@ -855,7 +869,8 @@ input[type="range"].music-slider::-moz-range-thumb {
   }
 }
 
-/* 亮弧旋转驱动（@property 使 conic 角度可动画；不支持时静态呈现） */
+/* 亮弧旋转驱动（@property 使 conic 角度可动画；不支持时静态呈现）。
+   周期 100s：moonshot beam 的 fract(angleVal + t*0.01 + phase) → 100s/圈 */
 @property --moon-spin {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -868,99 +883,53 @@ input[type="range"].music-slider::-moz-range-thumb {
   }
 }
 
-/* 冕光（亮弧的外晕，模糊加宽、白光为主） */
-.v2-moon::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from calc(300deg + var(--moon-spin, 0deg)),
-    transparent 0deg,
-    rgba(255, 255, 255, 0.6) 24deg,
-    rgba(255, 255, 255, 0.75) 32deg,
-    hsl(var(--accent) / 0.35) 46deg,
-    transparent 64deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 12px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 12px));
-  filter: blur(7px);
-  animation: moon-spin 72s linear infinite;
-}
+/* 环弧亮度分布（热点在 12 点方向，±90° 渐隐至 4% 底光）：
+   conic 0deg = 正上方。色标顺序 0→360 顺时针，峰在 356°~360°（wrap）。 */
 
-/* 亮弧（锐利主弧，加宽加白，沿月缘缓慢旋转） */
+/* 细锐环弧（mask 成 2px 细线） */
 .v2-moon::before {
   content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   background: conic-gradient(
-    from calc(300deg + var(--moon-spin, 0deg)),
-    transparent 0deg,
-    rgba(255, 255, 255, 0.9) 22deg,
-    rgba(255, 255, 255, 1) 32deg,
-    hsl(var(--accent) / 0.4) 46deg,
-    transparent 64deg
+    from var(--moon-spin, 0deg),
+    rgba(222, 227, 238, 0.05) 0deg,
+    rgba(222, 227, 238, 0.05) 262deg,
+    rgba(228, 233, 243, 0.22) 310deg,
+    rgba(238, 241, 248, 0.6) 338deg,
+    rgba(248, 250, 255, 1) 356deg,
+    rgba(248, 250, 255, 1) 360deg
   );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
-  animation: moon-spin 72s linear infinite;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  animation: moon-spin 100s linear infinite;
 }
 
-/* 钻石环珠点：亮弧最热的一端，随亮弧同步绕月缘巡游 */
-.v2-moon-bead-orbit {
+/* 环弧辉光（同一分布加宽模糊——beam 的 pow(1-ringDist,3) 柔光衰减） */
+.v2-moon::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  animation: moon-spin-rot 72s linear infinite;
-}
-
-.v2-moon-bead {
-  position: absolute;
-  left: 26.5%;
-  top: 5.8%;
-  width: 1.8vmin;
-  height: 1.8vmin;
-  border-radius: 9999px;
-  background: #fff;
-  transform: translate(-50%, -50%);
-  box-shadow:
-    0 0 10px 3px rgba(255, 255, 255, 0.9),
-    0 0 34px 12px hsl(var(--accent) / 0.35);
-}
-
-@keyframes moon-spin-rot {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 星尘：月周散布的青白微粒，缓慢明灭 */
-.v2-moon-star {
-  position: absolute;
-  border-radius: 9999px;
-  background: #fff;
-  opacity: 0.35;
-  transform: translate(-50%, -50%);
-  animation: moon-star-twinkle 3.8s ease-in-out infinite;
-}
-
-.v2-moon-star.is-accent {
-  background: hsl(var(--accent));
-}
-
-@keyframes moon-star-twinkle {
-  0%,
-  100% {
-    opacity: 0.12;
-  }
-  50% {
-    opacity: 0.8;
-  }
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--moon-spin, 0deg),
+    rgba(222, 227, 238, 0.03) 0deg,
+    rgba(222, 227, 238, 0.03) 262deg,
+    rgba(228, 233, 243, 0.14) 310deg,
+    rgba(238, 241, 248, 0.4) 338deg,
+    rgba(248, 250, 255, 0.85) 356deg,
+    rgba(248, 250, 255, 0.85) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 10px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 10px));
+  filter: blur(6px);
+  animation: moon-spin 100s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .v2-moon-bead-orbit,
-  .v2-moon-star {
+  .v2-moon::before,
+  .v2-moon::after {
     animation: none;
   }
 }
@@ -969,6 +938,36 @@ input[type="range"].music-slider::-moz-range-thumb {
 .gravity-letter {
   display: inline-block;
   transform: translate(var(--gx, 0px), var(--gy, 0px)) rotate(var(--gr, 0deg));
+}
+
+/* liquify 文字扭曲层（严格参照 moonshot.ai 的 liquify 层）：
+   同一标题的第二份拷贝，经 SVG filter（feTurbulence 位移场 + 色散）
+   做液态扭曲，再用以月心为圆心的径向 mask 限定作用域——
+   月盘半径内文字"融化折射"（dist = max(0, 1 - d*4)，半径 ≈ 1.4R 线性衰减），
+   月盘外与底层像素级重合、不可感知。月心坐标由 GravityTitle 写入变量。 */
+.hero-liquify-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: url(#moon-liquify);
+  -webkit-mask-image: radial-gradient(
+    circle var(--liq-r, 40vmin) at var(--liq-x, 50%) var(--liq-y, 50%),
+    rgb(0 0 0 / 1) 0%,
+    rgb(0 0 0 / 0.55) 62%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--liq-r, 40vmin) at var(--liq-x, 50%) var(--liq-y, 50%),
+    rgb(0 0 0 / 1) 0%,
+    rgb(0 0 0 / 0.55) 62%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-liquify-wrap {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -986,12 +985,6 @@ input[type="range"].music-slider::-moz-range-thumb {
   50% {
     transform: translate(calc(var(--gx, 0px) * 1.45), calc(var(--gy, 0px) * 1.45))
       rotate(calc(var(--gr, 0deg) * 1.3));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .v2-moon::before {
-    animation: none;
   }
 }
 

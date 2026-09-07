@@ -1,4 +1,4 @@
-import { drawMoon, getMoonHome } from "@/components/theme/moon-home"
+import { getMoonHome, type MoonHandle } from "@/components/theme/moon-home"
 
 interface EngineCallbacks {
   onSwap: () => void
@@ -6,7 +6,6 @@ interface EngineCallbacks {
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
-const lerp = (a: number, b: number, p: number) => a + (b - a) * p
 const easeOutCubic = (p: number) => 1 - Math.pow(1 - p, 3)
 const easeInOutCubic = (p: number) =>
   p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
@@ -33,13 +32,14 @@ const SWAP_AT = 3.1
 const DURATION = 3.45
 
 /**
- * 「月升 · 棱镜」：夜幕 → 月亮升至它在家中的位置（与 hero 月同位）
+ * 「月升 · 棱镜」：首页那只月亮从屏幕下缘升至家中位置（DOM 动画，同一个元素）
  * → 棱镜浮现 → 白光射入 → 七色分化 → 整组旋转 -12° → 满幕换肤
- * → 月光渐隐，月亮留在原地成为 hero 地标。
+ * → 特效谢幕，月亮已留在原地成为 hero 地标。
  */
 export function playExploreTransition(
   canvas: HTMLCanvasElement,
-  cb: EngineCallbacks
+  cb: EngineCallbacks,
+  moon: MoonHandle
 ): () => void {
   const ctx = canvas.getContext("2d")
   if (!ctx) {
@@ -60,31 +60,54 @@ export function playExploreTransition(
   const py = cy
   const PS = R * 0.52
 
+  /* —— 同一个月亮：强制可见 + DOM 月升 —— */
+  const riseEl = moon.rise
+  const veilEl = moon.veil
+  const moonVisible = !!riseEl && riseEl.getBoundingClientRect().width > 0
+  document.documentElement.classList.add("ui-theme-transitioning")
+  let riseAnim: Animation | null = null
+  if (moonVisible) {
+    riseAnim = riseEl.animate(
+      [
+        { transform: `translateY(${(H * 0.55 + R).toFixed(0)}px)` },
+        { transform: "translateY(0px)" },
+      ],
+      {
+        duration: 1500,
+        delay: 200,
+        easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+        fill: "both",
+      }
+    )
+    /* 升完即还原（终态=自然态），不留 fill 残留 */
+    riseAnim.onfinish = () => riseAnim?.cancel()
+  }
+
   let raf = 0
   let swapped = false
+  let finished = false
   const t0 = performance.now()
+
+  const dispose = () => {
+    cancelAnimationFrame(raf)
+    riseAnim?.cancel()
+    if (veilEl) veilEl.style.opacity = ""
+    document.documentElement.classList.remove("ui-theme-transitioning")
+  }
 
   const frame = (now: number) => {
     const t = (now - t0) / 1000
     const master = 1 - easeInOutCubic(clamp01((t - SWAP_AT) / (DURATION - SWAP_AT)))
     ctx.clearRect(0, 0, W, H)
 
-    /* 夜幕（放慢） */
-    const skyA = easeOutCubic(clamp01(t / 0.55)) * master
-    if (skyA > 0.001) {
-      const sky = ctx.createLinearGradient(0, 0, 0, H)
-      sky.addColorStop(0, `rgba(2,4,8,${skyA})`)
-      sky.addColorStop(1, `rgba(7,10,16,${skyA})`)
-      ctx.fillStyle = sky
-      ctx.fillRect(0, 0, W, H)
+    /* 夜幕：DOM 层（在月亮下方，z-15<z-20），入夜氛围不暗化月体；
+       满幕换肤后随 master 淡出，露出新界面 */
+    if (veilEl) {
+      const veilA = 0.78 * easeInOutCubic(clamp01(t / 0.5)) * master
+      veilEl.style.opacity = veilA.toFixed(3)
     }
 
-    /* 月升（放慢，谢幕时继续缓缓上移） */
-    const riseP = easeOutCubic(clamp01((t - 0.2) / 1.3))
-    const drift = easeInOutCubic(clamp01((t - SWAP_AT) / (DURATION - SWAP_AT))) * -16
-    const moonY = lerp(H + R * 1.6, cy, riseP) + drift
-    const moonA = riseP * master
-    drawMoon(ctx, cx, moonY, R, moonA)
+    /* （月升为 DOM 动画：首页那只月亮本体，见 playExploreTransition 顶部） */
 
     /* 棱镜 + 光束组（绕棱镜中心整体旋转） */
     const rot =
@@ -181,12 +204,25 @@ export function playExploreTransition(
       cb.onSwap()
     }
     if (t >= DURATION) {
-      cb.onDone()
+      if (!finished) {
+        finished = true
+        dispose()
+        cb.onDone()
+      }
       return
     }
     raf = requestAnimationFrame(frame)
   }
 
   raf = requestAnimationFrame(frame)
-  return () => cancelAnimationFrame(raf)
+  return () => {
+    if (!finished) {
+      finished = true
+      dispose()
+    }
+  }
+}
+
+function lerp(a: number, b: number, p: number) {
+  return a + (b - a) * p
 }

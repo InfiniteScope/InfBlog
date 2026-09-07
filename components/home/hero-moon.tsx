@@ -10,29 +10,16 @@ import {
   useSpring,
 } from "motion/react"
 
-/** 星尘（月周散布的微粒，明灭呼吸） */
-const STARS: {
-  left: string
-  top: string
-  size: number
-  accent?: boolean
-  delay: string
-}[] = [
-  { left: "-14%", top: "20%", size: 3, accent: true, delay: "0s" },
-  { left: "-6%", top: "72%", size: 2, delay: "0.8s" },
-  { left: "8%", top: "98%", size: 2.5, accent: true, delay: "1.6s" },
-  { left: "58%", top: "-14%", size: 2, delay: "0.4s" },
-  { left: "86%", top: "-8%", size: 3, accent: true, delay: "2.2s" },
-  { left: "112%", top: "10%", size: 2, delay: "1.1s" },
-  { left: "116%", top: "62%", size: 2.5, accent: true, delay: "2.8s" },
-  { left: "-18%", top: "50%", size: 2, delay: "3.3s" },
-]
-
 /**
  * 探索主题 hero 的月亮：portal 到 body 的独立图层（视口坐标系，
  * 收起侧栏不偏移），z-20 高于 hero 文字（月食交叠）。
+ * 视觉严格参照 moonshot.ai hero 的日食月（纯黑盘 + 细白环弧巡游）。
  * 鼠标靠近时被引力向指针方向牵拉（弹簧回复）；位移时广播
- * `hero-moon-move` 供引力文字实时重算。
+ * `hero-moon-move` 供引力/liquify 文字实时重算。
+ *
+ * 结构：motion 层（鼠标引力位移）> .v2-moon-rise（转场月升/碎裂由
+ * 主题转场引擎用 WAAPI 驱动——转场与首页共用这同一个 DOM 月亮，
+ * 不再另画 canvas 副本）> .v2-moon（#hero-moon，CSS 绘制本体）。
  */
 export function HeroMoon() {
   const [mounted, setMounted] = useState(false)
@@ -75,7 +62,7 @@ export function HeroMoon() {
     }
   }, [mx, my])
 
-  /* 月亮位移 → 引力文字重算（事件很轻，监听器自行决定节流） */
+  /* 月亮位移 → 引力/liquify 文字重算（事件很轻，监听器自行决定节流） */
   useMotionValueEvent(sx, "change", () => {
     window.dispatchEvent(new CustomEvent("hero-moon-move"))
   })
@@ -84,27 +71,12 @@ export function HeroMoon() {
 
   return createPortal(
     <motion.div
-      className="v2-only v2-moon-layer"
+      className="v2-moon-layer"
       style={{ transform }}
       aria-hidden
     >
-      <div className="v2-moon" id="hero-moon">
-        <span className="v2-moon-bead-orbit">
-          <span className="v2-moon-bead" />
-        </span>
-        {STARS.map((s, i) => (
-          <span
-            key={i}
-            className={s.accent ? "v2-moon-star is-accent" : "v2-moon-star"}
-            style={{
-              left: s.left,
-              top: s.top,
-              width: s.size,
-              height: s.size,
-              animationDelay: s.delay,
-            }}
-          />
-        ))}
+      <div className="v2-moon-rise" id="hero-moon-rise">
+        <div className="v2-moon" id="hero-moon" />
       </div>
     </motion.div>,
     document.body

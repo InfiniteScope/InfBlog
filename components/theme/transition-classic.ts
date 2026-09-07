@@ -1,4 +1,4 @@
-import { drawMoon, getMoonHome } from "@/components/theme/moon-home"
+import { getMoonHome, type MoonHandle } from "@/components/theme/moon-home"
 
 interface EngineCallbacks {
   onSwap: () => void
@@ -7,7 +7,6 @@ interface EngineCallbacks {
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p
-const easeOutCubic = (p: number) => 1 - Math.pow(1 - p, 3)
 const easeInOutCubic = (p: number) =>
   p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
 const easeInQuad = (p: number) => p * p
@@ -47,13 +46,15 @@ const DURATION = 3.8
 const SHARD_COUNT = 40
 
 /**
- * 「从想象之境回到现实」：月显（日食月浮现）→ 世界凝成玻璃（凝霜+冰纹）
- * → 整屏碎裂为大块多边形玻璃（折射渐变 + 反光刃边 + 色散）→ 水滴坠入屏心
- * → 引力涟漪荡开，经典界面浮现。表达"无限"主题的归返面。
+ * 「从想象之境回到现实」：首页那只月亮（DOM 本体）轻轻脉动
+ * → 世界凝成玻璃（凝霜+冰纹，canvas 特效覆盖月面）
+ * → 满幕碎裂为大块多边形玻璃（折射渐变 + 反光刃边 + 色散）→ 水滴坠入屏心
+ * → 引力涟漪荡开，经典界面浮现。月亮在霜幕后悄悄退场（同一个元素的谢幕）。
  */
 export function playClassicTransition(
   canvas: HTMLCanvasElement,
-  cb: EngineCallbacks
+  cb: EngineCallbacks,
+  moon: MoonHandle
 ): () => void {
   const ctx = canvas.getContext("2d")
   if (!ctx) {
@@ -72,7 +73,7 @@ export function playClassicTransition(
   const cx = W / 2
   const cy = H / 2
   const base = Math.min(W, H)
-  const moon = getMoonHome()
+  const moonHome = getMoonHome()
 
   /* 经典主题（Moss & Sand）目标配色，按当前深浅色选取 */
   const dark = document.documentElement.classList.contains("dark")
@@ -80,6 +81,24 @@ export function playClassicTransition(
   const shardStroke = dark ? "255 255 255" : "255 255 255"
   const accentColor = dark ? "180 35% 50%" : "180 45% 38%"
   const ringColor = dark ? "0 0% 100%" : "150 18% 15%"
+
+  /* —— 同一个月亮：开场脉动（DOM），碎裂时在霜幕后隐去 —— */
+  const riseEl = moon.rise
+  const veilEl = moon.veil
+  const moonVisible = !!riseEl && riseEl.getBoundingClientRect().width > 0
+  document.documentElement.classList.add("ui-theme-transitioning")
+  let pulseAnim: Animation | null = null
+  if (moonVisible) {
+    pulseAnim = riseEl.animate(
+      [
+        { transform: "scale(0.97)" },
+        { transform: "scale(1.03)" },
+        { transform: "scale(1)" },
+      ],
+      { duration: 1100, easing: "ease-in-out", fill: "both" }
+    )
+    pulseAnim.onfinish = () => pulseAnim?.cancel()
+  }
 
   /* 预生成玻璃碎片：散布全屏、形态多样（3-5 边）、大块、确定性 */
   const rng = rand(20260905)
@@ -119,12 +138,12 @@ export function playClassicTransition(
     }
   })
 
-  /* 冰纹：自中心放射的折线 */
+  /* 冰纹：自中心放射的折线（起点锚在月心，从月亮炸开） */
   const cracks: Crack[] = Array.from({ length: 6 }, (_, k) => {
     const ang = (k / 6) * Math.PI * 2 + (rng() - 0.5) * 0.6
-    const points: [number, number][] = [[cx, cy]]
-    let px = cx
-    let py = cy
+    const points: [number, number][] = [[moonHome.cx, moonHome.cy]]
+    let px = moonHome.cx
+    let py = moonHome.cy
     let a = ang
     for (let s = 0; s < 4; s++) {
       const segLen = base * (0.1 + rng() * 0.12)
@@ -203,32 +222,40 @@ export function playClassicTransition(
 
   let raf = 0
   let swapped = false
+  let finished = false
+  let moonHidden = false
   const t0 = performance.now()
+
+  const hideMoon = () => {
+    if (moonHidden || !riseEl) return
+    moonHidden = true
+    riseEl.style.opacity = "0"
+  }
+
+  const dispose = () => {
+    cancelAnimationFrame(raf)
+    pulseAnim?.cancel()
+    if (riseEl) riseEl.style.opacity = ""
+    if (veilEl) veilEl.style.opacity = ""
+    document.documentElement.classList.remove("ui-theme-transitioning")
+  }
 
   const frame = (now: number) => {
     const t = (now - t0) / 1000
     ctx.clearRect(0, 0, W, H)
 
-    /* 第一幕·月显：日食月自夜空显现、增亮 */
-    const nightA = easeOutCubic(clamp01(t / 1.0)) * 0.55
+    /* 第一幕·月显：首页那只月亮（DOM 本体）轻轻脉动（WAAPI，见顶部）。
+       夜幕走 DOM 层（月亮下方），凝霜起时让位 */
     const frostIn = easeInOutCubic(clamp01((t - 1.0) / 0.32))
-    if (nightA > 0.001) {
-      ctx.fillStyle = `rgba(4,6,10,${nightA * (1 - frostIn)})`
-      ctx.fillRect(0, 0, W, H)
-    }
-    const moonP = easeOutCubic(clamp01((t - 0.1) / 0.8))
-    const moonPulse = 1 + Math.sin(clamp01(t) * Math.PI) * 0.02
-    if (frostIn < 1) {
-      drawMoon(
-        ctx,
-        moon.cx,
-        moon.cy,
-        moon.R * moonPulse * (0.96 + 0.04 * moonP),
-        moonP * (1 - frostIn)
-      )
+    if (veilEl) {
+      const veilA =
+        0.3 *
+        easeInOutCubic(clamp01(t / 0.55)) *
+        (1 - easeInOutCubic(clamp01((t - 0.8) / 0.3)))
+      veilEl.style.opacity = veilA.toFixed(3)
     }
 
-    /* 第二幕·凝玻璃：霜幕合拢 + 一道斜扫的寒光 */
+    /* 第二幕·凝玻璃：霜幕合拢（盖住月面）+ 一道斜扫的寒光 */
     if (frostIn > 0) {
       ctx.fillStyle = `hsla(${veilColor} / ${frostIn})`
       ctx.fillRect(0, 0, W, H)
@@ -246,7 +273,7 @@ export function playClassicTransition(
       ctx.fillRect(0, 0, W, H)
     }
 
-    /* 冰纹闪现（碎裂前兆） */
+    /* 冰纹闪现（碎裂前兆，自月心放射） */
     const crackP = clamp01((t - SWAP_AT) / 0.16)
     if (t >= SWAP_AT && crackP < 1) {
       ctx.strokeStyle = `hsla(${ringColor} / ${(1 - crackP) * 0.7})`
@@ -331,15 +358,30 @@ export function playClassicTransition(
 
     if (!swapped && t >= SWAP_AT) {
       swapped = true
+      /* 霜幕已合拢，月亮本体在幕后退场（换肤后 ui-classic 自动隐藏） */
+      hideMoon()
       cb.onSwap()
     }
     if (t >= DURATION) {
-      cb.onDone()
+      if (!finished) {
+        finished = true
+        dispose()
+        cb.onDone()
+      }
       return
     }
     raf = requestAnimationFrame(frame)
   }
 
   raf = requestAnimationFrame(frame)
-  return () => cancelAnimationFrame(raf)
+  return () => {
+    if (!finished) {
+      finished = true
+      dispose()
+    }
+  }
+}
+
+function easeOutCubic(p: number) {
+  return 1 - Math.pow(1 - p, 3)
 }

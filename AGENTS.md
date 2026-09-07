@@ -43,17 +43,17 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 
-## 当前状态（2026-09-05）
+## 当前状态（2026-09-07）
 
-- 最新 commit：`6e321f1` feat(theme)：钻石环亮弧 + 鼠标引力 + hero/月亮耦合 —— **已推送 GitHub，未部署服务器**。
-  - 亮弧升级（对照用户提供的 moonshot 截图）：锐利主弧更亮更宽 + 弧端"钻石环"珠点（`.v2-moon-bead` 随 72s 轨道巡游）+ 冕光晕 + 8 颗青白星尘明灭（`.v2-moon-star`）；canvas `drawMoon` 同构（含珠点与星尘，弧角 RIM_ANGLE=-2.06 ↔ conic 300°）。
-  - 鼠标引力：HeroMoon 监听 mousemove，月亮被向指针方向牵拉（平方衰减、上限 26px、spring 42/14 回复），位移广播 `hero-moon-move`，GravityTitle 实时重算字母弯折。
-  - hero 文本块：lg 下绝对定位、右缘锚定月心（`right: 45vw`，即 55vw 处），尾字母探入月盘左缘被引力弯折 + 盘体遮蔽；description 底线弦少量遮挡属预期诗意。
-  - 验收：typecheck/build 过；截图确认文本-月亮交叠（"InfBl" 清晰、"o/g" 探入月缘）、钻石环珠点、星尘、转场帧同形。暗色模式探索主题未截图（无头无法强制 dark），需人工过目。
-- 此前：`68c9e3b` 月亮 portal 图层化、`ff10d3e` 日食月+玻璃碎裂、`f3efa4b` 编排转场初版、`d425b1d` 经典完整回归 098bc72。
+- 最新改动（本地已验证，**未部署服务器**）：修复「探索」主题对 moonshot.ai 的三处错解——
+  1. **月亮严格还原为日食环**：纯黑盘 + 细白环弧（全环 5% 底光、12 点热点 ±90° 渐隐、`--moon-spin` **100s/圈**、纯灰白无青色），删除钻石环珠点/8 颗星尘/青色 accent（moonshot 真实场景没有这些；逆向自其 UnicornStudio 场景 JSON：beam 层 radius .27H、fract(t*.01) 巡游、angularFading 90°、#D0D0D0 additive）。
+  2. **文字扭曲改为 liquify 液态折射**：`GravityTitle` 双层文字（原始层 + `.hero-liquify-wrap` 拷贝层），拷贝层过 `#moon-liquify` SVG filter（feTurbulence 位移场 0.0022/0.02 横向拉丝 + feDisplacementMap scale 30 + R/B 通道 ±2.6px 反偏 feBlend screen 合成=色差），mask 以月心为圆心、半径 R*1.4 径向衰减（对应 liquify dist=max(0,1-d*4), mix .21）。GravityTitle 监听 html.ui-classic 的 MutationObserver——换肤后必须重算 mask，否则 mask 停兜底值导致整行标题被扭曲。
+  3. **转场月亮 = 首页月亮（同一个 DOM）**：删除 canvas `drawMoon`（moon-home.ts 只剩 getMoonHome + MoonHandle）；转场引擎直接 WAAPI 驱动 `#hero-moon-rise`（classic→explore：月升 translateY(H*0.55+R)→0，1.5s cubic(0.16,1,0.3,1)，onfinish cancel 防残留；explore→classic：脉动 scale 0.97→1.03→1，霜幕后 opacity 0 退场）。夜幕改为月亮**下方**的 DOM veil 层（z-15 < 月 z-20 < 特效 canvas z-100），入夜氛围不暗化月体；月亮显隐由 `.ui-classic .v2-moon-layer{display:none}` + `.ui-theme-transitioning .v2-moon-layer{display:block}` 控制（后者必须写在后者之后以赢同级特异性）。非首页/窄屏转场无月亮（宽度 0 检测跳过）。
+  - 验收：typecheck/build 过；截图确认暗色首页（日食环+尾字母 o 液态折射）、月升帧（DOM 月亮悬于夜幕上）、霜幕帧（裂纹自月心放射）、转场结束态与静态首页一致。
+- 鼠标引力保留：HeroMoon mousemove 牵拉（上限 26px、spring 42/14）广播 `hero-moon-move`，GravityTitle 重算字母弯折与 liquify mask。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。
-- 可选待办：备份/部署/运维文档化（nginx alias 等）；本站 MDX/KaTeX 公式速查文章。
+- 可选待办：部署服务器；备份/运维文档化；本站 MDX/KaTeX 公式速查文章。
 
 ## 常用文件地图
 
