@@ -109,10 +109,11 @@ export default async function HomePage() {
             +
           </span>
 
-          {/* WebGL 激活后标题由 shader 渲染（.webgl-on 隐藏 HTML 标题），
-              文本块其余内容（打字机/副文案）悬浮在场景之上 */}
-          <div className="relative z-10 flex min-h-[calc(100svh-3.5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[38vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
-            <TypedHeading />
+          {/* WebGL 激活后标题/打字机 kicker 都由场景取代（.webgl-on 隐藏，
+              背景 shader 已渲染 InfBlog 折射大字），副文案下移到色带下方；
+              WebGL 不可用时整块兜底居中显示 */}
+          <div className="v2-hero-copy relative z-10 flex min-h-[calc(100svh-3.5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[38vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
+            <TypedHeading className="v2-hero-typed" />
             <h1
               className="v2-hero-title font-future text-[clamp(4.5rem,13vmin,12.5rem)] leading-none tracking-tight lg:whitespace-nowrap"
             >

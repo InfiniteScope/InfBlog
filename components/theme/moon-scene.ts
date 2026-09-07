@@ -249,6 +249,20 @@ export function createMoonScene(
   gl.uniform1i(uText, 0)
 
   // ---- 尺寸 ----
+  /* 设置 canvas.width/height 会清空 drawing buffer——若只改尺寸不补绘，
+     侧边栏收起等布局过渡的中间帧会闪黑。所以每次实际改尺寸后
+     用上一帧参数同步重绘一次（场景未就绪/暂停/已销毁时跳过）。 */
+  let ready = false
+  let lastT = 0
+
+  const render = (t: number) => {
+    gl.uniform2f(uRes, canvas.width, canvas.height)
+    gl.uniform1f(uTime, t)
+    gl.uniform2f(uMoon, moonX, moonY)
+    gl.uniform1f(uR, moonR)
+    gl.drawArrays(gl.TRIANGLES, 0, 3)
+  }
+
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75)
     const w = canvas.offsetWidth
@@ -260,6 +274,7 @@ export function createMoonScene(
       canvas.width = pw
       canvas.height = ph
       gl.viewport(0, 0, pw, ph)
+      if (ready && !paused && !disposed) render(lastT)
     }
   }
   resize()
@@ -304,20 +319,18 @@ export function createMoonScene(
       return
     }
     const t = (now - t0) / 1000
+    lastT = t
     if (parallax) {
       moonX += (targetX - moonX) * 0.045
       moonY += (targetY - moonY) * 0.045
     }
-    gl.uniform2f(uRes, canvas.width, canvas.height)
-    gl.uniform1f(uTime, t)
-    gl.uniform2f(uMoon, moonX, moonY)
-    gl.uniform1f(uR, moonR)
-    gl.drawArrays(gl.TRIANGLES, 0, 3)
+    render(t)
     raf = requestAnimationFrame(frame)
   }
   const kick = () => {
     if (!raf && !disposed && !paused) raf = requestAnimationFrame(frame)
   }
+  ready = true
   kick() // 启动渲染循环（hero 由 IO 再做暂停/恢复）
 
   return {

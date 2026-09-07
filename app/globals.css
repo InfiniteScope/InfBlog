@@ -821,8 +821,8 @@ input[type="range"].music-slider::-moz-range-thumb {
    ========================================================================== */
 
 /* hero 的 WebGL 场景画布：铺满 hero（日食月 + 棱镜光束 + shader 折射标题）。
-   .webgl-on 由组件在 WebGL 初始化成功后挂上——隐藏 HTML 标题（shader 渲染），
-   WebGL 不可用时标题兜底显示。 */
+   .webgl-on 由组件在 WebGL 初始化成功后挂上——HTML 标题退出布局
+   （背景 shader 已渲染 InfBlog 字样），WebGL 不可用时标题兜底显示。 */
 .v2-hero-canvas {
   position: absolute;
   inset: 0;
@@ -833,7 +833,25 @@ input[type="range"].music-slider::-moz-range-thumb {
 }
 
 .v2-hero-night.webgl-on .v2-hero-title {
-  visibility: hidden;
+  display: none;
+}
+
+/* WebGL 激活时打字机 kicker 一并隐藏（背景 shader 已有 InfBlog 折射大字），
+   剩余两行副文案移出 shader 色带：窄屏沉底，lg 下锚定在色带下方（~68%），
+   不再叠在 shader 大字上；WebGL 不可用时整块保持居中兜底。 */
+.v2-hero-night.webgl-on .v2-hero-typed {
+  display: none;
+}
+
+.v2-hero-night.webgl-on .v2-hero-copy {
+  justify-content: flex-end;
+}
+
+@media (min-width: 1024px) {
+  .v2-hero-night.webgl-on .v2-hero-copy {
+    top: 68%;
+    transform: none;
+  }
 }
 
 /* moonshot 式探索 hero 底色（场景加载前后的兜底纯黑）。
