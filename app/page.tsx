@@ -96,8 +96,10 @@ export default async function HomePage() {
           向月之暗面致意 · TO THE FAR SIDE
         </p>
 
-        {/* 00 // 门户：月之暗面。月亮为 body 级独立图层（HeroMoon portal） */}
-        <div className="relative min-h-[calc(100svh-5rem)]">
+        {/* 00 // 门户：月之暗面。月亮为 body 级独立图层（HeroMoon portal）。
+            moonshot 式整幅画面：纯黑夜景 + 白色艺术大标题横穿月盘
+            （穿透可见、月缘被 liquify 液态折射）+ 扫描线纹理。 */}
+        <div className="v2-hero-night relative min-h-[calc(100svh-5rem)]">
           <HeroMoon />
           <span className="v2-only v2-cross left-0 top-2" aria-hidden>
             +
@@ -105,19 +107,20 @@ export default async function HomePage() {
           <span className="v2-only v2-cross bottom-2 right-0" aria-hidden>
             +
           </span>
+          <div className="v2-hero-scanlines" aria-hidden />
 
-          {/* 文本块右缘锚定月心（视口坐标系），标题尾字母探入月盘左缘：
-              引力弯折 + 月食遮蔽在此发生 */}
-          <div className="relative z-10 flex min-h-[calc(100svh-5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[45vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
+          {/* 文本块右缘锚定月心（视口坐标系），标题横穿月盘：
+               白色大字穿透月亮，盘内被 liquify 液态折射（moonshot 机制） */}
+          <div className="relative z-10 flex min-h-[calc(100svh-5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[38vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
             <TypedHeading />
             <GravityTitle
               text={siteConfig.name}
-              className="font-future text-7xl font-bold tracking-tight md:text-8xl lg:text-9xl"
+              className="v2-hero-title font-future text-[clamp(4.5rem,13vmin,12.5rem)] leading-none tracking-tight lg:whitespace-nowrap"
             />
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-neutral-400">
               INF = INFINITE · 求索 · 探索 · 致意遥不可及
             </p>
-            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
+            <p className="max-w-xl text-sm leading-relaxed text-neutral-400 md:text-base">
               {siteConfig.description}
             </p>
           </div>

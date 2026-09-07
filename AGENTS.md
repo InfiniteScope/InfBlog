@@ -45,11 +45,12 @@
 
 ## 当前状态（2026-09-07）
 
-- 最新改动（本地已验证，**未部署服务器**）：修复「探索」主题对 moonshot.ai 的三处错解——
-  1. **月亮严格还原为日食环**：纯黑盘 + 细白环弧（全环 5% 底光、12 点热点 ±90° 渐隐、`--moon-spin` **100s/圈**、纯灰白无青色），删除钻石环珠点/8 颗星尘/青色 accent（moonshot 真实场景没有这些；逆向自其 UnicornStudio 场景 JSON：beam 层 radius .27H、fract(t*.01) 巡游、angularFading 90°、#D0D0D0 additive）。
+- 最新改动（本地已验证，**未部署服务器**）：修复「探索」主题对 moonshot.ai 的错解,并按用户要求进一步对齐官网——
+  1. **月亮严格还原为日食环**：纯黑盘 + 细白环弧（全环 5% 底光、12 点热点 ±90° 渐隐、`--moon-spin` **100s/圈**、纯灰白无青色），删除钻石环珠点/8 颗星尘/青色 accent（moonshot 真实场景没有这些；逆向自其 UnicornStudio 场景 JSON：beam 层 radius .27H、fract(t*.01) 巡游、angularFading 90°、#D0D0D0 additive）。**尺寸 36vmin→54vmin**（≈0.54×屏高），`getMoonHome` R 同步 0.18→0.27。
   2. **文字扭曲改为 liquify 液态折射**：`GravityTitle` 双层文字（原始层 + `.hero-liquify-wrap` 拷贝层），拷贝层过 `#moon-liquify` SVG filter（feTurbulence 位移场 0.0022/0.02 横向拉丝 + feDisplacementMap scale 30 + R/B 通道 ±2.6px 反偏 feBlend screen 合成=色差），mask 以月心为圆心、半径 R*1.4 径向衰减（对应 liquify dist=max(0,1-d*4), mix .21）。GravityTitle 监听 html.ui-classic 的 MutationObserver——换肤后必须重算 mask，否则 mask 停兜底值导致整行标题被扭曲。
   3. **转场月亮 = 首页月亮（同一个 DOM）**：删除 canvas `drawMoon`（moon-home.ts 只剩 getMoonHome + MoonHandle）；转场引擎直接 WAAPI 驱动 `#hero-moon-rise`（classic→explore：月升 translateY(H*0.55+R)→0，1.5s cubic(0.16,1,0.3,1)，onfinish cancel 防残留；explore→classic：脉动 scale 0.97→1.03→1，霜幕后 opacity 0 退场）。夜幕改为月亮**下方**的 DOM veil 层（z-15 < 月 z-20 < 特效 canvas z-100），入夜氛围不暗化月体；月亮显隐由 `.ui-classic .v2-moon-layer{display:none}` + `.ui-theme-transitioning .v2-moon-layer{display:block}` 控制（后者必须写在后者之后以赢同级特异性）。非首页/窄屏转场无月亮（宽度 0 检测跳过）。
-  - 验收：typecheck/build 过；截图确认暗色首页（日食环+尾字母 o 液态折射）、月升帧（DOM 月亮悬于夜幕上）、霜幕帧（裂纹自月心放射）、转场结束态与静态首页一致。
+  4. **hero 对标 moonshot 版式（用户二次要求"抄官网设计"）**：探索 hero 恒黑夜景（`.v2-hero-night`，勿加 isolation/transform/filter——会自建层叠上下文把内部 z-10 文本关进 z-0 层输给 body 月 z-5！）+ 白色艺术大标题（`.v2-hero-title`，`text-[clamp(4.5rem,13vmin,12.5rem)]` 横穿月盘）+ 扫描线纹理（`.v2-hero-scanlines` z-7，在文字 z-10 下、月亮 z-5 上，模拟 retro_screen）+ **盘体不再遮字**：`.v2-moon-layer` z-index 20→5，文字（z-10）穿透月亮可见、盘内被 liquify 扭曲（moonshot 机理）。
+  - 验收：typecheck/build 过；截图确认暗色/浅色（hero 恒黑）首页：白字大标题穿透月盘、盘内字母液态折射+色差、日食环、扫描线；月升帧、霜幕帧、转场结束态均正常。
 - 鼠标引力保留：HeroMoon mousemove 牵拉（上限 26px、spring 42/14）广播 `hero-moon-move`，GravityTitle 重算字母弯折与 liquify mask。
 - 服务器数据库已有 tag「工具」挂载在 7-zip 资源上。
 - 已知小问题：`pnpm lint` 缺 eslint.config（历史遗留）；`next-env.d.ts` 会被 build 反复改动，提交前 `git checkout -- next-env.d.ts` 还原。

@@ -833,7 +833,9 @@ input[type="range"].music-slider::-moz-range-thumb {
   position: absolute;
   left: 58vw;
   top: calc(80px + (100svh - 80px) * 0.42);
-  z-index: 20;
+  /* 月盘在 hero 文字之下（文字穿越月亮可见，仅在盘上被 liquify 扭曲——moonshot 式），
+     盘上的日食环辉光与文字交叠处由 blend 自然呈亮 */
+  z-index: 5;
   pointer-events: none;
 }
 
@@ -847,11 +849,11 @@ input[type="range"].music-slider::-moz-range-thumb {
 
 .v2-moon {
   position: relative;
-  width: 36vmin;
-  height: 36vmin;
+  width: 54vmin;
+  height: 54vmin;
   transform: translate(-50%, -50%);
   border-radius: 9999px;
-  /* 纯黑盘体（微球面，几乎隐入夜色——moonshot 盘体不可见，只靠亮弧定义轮廓） */
+  /* 纯黑盘体（微球面，完全隐入黑幕——moonshot 盘体不可见，只靠亮弧定义轮廓） */
   background: radial-gradient(
     circle at 50% 42%,
     #06080b 0%,
@@ -859,7 +861,7 @@ input[type="range"].music-slider::-moz-range-thumb {
     #020306 100%
   );
   /* godrays 级的整体微辉（纯白灰，无色偏） */
-  box-shadow: 0 0 130px 6px rgba(216, 221, 232, 0.07);
+  box-shadow: 0 0 150px 10px rgba(216, 221, 232, 0.08);
 }
 
 /* 窄屏不渲染（避免遮挡移动端正文） */
@@ -932,6 +934,37 @@ input[type="range"].music-slider::-moz-range-thumb {
   .v2-moon::after {
     animation: none;
   }
+}
+
+/* moonshot 式探索 hero：整幅"黑底 + 白字艺术标题 + 日食月 + 扫描线"画面。
+   注意：不要加 isolation/transform/filter——它们会自建层叠上下文，
+   把内部 z-10 文本关进 z-0 层，输给 body 层的 z-5 月亮。 */
+.v2-hero-night {
+  background: #000;
+}
+
+/* 屏幕扫描线纹理（moonshot retro_screen 层）：横向细线，覆盖整幅，微光 */
+.v2-hero-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 7; /* 文字(z-10)下、月亮(z-5)上：文字与盘面都带条纹纹理 */
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* hero 白色艺术大标题：横穿画面、穿透月亮（moonshot 式），
+   在月盘区域内由 GravityTitle 的 liquify 层做液态折射 */
+.v2-hero-title {
+  color: #f2f2f2;
+  mix-blend-mode: normal;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 /* 引力波文字：字母被月亮引力弯折，并以距离为相位缓缓脉动 */

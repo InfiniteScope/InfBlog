@@ -5,7 +5,7 @@
 export function getMoonHome() {
   const W = window.innerWidth
   const H = window.innerHeight
-  const R = Math.min(W, H) * 0.18
+  const R = Math.min(W, H) * 0.27 // 54vmin（moonshot 月亮 ≈ 0.54×屏高）
   return {
     cx: W * 0.58,
     cy: 80 + (H - 80) * 0.42,
