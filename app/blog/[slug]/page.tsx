@@ -49,6 +49,13 @@ export async function generateMetadata({ params }: PageProps) {
     return {
       title: `${post.title} | InfBlog`,
       description: post.description,
+      other: {
+        "article:published_time": post.date,
+        ...(post.updatedAt
+          ? { "article:modified_time": post.updatedAt }
+          : {}),
+        ...(post.tags.length > 0 ? { "article:tag": post.tags } : {}),
+      },
     }
   } catch {
     return {
@@ -104,7 +111,14 @@ export default async function BlogPostPage({ params }: PageProps) {
       </div>
 
       <header className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        {/* 元信息条：供站点读者视觉参考；aria-hidden + data-nosnippet 让
+            RSS 阅读器「抓取全文」类抽取器跳过（Readability 会删除此类节点），
+            无障碍文本由下方 sr-only 段覆盖 */}
+        <div
+          aria-hidden="true"
+          data-nosnippet
+          className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground"
+        >
           <span className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
             {new Date(post.date).toLocaleDateString("zh-CN")}
@@ -125,6 +139,13 @@ export default async function BlogPostPage({ params }: PageProps) {
             <PostStatBadges slug={slug} initial={stats} />
           </span>
         </div>
+        <p className="sr-only">
+          发布于 {new Date(post.date).toLocaleDateString("zh-CN")}
+          {post.updatedAt && post.updatedAt !== post.date
+            ? `，更新于 ${new Date(post.updatedAt).toLocaleDateString("zh-CN")}`
+            : ""}
+          {post.tags.length > 0 ? `，标签：${post.tags.join("、")}` : ""}
+        </p>
         <h1 className="font-display text-3xl tracking-tight md:text-4xl">
           {post.title}
         </h1>
