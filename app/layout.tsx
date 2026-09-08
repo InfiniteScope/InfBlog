@@ -27,7 +27,10 @@ import { CollectibleReveal } from "@/components/collectibles/collectible-reveal"
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_SITE_TITLE || "InfBlog",
-  description: process.env.NEXT_PUBLIC_SITE_DESCRIPTION || "一个关于技术与设计的个人博客",
+  description: process.env.NEXT_PUBLIC_SITE_DESCRIPTION || "一个关于技术与思考的个人博客",
+  alternates: {
+    types: { "application/rss+xml": "/feed.xml" },
+  },
 }
 
 export default function RootLayout({

@@ -8,6 +8,7 @@ import {
   Mail,
   GraduationCap,
   AtSign,
+  Rss,
 } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
@@ -173,6 +174,21 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
         >
           <Mail className="h-4 w-4 shrink-0" />
           {!collapsed && "邮箱"}
+        </Button>
+
+        <Button
+          variant="outline"
+          className={cn(
+            "gap-2",
+            collapsed && "h-9 w-11 gap-0 px-0",
+            !collapsed && "justify-center"
+          )}
+          asChild
+        >
+          <Link href="/feed.xml" target="_blank" title="RSS 订阅博客">
+            <Rss className="h-4 w-4 shrink-0" />
+            {!collapsed && "RSS"}
+          </Link>
         </Button>
       </div>
 
