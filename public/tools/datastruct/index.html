@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>结构画板 · 算法示意图绘制</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563EB'/%3E%3Ccircle cx='16' cy='9' r='3.4' fill='%23fff'/%3E%3Ccircle cx='9' cy='23' r='3.4' fill='%23fff'/%3E%3Ccircle cx='23' cy='23' r='3.4' fill='%23fff'/%3E%3Cpath d='M16 12.4V16M9 19.6V16h14M16 16' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/tools/datastruct/css/style.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <span class="brand-logo"></span>
+      <input id="docTitle" class="title-input" spellcheck="false" value="未命名图示">
+    </div>
+    <div class="vsep"></div>
+    <div id="modeSeg" class="seg" title="数据结构模式"></div>
+    <div class="spacer"></div>
+    <div id="libraryBtns" class="btn-group"></div>
+    <div class="vsep"></div>
+    <div id="historyBtns" class="btn-group"></div>
+    <div class="vsep"></div>
+    <div id="viewBtns" class="btn-group"></div>
+    <div class="vsep"></div>
+    <div id="arrangeSlot"></div>
+    <div id="exportSlot"></div>
+    <div class="vsep"></div>
+    <button id="helpBtn" class="icon-btn" title="快捷键帮助 (?)"></button>
+  </header>
+
+  <div id="main">
+    <nav id="toolRail"></nav>
+    <div id="canvasWrap">
+      <svg id="canvas"></svg>
+      <div id="editorLayer"></div>
+      <div id="emptyHint">
+        <div class="empty-title">双击画布，或按 <kbd>N</kbd> 放置节点</div>
+        <div class="empty-sub">按 <kbd>E</kbd> 连线 · 按 <kbd>T</kbd> 添加标注 · 按 <kbd>?</kbd> 查看全部快捷键</div>
+      </div>
+    </div>
+    <aside id="inspector"></aside>
+  </div>
+
+  <footer id="statusbar">
+    <div id="hint">拖动移动节点 · 框选多选 · 双击编辑文字</div>
+    <div class="spacer"></div>
+    <div id="saveState">已自动保存至本地</div>
+    <div class="vsep"></div>
+    <div id="zoomCtrl" class="btn-group"></div>
+  </footer>
+
+  <div id="toastWrap"></div>
+
+  <div id="modalBackdrop" class="hidden">
+    <div id="helpModal" class="modal hidden">
+      <div class="modal-head">
+        <span>键盘快捷键</span>
+        <button class="icon-btn modal-close"></button>
+      </div>
+      <div class="modal-body" id="helpBody"></div>
+    </div>
+    <div id="confirmModal" class="modal modal-sm hidden">
+      <div class="modal-body confirm-body">
+        <div class="confirm-text" id="confirmText"></div>
+        <div class="confirm-actions">
+          <button class="btn" id="confirmCancel">取消</button>
+          <button class="btn danger" id="confirmOk">确定</button>
+        </div>
+      </div>
+    </div>
+    <div id="libraryModal" class="modal hidden">
+      <div class="modal-head">
+        <span>我的图库</span>
+        <button class="icon-btn modal-close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="libraryGrid" class="library-grid"></div>
+        <div id="libraryEmpty" class="library-empty hidden">
+          <div class="empty-title">还没有保存的作品</div>
+          <div class="empty-sub">点击顶栏「保存」或按 <kbd>Ctrl+S</kbd> 收藏当前内容</div>
+        </div>
+      </div>
+      <div class="library-foot">
+        <span>「保存」会更新当前作品，「另存为新图」创建副本</span>
+        <button class="btn" id="saveAsNewBtn">另存为新图</button>
+      </div>
+    </div>
+    <div id="formModal" class="modal modal-sm hidden">
+      <div class="modal-head">
+        <span id="formTitle">生成</span>
+        <button class="icon-btn modal-close"></button>
+      </div>
+      <div class="modal-body" id="formBody"></div>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  <script type="module" src="/tools/datastruct/js/main.js"></script>
+</body>
+</html>

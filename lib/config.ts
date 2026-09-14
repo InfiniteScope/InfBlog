@@ -14,6 +14,7 @@ export const siteConfig = {
   githubRepos: ["npm-safe", "InfBlog", "DailyLikeTrees"],
   links: {
     tools: [
+      { name: "结构绘图工具", url: "/tools/datastruct" },
       { name: "GitHub", url: "https://github.com" },
       { name: "Vercel", url: "https://vercel.com" },
       { name: "数据结构可视化", url: "https://www.cs.usfca.edu/~galles/visualization/Algorithms.html"},
