@@ -15,9 +15,21 @@ export const revalidate = 300
 export async function generateMetadata({ params }: PageProps) {
   const { date, period } = await params
   const digest = await getDigest(date, period)
+  const alternates = {
+    types: {
+      "application/rss+xml": [
+        { title: "科技资讯日报", url: "/digest/feed.xml" },
+        { title: "InfBlog 博客", url: "/feed.xml" },
+      ],
+    },
+  }
   return digest
-    ? { title: `${digest.title} | InfBlog`, description: digest.summary }
-    : { title: "快报 | InfBlog" }
+    ? {
+        title: `${digest.title} | InfBlog`,
+        description: digest.summary ?? undefined,
+        alternates,
+      }
+    : { title: "快报 | InfBlog", alternates }
 }
 
 export default async function DigestDetailPage({ params }: PageProps) {

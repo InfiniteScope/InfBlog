@@ -72,3 +72,44 @@ export function getDigest(
 ): Promise<Digest | null> {
   return fetchJson<Digest>(`/${date}/${period}`)
 }
+
+/** 科技资讯日报：某日早报 + 前一日晚报的聚合（用于 RSS 日报推送） */
+export interface DailyDigest {
+  date: string
+  evening: Digest | null
+  morning: Digest
+}
+
+/**
+ * 组装最近若干天的「日报」：以早报为准，拼接前一日晚报。
+ * 返回按早报日期倒序（最新在前），缺少早报的日期跳过。
+ */
+export async function getDailyDigests(limit = 10): Promise<DailyDigest[]> {
+  const list = await getDigestList(100)
+  const morningDates = list
+    .filter((d) => d.period === "morning")
+    .map((d) => d.date)
+    .slice(0, limit)
+  const eveningDates = new Set(
+    list.filter((d) => d.period === "evening").map((d) => d.date)
+  )
+
+  const reports = await Promise.all(
+    morningDates.map(async (date): Promise<DailyDigest | null> => {
+      const morning = await getDigest(date, "morning")
+      if (!morning) return null
+      const prev = previousDate(date)
+      const evening = eveningDates.has(prev)
+        ? await getDigest(prev, "evening")
+        : null
+      return { date, evening, morning }
+    })
+  )
+  return reports.filter((r): r is DailyDigest => r !== null)
+}
+
+function previousDate(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - 1)
+  return d.toISOString().slice(0, 10)
+}

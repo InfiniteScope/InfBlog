@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, Newspaper } from "lucide-react"
+import { ArrowRight, Newspaper, Rss } from "lucide-react"
 
 import { getDigestList, getLatestDigest } from "@/lib/digest"
 import { DigestView } from "@/components/digest/digest-view"
@@ -9,6 +9,14 @@ export const metadata = {
   title: "科技资讯快报 | InfBlog",
   description:
     "由 glance-of-tech 每 12 小时自动抓取 HackerNews、arXiv 等来源并生成摘要",
+  alternates: {
+    types: {
+      "application/rss+xml": [
+        { title: "科技资讯日报", url: "/digest/feed.xml" },
+        { title: "InfBlog 博客", url: "/feed.xml" },
+      ],
+    },
+  },
 }
 
 export const revalidate = 300
@@ -31,6 +39,15 @@ export default async function DigestPage() {
           Powered by{" "}
           <span className="font-mono text-xs">glance-of-tech</span>
         </p>
+        <Link
+          href="/digest/feed.xml"
+          target="_blank"
+          className="v2-tag w-fit transition-colors hover:text-accent"
+          title="订阅科技资讯日报（每日 08:15 推送：前一日晚报 + 今日早报）"
+        >
+          <Rss className="h-3 w-3" />
+          RSS 订阅日报
+        </Link>
       </section>
 
       {latest ? (
