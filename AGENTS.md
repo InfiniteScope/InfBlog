@@ -43,9 +43,13 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 
-## 当前状态（2026-09-07）
+## 当前状态（2026-09-17）
 
-- 最新改动（**已部署服务器 2026-09-07，pm2 online，公网 200 验证通过**）：探索 hero 收尾两项（commit `1c1b5df`）——
+- 最新改动（**已部署服务器 2026-09-17，pm2 online，公网 200 验证通过**）：科技资讯快报模块上线（commit `5bbb4de`）——
+  1. **glance-of-tech 服务部署**：`/var/www/glance-of-tech/glance-of-tech.jar`（Java 17，服务器已装 openjdk-17-jre-headless），systemd 单元 `glance-of-tech`（`-Xmx320m -Duser.timezone=Asia/Shanghai`），监听 `127.0.0.1:8081`；密钥在 `/var/www/glance-of-tech/.env`（chmod 600，含 `LLM_API_KEY`/`GLANCE_ADMIN_TOKEN`/`GLANCE_DB_PATH`，**勿提交 git**）；SQLite 在 `/var/www/glance-of-tech/data/glance.db`。手动补跑：`curl -X POST -H "X-Admin-Token: <token>" "http://127.0.0.1:8081/api/admin/digest/regenerate?period=morning|evening"`（异步 202）。定时 08:00/20:00 自动生成。
+  2. **博客侧**：`lib/digest.ts`（fetch 服务 API，revalidate 300s、8s 超时、失败返回 null 走降级态）+ `components/digest/digest-view.tsx`（分源分组 + mono 编号条目 + v2-tag）+ `app/digest/page.tsx`（最新+归档）+ `app/digest/[date]/[period]/page.tsx`（详情）+ 侧边栏 RSS 旁「快报」按钮（Newspaper 图标）+ `/updates` 页 `?tab=` 分栏（网站动态/科技动态）+ 首页 `// LATEST_UPDATES` 双模式切换（科技快讯默认，2 分钟自动轮换，手动切换重置计时）。
+  - 坑：`lib/digest.ts` 的 AbortSignal **必须每次请求新建**（模块级共享的 `AbortSignal.timeout` 8s 后永久 aborted，会打崩流式渲染导致连接重置）。
+- 上一轮改动：探索 hero 收尾两项（commit `1c1b5df`）——
   1. **HTML 侧 InfBlog 字样全部隐藏**：shader 已渲染折射 InfBlog 大字，`.v2-hero-title`（h1）与打字机 kicker（TypedHeading，加 `v2-hero-typed` 类）在 `.webgl-on` 下均 `display:none`；两行副文案（用户自改文案「Take Me To See What I Can't Reach ... - Infinitely」/「去编织意义，去留下痕迹」，勿覆盖）移出 shader 色带——窄屏沉 hero 底部（justify-end），lg 锚定 `top:68%`（色带下缘 ~64%），不再叠在大字上；WebGL 不可用时整块照旧居中兜底。
   2. **收起侧边栏防闪烁**：`moon-scene.ts` resize() 实际改尺寸后若 ready&&!paused 同帧补绘 `render(lastT)`，消除 backing store 重设的黑帧（此前已加 RO 观察画布自身解决布局拉伸）。
   - 验收：tsc/build 过；playwright 实测 kicker/h1 display:none、副文案落在色带下方（668–730px）、收侧边栏连拍 10 帧月亮区最低亮度 67（黑帧阈值 ~10）无闪烁；服务器 build=0、local3000/site 200、线上含 v2-hero-typed 标记。
