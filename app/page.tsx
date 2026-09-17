@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import { getAllPosts } from "@/lib/mdx"
 import { getPostStatsMap } from "@/lib/post-stats"
 import { getUpdates } from "@/lib/updates"
+import { getLatestDigest } from "@/lib/digest"
 import { Button } from "@/components/ui/button"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { Reveal } from "@/components/motion/reveal"
@@ -64,7 +65,11 @@ const ROW_INDENTS = ["lg:pl-0", "lg:pl-20", "lg:pl-8", "lg:pl-28", "lg:pl-12"]
  * 两棵 DOM 树并存，由 ui-explore-only / ui-classic-only 按主题显隐。
  */
 export default async function HomePage() {
-  const [posts, updates] = await Promise.all([getAllPosts(), getUpdates()])
+  const [posts, updates, digest] = await Promise.all([
+    getAllPosts(),
+    getUpdates(),
+    getLatestDigest(),
+  ])
 
   /* 探索主题数据 */
   const [featured, ...rest] = posts
@@ -483,7 +488,7 @@ export default async function HomePage() {
             <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1">
               <MusicPlayerExpanded />
               <ViewsCard />
-              <TimelineWidget updates={latestUpdates} />
+              <TimelineWidget updates={latestUpdates} digest={digest} />
               <TagsWidget posts={posts} />
               <StatsWidget posts={posts} updates={updates} />
             </div>

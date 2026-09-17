@@ -9,6 +9,7 @@ import {
   GraduationCap,
   AtSign,
   Rss,
+  Newspaper,
 } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
@@ -188,6 +189,22 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
           <Link href="/feed.xml" target="_blank" title="RSS 订阅博客">
             <Rss className="h-4 w-4 shrink-0" />
             {!collapsed && "RSS"}
+          </Link>
+        </Button>
+
+        {/* 快报：glance-of-tech 服务的临时入口（内部页，不新开标签） */}
+        <Button
+          variant="outline"
+          className={cn(
+            "gap-2",
+            collapsed && "h-9 w-11 gap-0 px-0",
+            !collapsed && "justify-center"
+          )}
+          asChild
+        >
+          <Link href="/digest" title="科技资讯快报">
+            <Newspaper className="h-4 w-4 shrink-0" />
+            {!collapsed && "快报"}
           </Link>
         </Button>
       </div>
