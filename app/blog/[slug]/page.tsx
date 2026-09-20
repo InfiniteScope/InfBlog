@@ -93,7 +93,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const headings = extractHeadings(post.content)
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8 xl:max-w-none xl:flex-row xl:justify-center xl:gap-10">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8 xl:max-w-6xl xl:flex-row xl:justify-between xl:gap-10">
       <article className="flex w-full min-w-0 flex-col gap-8 xl:max-w-3xl">
       <div className="flex items-center justify-between gap-4">
         <Button variant="ghost" size="sm" className="w-fit gap-1" asChild>
@@ -206,7 +206,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       </article>
 
       {headings.length >= 3 && (
-        <aside className="hidden w-52 shrink-0 xl:block">
+        <aside className="hidden shrink-0 xl:block">
           <div className="sticky top-20">
             <TableOfContents headings={headings} />
           </div>
