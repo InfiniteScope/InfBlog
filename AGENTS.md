@@ -43,9 +43,14 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 
-## 当前状态（2026-09-17）
+## 当前状态（2026-09-20）
 
-- 最新改动（**已部署服务器 2026-09-17，pm2 online，公网 200 验证通过**）：科技资讯快报模块上线（commit `5bbb4de`）——
+- 最新改动（**已部署服务器 2026-09-20，pm2 online，公网验证通过**）：阅读体验三项（commits `c723043`/`b6ed94f`/`17b4f9d`/`cefd24f`）——
+  1. **代码高亮**：rehype-pretty-code（Shiki，双主题 github-light/dark 跟随站点明暗）；`components/blog/code-block.tsx`（语言徽标 + 一键复制，复制读 DOM 不重复携带源码）；样式在 globals.css（行号 `showLineNumbers`/行高亮 `{3-5}`/标题 `title=` 备好）；**`rehypeStyleObject` 必须排在 rehypePlugins 最后**（转换 Shiki 内联 style 为 JSX 对象）；围栏不写语言 = plaintext 无配色（如 Tarjan 篇）。
+  2. **文章目录**：`lib/headings.ts`（与 mdx-components 共享 slugify，保证锚点一致；收录 h2/h3）+ `components/blog/table-of-contents.tsx`（滚动高亮、可收起为竖直细条、当前项自动滚入可视区）；布局 `xl:max-w-6xl + justify-between` 右靠。
+  3. **列表排序**：`lib/post-sort.ts` + `components/blog/post-sort-control.tsx`（标题右侧「排序」按钮 → 双列弹层：指标 × 正序/逆序；URL 驱动 `/blog?sort=&order=`；**正序=默认展示序（时间新→旧、数量多→少）**，逆序反之）。
+  - 内容同步：从服务器拉回 4 篇文章 + 8 条动态 + uploads 图片（**Windows bsdtar 解不了 Linux 的 UTF-8 中文名 tar，须用 Python tarfile 解压**）。
+- 上一轮改动（**已部署 2026-09-17**）：科技资讯快报模块上线（commit `5bbb4de`）——
   1. **glance-of-tech 服务部署**：`/var/www/glance-of-tech/glance-of-tech.jar`（Java 17，服务器已装 openjdk-17-jre-headless），systemd 单元 `glance-of-tech`（`-Xmx320m -Duser.timezone=Asia/Shanghai`），监听 `127.0.0.1:8081`；密钥在 `/var/www/glance-of-tech/.env`（chmod 600，含 `LLM_API_KEY`/`GLANCE_ADMIN_TOKEN`/`GLANCE_DB_PATH`，**勿提交 git**）；SQLite 在 `/var/www/glance-of-tech/data/glance.db`。手动补跑：`curl -X POST -H "X-Admin-Token: <token>" "http://127.0.0.1:8081/api/admin/digest/regenerate?period=morning|evening"`（异步 202）。定时 08:00/20:00 自动生成。
   2. **博客侧**：`lib/digest.ts`（fetch 服务 API，revalidate 300s、8s 超时、失败返回 null 走降级态）+ `components/digest/digest-view.tsx`（分源分组 + mono 编号条目 + v2-tag）+ `app/digest/page.tsx`（最新+归档）+ `app/digest/[date]/[period]/page.tsx`（详情）+ 侧边栏 RSS 旁「快报」按钮（Newspaper 图标）+ `/updates` 页 `?tab=` 分栏（网站动态/科技动态）+ 首页 `// LATEST_UPDATES` 双模式切换（科技快讯默认，2 分钟自动轮换，手动切换重置计时）。
   3. **日报 RSS**（commit `af3a347`）：`app/digest/feed.xml/route.ts` —— 每天 08:15（Asia/Shanghai）后出现一条「科技资讯日报」（= 前一日晚报 + 今日早报，按来源分组、CDATA content:encoded、pubDate=当日 08:15+08:00）；`lib/digest.ts` 的 `getDailyDigests()` 负责聚合；`/digest` 页加自动发现（alternates.types，含博客主 feed）与「RSS 订阅日报」入口；首期 2026-09-17 已上线（38+35 条）。
