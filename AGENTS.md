@@ -45,7 +45,8 @@
 
 ## 当前状态（2026-09-20）
 
-- 最新改动（**已部署服务器 2026-09-20，pm2 online，公网验证通过**）：阅读体验三项（commits `c723043`/`b6ed94f`/`17b4f9d`/`cefd24f`）——
+- 最新改动（**已部署服务器 2026-09-20**）：首页「最新文章」展示顺序改为**按发布时间从新到旧**（commit `6011573`）——`app/page.tsx` 新增 `displayPosts`（`[...posts].sort(date desc)`），仅首页展示数组（featured/latestPosts/classicPosts）使用，widgets/标签统计仍用原序；`/blog` 列表默认仍是更新时间排序（有排序控件可切）。
+- 上一轮改动（**已部署服务器 2026-09-20，pm2 online，公网验证通过**）：阅读体验三项（commits `c723043`/`b6ed94f`/`17b4f9d`/`cefd24f`）——
   1. **代码高亮**：rehype-pretty-code（Shiki，双主题 github-light/dark 跟随站点明暗）；`components/blog/code-block.tsx`（语言徽标 + 一键复制，复制读 DOM 不重复携带源码）；样式在 globals.css（行号 `showLineNumbers`/行高亮 `{3-5}`/标题 `title=` 备好）；**`rehypeStyleObject` 必须排在 rehypePlugins 最后**（转换 Shiki 内联 style 为 JSX 对象）；围栏不写语言 = plaintext 无配色（如 Tarjan 篇）。
   2. **文章目录**：`lib/headings.ts`（与 mdx-components 共享 slugify，保证锚点一致；收录 h2/h3）+ `components/blog/table-of-contents.tsx`（滚动高亮、可收起为竖直细条、当前项自动滚入可视区）；布局 `xl:max-w-6xl + justify-between` 右靠。
   3. **列表排序**：`lib/post-sort.ts` + `components/blog/post-sort-control.tsx`（标题右侧「排序」按钮 → 双列弹层：指标 × 正序/逆序；URL 驱动 `/blog?sort=&order=`；**正序=默认展示序（时间新→旧、数量多→少）**，逆序反之）。
