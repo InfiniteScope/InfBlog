@@ -71,13 +71,20 @@ export default async function HomePage() {
     getLatestDigest(),
   ])
 
+  /* 首页展示顺序：按「发布时间」从新到旧
+     （getAllPosts 默认按更新时间排序，此处仅首页展示用数组重排，
+     widgets/标签统计等仍用原序 posts） */
+  const displayPosts = [...posts].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+
   /* 探索主题数据 */
-  const [featured, ...rest] = posts
+  const [featured, ...rest] = displayPosts
   const latestPosts = rest.slice(0, 5)
   const latestUpdates = updates.slice(0, 5)
 
   /* 经典主题数据（前 10 篇）；statsMap 覆盖两树所需 slug */
-  const classicPosts = posts.slice(0, 10)
+  const classicPosts = displayPosts.slice(0, 10)
   const statsMap = await getPostStatsMap(classicPosts.map((p) => p.slug))
 
   const tagCounts = new Map<string, number>()
