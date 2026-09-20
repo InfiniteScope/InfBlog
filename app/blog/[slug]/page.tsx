@@ -16,6 +16,7 @@ import { rehypeStyleObject } from "@/lib/rehype-style-object"
 
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
+import { extractHeadings } from "@/lib/headings"
 import {
   getPostStats,
   hasLiked,
@@ -29,6 +30,7 @@ import { ReadingTracker } from "@/components/collectibles/reading-tracker"
 import { PostActionsFloat } from "@/components/blog/post-actions-float"
 import { PostViewTracker } from "@/components/blog/post-view-tracker"
 import { PostStatBadges } from "@/components/blog/post-stat-badges"
+import { TableOfContents } from "@/components/blog/table-of-contents"
 import Link from "next/link"
 
 interface PageProps {
@@ -88,8 +90,11 @@ export default async function BlogPostPage({ params }: PageProps) {
     session?.user ? hasFavorited(slug, session.user.id) : Promise.resolve(false),
   ])
 
+  const headings = extractHeadings(post.content)
+
   return (
-    <article className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8 xl:max-w-none xl:flex-row xl:justify-center xl:gap-10">
+      <article className="flex w-full min-w-0 flex-col gap-8 xl:max-w-3xl">
       <div className="flex items-center justify-between gap-4">
         <Button variant="ghost" size="sm" className="w-fit gap-1" asChild>
           <Link href="/blog">
@@ -198,6 +203,15 @@ export default async function BlogPostPage({ params }: PageProps) {
         initialLiked={initialLiked}
         initialFavorited={initialFavorited}
       />
-    </article>
+      </article>
+
+      {headings.length >= 3 && (
+        <aside className="hidden w-52 shrink-0 xl:block">
+          <div className="sticky top-20">
+            <TableOfContents headings={headings} />
+          </div>
+        </aside>
+      )}
+    </div>
   )
 }

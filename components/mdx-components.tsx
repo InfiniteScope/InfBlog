@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ComponentPropsWithoutRef, ReactNode } from "react"
 
 import { CodeBlock } from "@/components/blog/code-block"
+import { slugifyHeading } from "@/lib/headings"
 
 function getTextFromChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") {
@@ -17,15 +18,6 @@ function getTextFromChildren(children: ReactNode): string {
     }
   }
   return ""
-}
-
-function slugifyHeading(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]/gu, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
 }
 
 function Heading1({ className, children, ...props }: ComponentPropsWithoutRef<"h1">) {
