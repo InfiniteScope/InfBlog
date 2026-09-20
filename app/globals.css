@@ -900,3 +900,65 @@ input[type="range"].music-slider::-moz-range-thumb {
     scroll-behavior: auto;
   }
 }
+
+/* ===== rehype-pretty-code（Shiki）代码高亮 ===== */
+
+/* figure 只作容器（间距由 CodeBlock 自身控制），标题栏与代码框拼接成一体 */
+[data-rehype-pretty-code-figure] {
+  margin: 0;
+}
+
+[data-rehype-pretty-code-title] {
+  margin-top: 1.5rem;
+  border: 1px solid hsl(var(--border));
+  border-bottom: none;
+  border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0 0;
+  background: hsl(var(--muted));
+  padding: 0.4rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+[data-rehype-pretty-code-title] + [data-code-block] {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* 明暗双主题 token 颜色：Shiki 以内联 CSS 变量输出，跟随 .dark 切换 */
+code[data-theme*=" "] span {
+  color: var(--shiki-light);
+}
+
+.dark code[data-theme*=" "] span {
+  color: var(--shiki-dark);
+}
+
+/* 行号（```lang showLineNumbers 启用） */
+code[data-line-numbers] {
+  counter-reset: line;
+}
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: hsl(var(--muted-foreground) / 0.45);
+}
+
+/* 行高亮（```lang {3-5}）、词高亮（```lang /word/） */
+code [data-highlighted-line] {
+  background: hsl(var(--accent) / 0.1);
+  box-shadow: inset 2px 0 0 hsl(var(--accent));
+}
+
+code [data-highlighted-chars] {
+  border-radius: 2px;
+  background: hsl(var(--accent) / 0.15);
+  box-shadow: 0 0 0 2px hsl(var(--accent) / 0.15);
+}
+

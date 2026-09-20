@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { ComponentPropsWithoutRef, ReactNode } from "react"
 
+import { CodeBlock } from "@/components/blog/code-block"
+
 function getTextFromChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") {
     return String(children)
@@ -181,13 +183,9 @@ function Code({ className, ...props }: ComponentPropsWithoutRef<"code">) {
   )
 }
 
-function Pre({ className, ...props }: ComponentPropsWithoutRef<"pre">) {
-  return (
-    <pre
-      className="mb-4 mt-6 overflow-x-auto rounded-lg border border-border bg-muted p-4 font-mono text-sm [&_code]:rounded-none [&_code]:bg-transparent [&_code]:p-0"
-      {...props}
-    />
-  )
+function Pre(props: ComponentPropsWithoutRef<"pre">) {
+  const language = (props as { "data-language"?: string })["data-language"]
+  return <CodeBlock language={language} preProps={props} />
 }
 
 function Img({

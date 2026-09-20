@@ -1,0 +1,508 @@
+---
+title: Spring 学习笔记 02：面向切面编程（AOP）—— 在不改动原始设计的前提下做增强
+date: '2026-09-20T11:13:24.647Z'
+description: 介绍了Spring中的AOP思想，讲解非侵入、切面等设计思想，并以多个实例讲解其在实际开发中的作用。
+tags:
+  - Spring
+  - 后端
+  - 技术
+  - Java
+  - 编程思想
+  - AOP
+coverImage: /uploads/mu9pke2q-aff4a3dc.png
+---
+# Spring 学习笔记 02：面向切面编程（AOP）—— 在不改动原始设计的前提下做增强
+
+> 本系列是本人学习 Spring 框架的手记，**而非完整的教程**（完整的教程文档可以参考[廖雪峰的教程](https://liaoxuefeng.com/books/java/spring/index.html)，资料多数参考自黑马程序员 SSM 系列视频教程），可供与我一样的初学者参考学习路线，或供熟练工复习概念。
+
+> 上一篇笔记中简单聊了 Spring 核心框架里的一些概念，按原计划这篇笔记理应聊聊 Spring Boot 了。但是上一篇对 AOP 并未进行讲解，而面向切面编程又是一种非常重要的编程思想，是 Spring 框架的核心设计哲学之一。故而本篇笔记先来看看 Spring 中的 AOP，Spring Boot 放到下一篇笔记再聊。
+
+---
+
+## 1. 为什么需要 AOP
+
+假设一个业务场景，我们要给业务方法加上“日志记录”和“耗时统计”，最直接的做法是逐个方法手动添加：
+
+```java
+public void createOrder(String item) {
+    long start = System.currentTimeMillis();                       // ← 公共功能：计时
+    System.out.println("[日志] createOrder 开始");                  // ← 公共功能：日志
+
+    System.out.println("创建订单：" + item);                        // 真正的业务逻辑，只有这一行
+
+    System.out.println("[日志] createOrder 结束");                  // ← 公共功能：日志
+    System.out.println("[耗时] " + (System.currentTimeMillis() - start) + "ms"); // ← 公共功能
+}
+```
+
+问题很直观：
+
+1. **公共功能与业务功能耦合在一起**——业务逻辑只占一行，其余全是额外添加的公共功能代码
+2. **复制粘贴灾难**——100 个方法就要重复 100 遍，改一次公共逻辑要动 100 个地方
+3. **侵入性**——业务代码被这些杂事"污染"，不再干净，不利于阅读理解源码
+
+所以 **面向切面编程，AOP（Aspect-Oriented Programming）** 提出了一种解决方法：把这类公共功能**抽出来单独定义**，在运行期由框架自动 **“织入”** 到指定方法上，使原有的方法表现出新的功能——业务代码一行都不用改。这就是 Spring 所说的**无侵入式编程**，也是"解耦"哲学在方法层面的体现。
+
+如果你已经对JavaScript/TypeScript/Python/Rust/C#等语言有过了解，会发现 AOP 思想实际上和这些编程语言中的[装饰器](https://infinitescope.site/blog/typescript-tutorial#71-%E8%A3%85%E9%A5%B0%E5%99%A8decorators)（特性/属性宏/...）的性质有诸多类似，同样是以非侵入的方式为原有的函数/方法增添新的功能。
+
+概念的对应关系：
+
+
+![图片描述](/uploads/mu9pa9wj-f336971e.png)
+
+---
+
+## 2. AOP 核心概念
+
+| 概念 | 说明 |
+|---|---|
+| **连接点**（JoinPoint） | 程序执行中可以应用通知的点。严格说粒度可以是方法执行、异常抛出等，但 **Spring AOP 中实际就是“方法的执行”** |
+| **切入点**（Pointcut） | 匹配连接点的**式子**（表达式），回答“要在哪里增强” |
+| **通知**（Advice） | 在切入点匹配的位置**按指定时机**执行的共性功能，回答“在什么时机为方法增加什么功能” |
+| **通知类** | 存放通知方法的类 |
+| **切面**（Aspect） | 通知与切入点的**对应关系**（谁 + 在哪里） |
+| **目标对象**（Target） | 被增强的原始对象 |
+| **代理**（Proxy） | 织入通知后生成的对象，**外部调用实际打到的就是它** |
+| **织入**（Weaving） | 把通知应用到目标方法上的过程 |
+
+![图片描述](/uploads/mu9p8sfl-76b21368.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>AOP 核心概念之间的关系：代理对象包裹目标对象，通知按切入点织入其中（图片待替换）</div>
+
+<br />
+
+---
+
+## 3. 快速入门（纯注解开发）
+
+### 步骤 1：引入依赖
+
+```xml
+<dependencies>
+    <!-- Spring 核心容器（内含 spring-aop 模块） -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>6.2.2</version>
+    </dependency>
+
+    <!-- 切入点表达式的解析依赖 AspectJ -->
+    <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>1.9.22</version>
+    </dependency>
+</dependencies>
+```
+
+> 只有 spring-context 还不够，**aspectjweaver 是解析切入点表达式、支持 @Aspect 注解的关键依赖**。
+
+### 步骤 2：编写业务类（目标对象）
+
+```java
+package com.infinitescope.aop.service;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class OrderService {
+
+    public void createOrder(String item) {
+        System.out.println("   >> 业务方法：创建订单 " + item);
+    }
+
+    public String getOrderStatus(int id) {
+        System.out.println("   >> 业务方法：查询订单 " + id);
+        return "订单" + id + "：已支付";
+    }
+
+    public void pay(int id) {
+        System.out.println("   >> 业务方法：支付订单 " + id);
+        if (id < 0) {
+            throw new RuntimeException("订单号非法：" + id);
+        }
+    }
+}
+```
+
+### 步骤 3：编写通知类，定义切入点与通知
+
+```java
+package com.infinitescope.aop.advice;
+
+import org.aspectj.lang.annotation.*;
+import org.springframework.stereotype.Component;
+
+@Component      // 交给 Spring 管理
+@Aspect         // 声明这是一个切面类
+public class LogAdvice {
+
+    @Pointcut("execution(* com.infinitescope.aop.service.*.*(..))")
+    public void pt() {}     // 切入点：service 包下所有类的所有方法
+
+    @Before("pt()")         // 通知：在目标方法执行前运行
+    public void before() {
+        System.out.println("【前置通知】方法即将执行");
+    }
+}
+```
+
+### 步骤 4：配置类开启注解驱动
+
+```java
+package com.infinitescope.aop.config;
+
+import org.springframework.context.annotation.*;
+
+@Configuration
+@ComponentScan("com.infinitescope.aop")
+@EnableAspectJAutoProxy     // 开启 Spring 对 AOP 注解的支持
+public class SpringConfig {
+}
+```
+
+### 步骤 5：运行
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+        OrderService service = ctx.getBean(OrderService.class);
+        service.createOrder("《Spring实战》");
+    }
+}
+```
+
+输出：
+
+```
+【前置通知】方法即将执行
+   >> 业务方法：创建订单 《Spring实战》
+```
+
+业务代码一行未改，增强却生效了——这就是无侵入。
+
+> **补充：XML 配置方式（了解即可）**
+> 早期用的是 XML 配置，与本篇注解一一对应：
+> ```xml
+> <bean id="orderService" class="com.infinitescope.aop.service.OrderService"/>
+> <bean id="logAdvice" class="com.infinitescope.aop.advice.LogAdvice"/>
+>
+> <aop:config>
+>     <aop:aspect ref="logAdvice">
+>         <aop:pointcut id="pt" expression="execution(* com.infinitescope.aop.service.*.*(..))"/>
+>         <aop:before method="before" pointcut-ref="pt"/>
+>     </aop:aspect>
+> </aop:config>
+> ```
+> 现在实际开发几乎只用注解方式，了解即可。
+
+---
+
+## 4. 切入点表达式
+
+语法：
+
+```
+execution(访问修饰符? 返回值类型 包名.类名.方法名(参数类型) 异常?)  // ?表示可无参数
+```
+
+常用写法：
+
+```java
+// 1. 精确匹配：service 包下 OrderService 的 createOrder(String) 方法
+execution(void com.infinitescope.aop.service.OrderService.createOrder(String))
+
+// 2. 匹配 service 包（单层）下所有类的所有方法
+execution(* com.infinitescope.aop.service.*.*(..))
+
+// 3. 匹配 service 包及其所有子包（.. 表示多级）
+execution(* com.infinitescope.aop.service..*.*(..))
+
+// 4. 匹配任意包下的 OrderService
+execution(* *..OrderService.*(..))
+
+// 5. 匹配无参方法
+execution(* com.infinitescope.aop.service.OrderService.getOrderStatus())
+```
+
+通配符速查：
+
+| 符号 | 含义 | 出现位置 |
+|---|---|---|
+| `*` | 任意一个（一层包、任意类名、任意方法名、任意返回值） | 广泛 |
+| `..` | 任意多个（多级包、任意个参数） | 包路径 / 参数列表 |
+
+除了 `execution`，还有两个常用的：
+
+```java
+@Pointcut("@annotation(com.infinitescope.aop.anno.Log)")  // 匹配标注了 @Log 注解的方法
+@Pointcut("within(com.infinitescope.aop.service.*)")     // 匹配指定类（范围更粗）
+```
+
+切入点还可以抽取复用：一个 `@Pointcut` 方法可以被本类多个通知引用；跨类引用写全限定名（`com.infinitescope.aop.advice.LogAdvice.pt()`）。
+
+---
+
+## 5. 通知类型
+
+Spring 提供了五种通知，先看对照表：
+
+| 注解 | 名称 | 执行时机 |
+|---|---|---|
+| `@Before` | 前置通知 | 目标方法执行**前** |
+| `@After` | 最终通知 | 目标方法执行**后**（无论是否异常，类似 finally） |
+| `@AfterReturning` | 返回后通知 | 目标方法**正常返回后**（异常时不执行） |
+| `@AfterThrowing` | 异常后通知 | 目标方法**抛出异常后**（正常时不执行） |
+| `@Around` | 环绕通知 | 包裹目标方法，**在其前后都能执行**，可控制是否执行目标方法 |
+
+五种不同的通知示例如下：
+
+```java
+@Component
+@Aspect
+public class AllAdvice {
+
+    @Pointcut("execution(* com.infinitescope.aop.service.OrderService.*(..))")
+    public void pt() {}
+
+    @Before("pt()")
+    public void before() {
+        System.out.println("   1. @Before 前置通知");
+    }
+
+    @AfterReturning(value = "pt()", returning = "result")
+    public void afterReturning(Object result) {
+        System.out.println("   2. @AfterReturning 返回后通知，返回值=" + result);
+    }
+
+    @AfterThrowing(value = "pt()", throwing = "e")
+    public void afterThrowing(Throwable e) {
+        System.out.println("   3. @AfterThrowing 异常后通知，异常=" + e.getMessage());
+    }
+
+    @After("pt()")
+    public void after() {
+        System.out.println("   4. @After 最终通知");
+    }
+
+    @Around("pt()")
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        System.out.println("   0-A. @Around 前半段");
+        Object result = pjp.proceed();     // 调用原始方法（必须！）
+        System.out.println("   0-B. @Around 后半段");
+        return result;                     // 必须返回原方法的返回值
+    }
+}
+```
+
+关于 `@Around` 的三个硬性要求：
+
+1. 方法参数必须是 `ProceedingJoinPoint`（它代表"原始方法的调用位置"）
+2. 方法必须声明 `throws Throwable`（因为 `proceed()` 可能抛出受检异常）
+3. 必须有 `Object` 返回值，并 `return` 原方法的返回值（否则调用方拿不到结果）
+
+### 实测执行顺序
+
+本机（Spring 6.2.2）跑了一遍，正常调用的输出：
+
+```
+0-A. @Around 前半段
+1. @Before 前置通知
+   >> 业务方法：创建订单 《Spring实战》
+2. @AfterReturning 返回后通知，返回值=null
+4. @After 最终通知
+0-B. @Around 后半段
+```
+
+换成有返回值的方法（`getOrderStatus`）：
+
+```
+0-A. @Around 前半段
+1. @Before 前置通知
+   >> 业务方法：查询订单 1
+2. @AfterReturning 返回后通知，返回值=订单1：已支付
+4. @After 最终通知
+0-B. @Around 后半段
+```
+
+再看异常调用（`pay(-1)`）：
+
+```
+0-A. @Around 前半段
+1. @Before 前置通知
+   >> 业务方法：支付订单 -1
+3. @AfterThrowing 异常后通知，异常=订单号非法：-1
+4. @After 最终通知
+调用方捕获：订单号非法：-1
+```
+
+顺序总结：
+
+```
+@Around 前半段 → @Before → 目标方法 → @AfterReturning / @AfterThrowing → @After → @Around 后半段
+```
+
+两个值得注意的细节：
+
+- 异常时 `@Around` 的后半段**不会执行**（异常直接穿透 `proceed()` 向上抛），需要记录"方法结束时"的逻辑时要注意
+- `@Around` 是最强大的一种通知，耗时的统计、方法执行的控制（比如权限校验不通过就不执行）都靠它；它同时也可以覆盖 `@Before` 以及 `@After` 的功能，所以在实际工程中往往最常使用。
+
+> 不同 Spring 版本、不同切面类写法下，通知的嵌套细节可能略有差异，建议自己动手跑一遍验证。
+
+---
+
+## 6. 在通知中获取目标方法的数据
+
+通知里可以拿到目标方法的**参数、返回值、异常**：
+
+```java
+@Before("pt()")
+public void before(JoinPoint jp) {
+    Object[] args = jp.getArgs();                 // 目标方法的参数
+    String methodName = jp.getSignature().getName(); // 方法名
+    System.out.println("   准备执行：" + methodName + "，参数=" + Arrays.toString(args));
+}
+
+@AfterReturning(value = "pt()", returning = "result")
+public void afterReturning(Object result) {
+    // returning = "result" 把返回值绑定到方法参数上
+    System.out.println("   返回值=" + result);
+}
+
+@AfterThrowing(value = "pt()", throwing = "e")
+public void afterThrowing(Throwable e) {
+    // throwing = "e" 把异常绑定到方法参数上
+    System.out.println("   异常=" + e.getMessage());
+}
+```
+
+三个关键点：
+
+| 想拿什么 | 怎么拿 |
+|---|---|
+| 参数 | 通知方法加 `JoinPoint` 参数，`getArgs()`（`@Around` 用 `ProceedingJoinPoint` 也可以） |
+| 返回值 | `@AfterReturning(returning = "xxx")`，方法签名里加同名参数 |
+| 异常 | `@AfterThrowing(throwing = "xxx")`，方法签名里加同名参数 |
+
+实测输出（对应上一节的例子）：`返回值=订单1：已支付`、`异常=订单号非法：-1`——说明数据都成功绑定进来了。
+
+如果需要修改参数或返回值，只能通过 `@Around`：`proceed(Object[] args)` 可以传新参数，返回值也可以包装后再返回。
+
+---
+
+## 7. 代理机制：AOP 是怎么实现的
+
+Spring AOP 的底层是**动态代理**：容器在创建 Bean 时，发现它的方法被通知匹配，就不直接给你原始对象，而是给你一个"代理对象"——之前在 XML/注解流程里遇到的“目标对象”；外部调用实际打到的是它的代理。
+
+我们可以用一段很简单的代码来验证这一点——从容器里取出 Bean，打印它的实际类型：
+
+```java
+ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+OrderService service = ctx.getBean(OrderService.class);   // 看看拿到手的对象是什么
+System.out.println("代理对象类型：" + service.getClass().getName());
+```
+
+输出：
+
+```
+代理对象类型：com.infinitescope.aop.service.OrderService$$SpringCGLIB$$0
+```
+
+类名里出现了 `$$SpringCGLIB$$`——说明本次用的是 **CGLib 动态代理**（因为 `OrderService` 没有实现任何接口）。Spring 有两种代理方式：
+
+| | JDK 动态代理 | CGLib 动态代理 |
+|---|---|---|
+| 原理 | 基于**接口**，生成一个实现类 | 基于**继承**，生成目标类的子类 |
+| 前提 | 目标类必须有接口 | 目标类/方法不能被 `final` 修饰 |
+| Spring 中的选择 | 有接口时 | 无接口时（Spring Boot 2.x 起默认强制 CGLib） |
+
+### 一个经典坑点：自调用导致AOP失效
+
+```java
+@Component
+public class OrderService {
+    public void createOrder(String item) {
+        this.pay(1);          // 注意：this 是目标对象，不是代理对象！
+    }
+}
+```
+
+`this.pay(...)` 调用的是**目标对象自己**，根本没经过代理，所以 `pay` 上的通知**不会生效**。只有从外部经代理对象发起的调用才会被增强：
+
+
+![图片描述](/uploads/mu9pax87-14b7b062.png)
+
+
+解决方案（了解）：
+
+- 把方法拆到另一个 Bean 里，通过注入调用
+- 用 `AopContext.currentProxy()` 拿到当前代理再调用（需要开启 `exposeProxy = true`）
+
+---
+
+## 8. 应用场景与小结
+
+AOP 在真实项目里的典型应用：
+
+| 场景 | 说明 |
+|---|---|
+| **声明式事务** | `@Transactional` 就是 AOP 最经典的应用——不写一行事务代码，方法自动获得事务能力（后面讲 Spring 事务时会回头看这段） |
+| 统一日志 / 埋点 | 接口出入参、耗时统计 |
+| 权限校验 | 前置通知里检查权限，不通过直接抛异常 |
+| 缓存 / 限流 / 幂等 | 环绕通知里做文章的余地最大 |
+
+小结，一句话带走：
+
+> **AOP = 在不改动原始设计的前提下，通过动态代理对方法做无侵入增强。**
+
+- **目的**：解耦（公共功能与业务功能分离），与 IoC 一脉相承
+- **七个概念**：连接点、切入点、通知、通知类、切面、目标对象、代理、织入
+- **五种通知**：`@Before` / `@After` / `@AfterReturning` / `@AfterThrowing` / `@Around`
+- **底层**：动态代理（JDK / CGLib），注意自调用会失效
+
+---
+
+## 9. 附：补一张 Spring 整体结构图
+
+写第一篇笔记时遗漏了 Spring 官方最经典的一张图，本来想直接在第一篇的文章中修改，但是现在觉得更适合在 AOP 学完后介绍，因为个人感觉在学了更多相关的东西后再来看这张架构图或许会有更多的体悟。
+
+
+![图片描述](/uploads/mu9pl8s6-961a28f2.png)
+
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>Spring Framework Runtime 结构图（来自 Spring 官方文档，经典版本）</div>
+
+<br />
+
+这张图把 Spring 按"模块"组织成了几大块，从下往上看：
+
+- **Test**：测试模块。后面会用到的 JUnit 整合、`@SpringBootTest` 都属于它。
+- **Core Container（核心容器）**：整个框架的地基，也是 01 篇的主角——`Beans`、`Core`、`Context`、`SpEL`。IoC 容器、依赖注入、组件扫描都住在这里。
+- **AOP / Aspects / Instrumentation / Messaging**：本篇的主角。`AOP` 与 `Aspects` 提供面向切面编程的能力；`Instrumentation` 用于类加载器级别的增强（了解即可）；`Messaging` 是消息相关的抽象。
+- **Data Access/Integration（数据访问与集成）**：`JDBC`、`ORM`、`OXM`、`JMS`、`Transactions`——数据库访问与事务管理都在这一层，`@Transactional` 的实现就住在这里。
+- **Web**：`Web`、`Servlet`、`WebSocket`、`Portlet`——以后学 Spring MVC 时打交道的那层。
+
+> 缩写释义：ORM = 对象关系映射，OXM = 对象与 XML 映射，JMS = Java 消息服务。
+
+两个值得记住的点：
+
+1. **越靠上的层，越依赖下面的层**（比如 Web 构建在 Core Container 之上）。这就是为什么前面的入门程序只引了 `spring-context` 就能跑——我们暂时只用到最底下的 Core Container 和 AOP。
+
+2. **Spring 是多场景且模块化的**Spring全家桶提供的框架覆盖了众多业务场景，且每个功能可按需引入。本篇的依赖只有 `spring-context` + `aspectjweaver`，正是这个原因。
+
+对照笔记的进度：
+
+| 模块 | 对应笔记 |
+|---|---|
+| Core Container | [01 篇（IoC / DI / 注解与配置）](https://infinitescope.site/blog/spring%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B001spring%E6%A0%B8%E5%BF%83%E5%85%A5%E9%97%A8-ioc-%E5%AE%B9%E5%99%A8%E4%B8%8E%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E4%BB%8E%E9%85%8D%E7%BD%AE%E5%88%B0%E6%B3%A8%E8%A7%A3) |
+| AOP / Aspects | 02 篇（本篇） |
+| Data Access / Transactions | 待解锁 |
+| Web | 待解锁 |
+| Test | 待解锁 |
+
+目前只点亮了这张图的一半——剩下的模块，随着后续笔记慢慢解锁 ~~（也可能鸽了）~~。
+
+---
+
+下一篇笔记我们再聊 Spring Boot （~~我尽量不鸽~~）——看看"约定优于配置"是如何把这一堆注解、配置类进一步自动化掉的。

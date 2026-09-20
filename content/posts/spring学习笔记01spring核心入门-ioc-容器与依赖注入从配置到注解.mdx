@@ -1,0 +1,396 @@
+---
+title: Spring学习笔记01：Spring核心入门 - IoC 容器与依赖注入，从配置到注解
+date: '2026-09-08T08:56:41.599Z'
+description: 简要讲述了Spring框架中IoC思想、容器、DI等概念，并讲解了配置开发与注解开发的用法与规范。
+tags:
+  - Spring
+  - 后端
+  - 技术
+  - Java
+coverImage: /uploads/mtsfpou6-1242fb2b.webp
+updatedAt: '2026-09-08T09:02:22.413Z'
+---
+# Spring 学习笔记 01：Spring 核心入门 — IoC 容器与依赖注入，从配置到注解
+
+> 本系列是本人学习 Spring 框架的手记，**而非完整的教程**（完整的教程文档可以参考[廖雪峰的教程](https://liaoxuefeng.com/books/java/spring/index.html)，他的个人站中甚至有手把手带着你手写一个简易 Spring 框架的教程；本笔记的资料多数参考自黑马程序员 SSM 系列视频教程，部分文本资料参考自上述廖雪峰的网站）。所以本系列存在的意义是供与我一样的初学者参考学习路线，或供熟练工复习概念，主旨是跟着各位共同进步。对于初学者，相关的学习路线最好是在已经完整看过Spring相关视频课程或者读过技术文档后，再通过阅读本文作为简单的复习以及技术心得上的交流。
+
+> 当今 IT 领域主流的后端开发语言近几年在不断丰富，Golang、Python、Rust 等语言逐步流行；但即便如此，作为"守旧派"的 Java 一直在世界范围内保有着很高的市占率。Java的屹立不倒很大程度上要归功于 Spring 框架在 Java 开发领域事实上的"大一统"，这使得企业级的项目可以很方便地使用 Spring 系列框架完成标准的开发流程。所以 Spring 是 Java 后端绕不开的技术栈。但很多初学者可能会被 "IoC / DI / Bean / 容器" 等一系列抽象名词劝退。这篇文章围绕："**Spring 到底解决了什么问题，以及它是怎么解决的**"这个问题，以"解耦"为关键词展开所有的讲解。
+
+---
+
+## 1. 为什么需要 Spring
+
+写 Java WEB 程序时，假如业务场景中，我们需要在一个类中创建一个另一个包下的类，在学习 Spring 之前的普遍做法是在代码里直接 `new` 出对象，例如：
+
+```java
+public class OrderService {
+    // import com.infinitescope.MySQLService.MySQLOrderRepository;
+    // 即 OrderService 直接依赖 MySQLOrderRepository
+
+    private OrderRepository repository = new MySQLOrderRepository();
+}
+```
+
+这份代码从性能与业务逻辑上事实上都不存在问题，问题在于 `new` 写死了依赖关系——一旦你想给依赖换一个实现，比如把 `MySQLOrderRepository` 换成 `RedisOrderRepository`，就必须改 `OrderService` 中的源码；对于一个成规模的项目，如果都是用这种创建对象的方法，那一旦换掉某个对象实现，都要牵一发动全身地修改一连串的源码。**调用方和被调用方被写死在一起，这就是耦合。**
+
+Spring 的核心设计哲学就是：**把创建对象和对象之间关系的控制权，从开发者的源码手里交出去，交给容器统一管理。** 容器统一管理所有对象，谁要创建一个对象，就从容器里拿，通过容器来注入对象——这就是软件开发中著名的**控制反转**（Inversion of Control，IoC）设计，让容器来获得注入对象的控制权。
+
+于是上面的代码变成：
+
+```java
+public class OrderService {
+    // 交给容器注入，不再自己 new
+    private OrderRepository repository;
+}
+```
+
+两个类之间不再是你 `new` 我，而都由"容器"装配。**解耦是 Spring 一切设计的起点，所以 Spring 系列框架的核心，是一套围绕对象管理的解耦设计。**
+
+---
+
+## 2. 容器：谁在管理这些对象
+
+负责"创建对象、管理对象、注入依赖"的角色，在 Spring 里叫**容器**。你常听到两个名词 `BeanFactory` 和 `ApplicationContext`，它们的关系是**父接口与子接口**：
+
+| 容器 | 说明 |
+|---|---|
+| `BeanFactory` | 顶层接口，提供最基本的 Bean 获取能力，是最底层的容器 |
+| `ApplicationContext` | `BeanFactory` 的子接口，实际开发用的容器。在 BeanFactory 基础上**追加**了国际化、事件发布、AOP 集成、资源加载等能力 |
+
+![图片描述](/uploads/mts31afm-b0cdd58a.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>从图中可以清楚地看出两者之间的继承关系，ApplicationContext 是经过多层封装的接口，在 BeanFactory 中加入了更多的能力</div>
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>早期版本的 Spring 框架仅有 BeanFactory 这个接口，后续随着版本的更新，这个接口被一步步封装，现版本下则是 ApplicationContext 接口使用最多。</div>
+
+<br />
+
+简要来说，**`BeanFactory` 是"能干活的最小容器"，`ApplicationContext` 是"开发中实际用的最多高级容器"。** 平时我们 `new ApplicationContext(...)` 拿到的就是后者。
+
+容器里装的、被它管理的对象，在 Spring 中统称为 **Bean**。
+
+---
+
+## 3. Bean：声明与配置（XML 方式）
+
+Spring最基础的开发模式是纯配置开发。
+
+在配置阶段，定义一个 Bean 就相当于告诉容器：**有一个对象，他的id是xxx，他所属的实现类名是xxx，你要负责创建它、管理它。** 这个配置内容我们一般写在项目根目录的.iml格式的文件中，使用XML语法，形如：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 声明一个 Bean：id 是它在容器中的唯一标识，
+    class 是它对应的实现类 -->
+    <bean id="orderRepository" 
+                class="com.infinitescope.repository.MySQLOrderRepository"/>
+
+    <bean id="orderService" class="com.infinitescope.service.OrderService"/>
+</beans>
+```
+
+`<bean>` 标签中两个最基础的属性：
+
+| 属性 | 作用 |
+|---|---|
+| `id` | Bean 在容器中的唯一标识，用来通过名称查找（也可以用 `name` 指定多个别名） |
+| `class` | 这个 Bean 对应的实现类全限定名，容器靠反射来创建它的实例 |
+
+除了这两个标签外，还有scope（是否为单例对象，默认单例）等标签，负责来Bean不同的性质，下文会做更详细的介绍。
+
+配置文件写好后，在代码中拿到容器的实例，就能从中取出 Bean 使用：
+
+```java
+// 读取 XML 配置，创建容器（这一步会把配置里的 Bean 都实例化好）
+ApplicationContext ctx = new 
+ClassPathXmlApplicationContext("applicationContext.xml");
+
+// 从容器中获取 Bean
+OrderService service = ctx.getBean("orderService", OrderService.class);
+service.placeOrder(...);
+```
+
+### 3.1 Bean 的作用域
+
+默认情况下，**同一个 Bean 在容器中只有一个实例**（即单例，singleton），多次 `getBean` 拿到的都是同一个对象——这由容器保证；如果我们希望每次拿到的都是一个新的对象，可以把作用域改成 `prototype`：
+
+```xml
+<bean id="orderRepository" 
+            class="com.infinitescope.repository.MySQLOrderRepository"
+            scope="prototype"/>
+```
+
+| 作用域 | 说明 |
+|---|---|
+| `singleton` | **默认**。容器启动时创建 Bean，整个容器生命周期内只有一个实例 |
+| `prototype` | 每次从容器中获取 Bean 都会创建一个新实例 |
+| `request` / `session` | Web 环境下的作用域，与请求/会话一一对应（后续篇章再说） |
+
+顺带一提，单例模式下容器创建 Bean 时，还可以通过 `init-method` / `destroy-method` 指定初始化、销毁时自动调用的方法（对应注解时代的 `@PostConstruct` / `@PreDestroy`），这称为Bean的**生命周期**，可以在Bean被创建和销毁时触发一些函数，这里不做展开。
+
+---
+
+## 4. 依赖注入：对象之间怎么连起来（XML 方式）
+
+Bean 之间的"连接"动作叫**装配**。Spring 把"对象 A 需要对象 B"这件事，从代码里的 `new` 变成**由容器在创建 A 时主动把 B 塞进去**，这个过程就是**依赖注入**（Dependency Injection，DI）。
+
+### 4.1 构造器注入
+
+在目标类中提供一个构造器，把依赖声明为构造参数：
+
+```java
+public class OrderService {
+    private final OrderRepository repository;
+
+    // 容器创建 OrderService 时，会调用这个构造器并传入依赖
+    public OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+对应的 XML 配置里，用 `<constructor-arg>` 为构造器传参：
+
+```xml
+<bean id="orderService" class="com.infinitescope.service.OrderService">
+    <!-- ref：注入的是容器中另一个 Bean；value：注入的是简单值（字符串、数字等） -->
+    <constructor-arg ref="orderRepository"/>
+</bean>
+```
+
+如果构造器有多个参数，Spring 会有三种匹配方式：按参数顺序（`index`）、按参数名（`name`）、按参数类型（`type`），也可以都给：
+
+```xml
+<bean id="orderService" class="com.infinitescope.service.OrderService">
+    <constructor-arg index="0" ref="orderRepository"/>
+    <constructor-arg index="1" value="3000"/>   <!-- 简单类型用 value -->
+</bean>
+```
+
+### 4.2 Setter 注入
+
+在目标类中提供 `setXxx`（Setter）方法（和Java基础语法中，在对象的成员函数中对外提供的Set方法一样），容器创建 Bean 后调用该方法完成注入：
+
+```java
+public class OrderService {
+    private OrderRepository repository;
+
+    // 容器通过这个方法把依赖注入进来
+    public void setRepository(OrderRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+对应的 XML 配置，用 `<property name="repository">`（name 对应 setter 方法名去掉 set 后的属性名）：
+
+```xml
+<bean id="orderService" class="com.infinitescope.service.OrderService">
+    <property name="repository" ref="orderRepository"/>
+    <!-- 注入简单类型 -->
+    <property name="timeout" value="3000"/>
+</bean>
+```
+
+### 4.3 两种注入方式怎么选
+
+| 注入方式 | 写法示例 | 特点 |
+|---|---|---|
+| 构造器注入 | `constructor-arg` / 构造参数 | **官方推荐**，依赖不可变、生命周期清晰，易测试 |
+| Setter 注入 | `property` / `setXxx()` 方法 | 灵活，可后期初始化；**虽然官方不推荐**，但是由于其灵活性，所以在实际开发中用的较多 |
+
+> 注：实际上还有一种注入方法，字段注入（直接标 `@Autowired` 的写法），它属于属于注解时代的内容，等说到注解开发之后，自然会发现它与两者的关系。这里先不提前展开。
+
+---
+
+## 5. 自动装配：autowire
+
+有了手动装配，你会发现每个依赖、每个参数都得写一行 `ref`，十分繁琐。为了简化开发，Spring 提供了**自动装配**的方式：`autowire`——只要把 `<bean>` 的 `autowire` 属性打开，就不用再写 `<constructor-arg>` / `<property>` 了。
+
+但是要如何保证自动装配时，能准确地找到那个"该注入的对象"呢？Spring 提供了三种匹配策略：
+
+| 模式 | 匹配方式 | 说明 |
+|---|---|---|
+| `byName` | 按 Bean 名称 | 依赖属性名必须与容器中某个 Bean 的 `id` 一致 |
+| `byType` | 按 Bean 类型 | 容器中该类型的 Bean 必须**唯一**，否则报错 |
+| `constructor` | 按构造器 | 由 Spring 根据构造器参数的类型/名字找 Bean |
+
+在 XML 里只需一行声明：
+
+```xml
+<bean id="orderService" 
+    class="com.infinitescope.service.OrderService"
+    autowire="byType"/>
+```
+
+```java
+public class OrderService {
+    /* byType 模式下：属性名不重要，
+    要求且仅要求容器里 OrderRepository 类型的 Bean 唯一 
+    如果这个指定类型的Bean不唯一，
+    程序就会报错（程序不确定哪一个是你希望装配的Bean）*/
+
+    private OrderRepository repository;
+
+    public void setRepository(OrderRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+要注意：autowire 默认不开（`no`），且 byType 要求类型唯一、byName 要求名字一致，这两个条件一旦被破坏就会启动报错，所以自动装配通常用在**对象关系比较清晰**的场景。它省的是 XML 键值对的数量，替代不了我们对对象关系的理解。
+
+---
+
+## 6. 纯注解开发：Wave Goodbye to XML
+
+之前介绍的是通过配置（XML）的方式进行开发，但是通过纯配置使用 Spring 显然是有点麻烦的 —— Bean 每多一个，XML 就多两行；对象关系一变，XML 也要跟着改，虽然代码的耦合度降下来了，但是在易用性上仍有遗憾。为此 Spring 提供了一套**纯注解开发**的范式：让类自己"说清楚"它是谁、他需要谁，容器去读注解就行了。
+
+### 6.1 声明 Bean：@Component 系列注解
+
+有了 `@Component`，我们可以用注解直接标注一个类，让容器把它注册成 Bean：
+
+```java
+@Component("orderService")   // 名称可加可不加
+public class OrderService { ... }
+```
+
+关于名称的两点：
+
+1. **写了名称**：相当于给这个 Bean 一个 ID，装配时可以根据名称精确找到它；
+2. **不写名称**：容器会用**类名首字母小写**作为默认 Bean 名（如 `OrderService` → `orderService`），此时通常按类型来装配。
+
+> Spring为了方便用户区分不同的Bean，设计了三个`@Component` 的派生注解：`@Service`、`@Repository`、`@Controller` ；他们在程序中的作用和`@Component`相同，但是表示的语义更明确（分别表示业务层、数据层、控制/表现层）。
+
+在注解中，我们也可以像 XML 一样指定作用域：
+
+```java
+@Component("orderRepository")
+@Scope("prototype")          // 对应 XML 里的 scope 属性，默认 singleton
+public class MySQLOrderRepository { ... }
+```
+
+### 6.2 扫描组件：@ComponentScan
+
+有了注解，容器怎么知道该扫哪些类？**组件扫描**指的就是：告诉容器一个包的路径，它去这个包及它的所有子包下查找带 `@Component` 系列注解的类，把它们注册成 Bean。
+
+它只对"标注了注解的类"生效——**不是一个包下所有类都会变成 Bean**。
+XML 时代的写法：
+
+```xml
+<context:component-scan base-package="com.example.controller"/>
+```
+
+纯注解时代，用 `@ComponentScan` 等价替代：
+
+```java
+@Configuration
+@ComponentScan("com.example.service")   // 可以配多个包：“com.example.a”, “com.example.b”
+public class SpringConfig { ... }
+```
+
+### 6.3 注入依赖：@Autowired / @Qualifier / @Resource
+
+XML 时代的 `ref` 在手写注解的方式下，对应为**字段注入**，这正是上一节没有提前展开的第三种注入方式：
+
+```java
+@Service
+public class OrderService {
+
+    @Autowired          // 默认按类型装配
+    private OrderRepository repository;
+}
+```
+
+| 注解 | 匹配方式 | 说明 |
+|---|---|---|
+| `@Autowired` | 默认按类型 | Spring 自带，可标在字段、setter、构造器上 |
+| `@Autowired` + `@Qualifier` | 按名称 | 容器中同类型有多个 Bean 时指定名字，例如 `@Qualifier("redisRepository")` |
+| `@Resource` | 默认按名称 | [JSR-250 标准注解](https://blog.csdn.net/qq_39132177/article/details/107409918)，找不到名称就回退按类型 |
+
+如果容器中有多个同类型 Bean，`@Autowired` 直接按类型装配会失败，此时用 `@Qualifier` 指定：
+
+```java
+@Autowired
+// 指定容器中 id 为 redisOrderRepository 的 Bean
+@Qualifier("redisOrderRepository")   
+private OrderRepository repository;
+```
+
+对于简单类型（字符串、数字、配置文件里的值），用 `@Value` 注入：
+
+```java
+@Value("3000")
+private int timeout;
+
+@Value("${app.name}")       // 从配置文件中读取属性值
+private String appName;
+```
+
+> 如果容器中找不到依赖的 Bean 且不希望启动直接报错，可以 `@Autowired(required = false)`（能装则装，装不上留 null），一般谨慎使用。
+
+### 6.4 手写 Bean 定义：@Bean
+
+`@Component` 解决的是"自己写的类"注册成 Bean；但**别人的类**（比如第三方 jar 包里的类）我们改不了源码，没法直接标注解。此时用 `@Configuration` + `@Bean`，以方法的形式手工定义一个 Bean（等价于 XML 里的 `<bean>`）：
+
+```java
+@Configuration
+public class SpringConfig {
+
+    @Bean  // 方法返回对象注册成 Bean，方法名即默认 Bean 名
+    public OrderRepository orderRepository() {
+        return new MySQLOrderRepository();   // 由我们自己决定如何创建
+    }
+
+    @Bean
+    public OrderService orderService() {
+        OrderService service = new OrderService();
+        service.setRepository(orderRepository());   // 可以手动配置关系，也可以依赖注入
+        return service;
+    }
+}
+```
+
+### 6.5 纯注解启动容器
+
+纯注解开发下，可以完全抛开 XML，用 `AnnotationConfigApplicationContext` 创建容器：
+
+```java
+// 传入配置类：@Configuration 类上的 @ComponentScan 会连带生效
+ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+
+// 也可以直接给包名，让容器自己去扫描
+// ApplicationContext ctx = new AnnotationConfigApplicationContext("com.infinitescope.service");
+
+OrderService service = ctx.getBean("orderService", OrderService.class);
+```
+
+拿到 Bean 之后的用法，与 XML 时代一模一样。至此"配置"这个动作从一个巨大的 XML 文件，变成了"类上的几行注解"。
+
+---
+
+## 7. 整体结构
+
+![图片描述](/uploads/mtsfa2a7-b221887f.png)
+
+- **目的**：解耦
+- **手段**：控制反转 IoC
+- **载体**：容器（`ApplicationContext`）
+- **对象**：Bean
+- **连接动作**：依赖注入 DI（构造器 / Setter / 字段）
+- **匹配策略**：XML 时代的 byName / byType / constructor → 注解时代的 @Autowired / @Qualifier / @Resource
+- **声明方式**：XML 时代的 `<bean>` → 注解时代的 @Component 系列 + @Bean
+
+---
+
+## 小结
+
+Spring 把 Java 开发中"对象怎么创建、对象之间怎么连"这件事**从代码中剥离出来**，交给**容器**管理。其主线即：**解耦 → IoC → 容器 → Bean → DI**，所以不论是传统但严谨的XML注解，还是方便且简易的注解，都只是这个链路中的具体表现形式。
+
+Spring 的设计哲学以及语法标准设计的相当优美，作为一个在这个互联网领域高速更迭的时代仍能屹立不倒的框架，即使你最终不从事 Java 后端开发，Spring的设计思想也能启迪很多相关开发领域的创意与架构。
+
+下一篇笔记我们可能会聊聊 Spring Boot 是如何把这套体系进一步"自动化"的，也就是"约定优于配置"的时代——那才是现代 Java 开发真正接触到的形态。

@@ -1,0 +1,268 @@
+---
+title: 'Tarjan 算法与 洛谷P2341[USACO03FALL/HAOI2006]受欢迎的牛G'
+date: '2026-09-03T14:36:06.890Z'
+description: 通过一次DFS获取当前图中的所有强连通分量（SCC），并借助此完成明星牛问题
+tags:
+  - 算法
+  - 竞赛
+  - 基础算法
+  - 图论
+  - DFS
+  - Tarjan
+coverImage: /uploads/mtljx7f5-dbd3cbf9.png
+---
+## 一、强连通分量（SCC）
+
+有向图中一个极大子图，其中任意两个点互相可达。
+
+一个图中可以有一个或者多个强连通分量（至少有一个，因为一个节点一定与自己可达），如图中的图，共有 2 个强连通分量。
+
+
+![图片描述](/uploads/mtljrbr5-ad89ca3f.png)
+
+如果是单凭肉眼观察判断一个节点数与边数较少的图，获取一个图的所有强连通分量是简单的，但是如何让程序能快速获取一个图的所有强连通分量呢？
+
+Robert Tarjan（~~这个老先生也是计算机科学领域的传奇，1986年图灵奖得主，2025年基础科学终生成就奖得主~~）提出了一种仅需一次DFS就可以获取一个图所有强连通分量的算法，让程序可以在 **O(V+E)** 的时间复杂度下完成求解。
+
+![图片描述](/uploads/mtljx7f5-dbd3cbf9.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>Robert Tarjan</div>
+
+<br />
+
+## 二、Tarjan 算法
+
+Tarjan算法的大致思路是通过 DFS 来遍历图中每一个节点，然后将节点按次序入栈，记录他们**在DFS中遍历到的顺序**，以及他们**最小父节点的编号**（其实这里的编号不是节点的编号，而是最小父节点在DFS中被遍历到的顺序数，为了后续方便表述，文中所有“最小父节点编号”以及他的近义词都是这个意思）。
+
+在 DFS 中若发现当前节点的邻居**已经在栈中**，则说明这个邻居是当前节点的一个父节点（即在当次 DFS 的拓扑排序中，这个邻居在当前节点之前）；否则就继续DFS；当发现自己在 DFS 中被遍历到的顺序数与自己的最小父节点编号数相等，就说明当前节点是这个强连通分量中的“老大”，所以要对这个强连通分量中的点进行标记。
+
+为了说明方便，以下先给出 Tarjan 算法的具体思路，我们结合代码进行理解。
+
+Tarjan 算法首先需要定义以下变量与容器：
+
+| 变量 / 容器 | 作用 |
+| ---  | --- |
+| const int N = 10005; | 节点数量 |
+| `vector<int> graph[N];` | 待求的图 |
+| `stack<int> stk;` | 节点栈，表示DFS中点遍历到的顺序 |
+| int dfn[N], low[N]; | dfn表示点在dfs中遍历到的位序，low代表他最小的可遍历到他的的节点（最小父节点） |
+| bool in_stk[N]; | 表示某个节点是否入栈 |
+| int timer; | 全局计数器，记录当前位次 |
+| int scc_num; | 这张图中强连通分支的数量 |
+| int scc_node[N]; | 每个节点所属的强连通分支的序号 |
+
+算法模板：
+
+```
+vector<int> graph[N];
+
+int dfn[N], low[N];
+int timer = 0;
+stack<int> stk;
+bool in_stack[N];
+
+int sccNode[N];
+int sccNum = 0;
+
+void tarjan(int u){
+	// 对当前节点进行初始化
+	timer ++;
+	dfn[u] = low[u] = timer;
+	in_stack[u] = true;
+	stk.push(u);
+
+	for(auto v : graph[u]){  // 遍历这个节点的每一个邻居
+		if(!dfn[v]){  // 如果这个节点还没有被DFS访问过，那就对从这个节点开始继续DFS
+			tarjan(v);
+			low[u] = min(low[u], low[v]);  // 最后将当前这个节点（u）的最小父节点设为当前值和v的最小父节点中的更小值（因为u，v联通，所以u，v的最小父节点应该相同）
+		}
+		else if(in_stack[v]){  // 如果他的邻居已经在栈里面了，说明他的邻居来的更早
+			low[u] = min(low[u], dfn[v]);  // 邻居来的更早就把当前节点（u）的最小父节点设为当前值和邻居遍历到位次值中的更小值
+		}
+	}
+	
+	if(low[u] == dfn[u]){  // 如果一个节点一轮下来发现自己的最小父节点就是自己DFS中被遍历到的位次，说明自己就是当前所在的强连通分支中的最高节点，该分支统计完成，开始为该分支下的所有节点进行标记
+		sccNum++;  // 强连通分量数目+1（当前统计出来的数量也充当当前强连通分支的编号）
+		int v;
+		while(true){
+			v = stk.top();  //取出当前节点栈顶的节点
+			stk.pop();
+			in_stack[v] = false;
+			sccNode[v] = sccNum;  // 将这个节点所属的强连通分支的编号记录下来
+			
+			if(u == v) break;  // 如果已经弹出到父节点自己了，就可以结束了
+		}
+	}
+}
+
+int main(void){
+	int n, m;cin >> n >> m;
+	
+	for(int i = 1;i <= m;++i){
+		int x, y;cin >> x >> y;
+		graph[x].push_back(y);  // 构建这张图
+	}
+
+	for(int i = 1;i <= n;++i){
+		if(!dfn[i]) tarjan(i);
+	}
+
+	return 0;
+}
+```
+
+上述代码中的注释其实已经将算法中的细节说得比较明白了。Tarjan 算法的核心思想是根据每个节点在 DFS 中被访问到的顺序以及自己的最小父节点编号来判定点之间的可达性与先后顺序。
+
+我们以本文开篇的那个图为例，展示一下算法流程。
+
+首先，我们从 1 开始进行 DFS ，一直访问到 3 都暂未出现什么意外，所以可以正常进行初始化操作。
+
+
+![图片描述](/uploads/mtlkyd1v-80bd2b81.png)
+
+但当我们再去访问 3 的邻居时，会发现 3 的一个邻居 1 已在栈中——这说明 1 是 3 的祖先，所以我们就要去更新 3 的最小父节点编号了，应更新为他的父节点在 DFS 中的位次（dfn[v]）与当前节点的最小父节点的值（low[u]）中的较小值。所以此时low[3]应当被更新为 1。
+
+由于 3 有两条出度边，所以 DFS 也会分出 2 个分支，一个向 1，一个向 4。由于 1 的编号小，故先访问 1。对于向 1 进行 DFS 的分支，在访问 1 的时候发现自己对应的 low 和 dfn 值相等（dfn[1] == low[1]），这说明 1 是这个强连通分量里第一个被访问到的点，是这个分支的老大，所以要将当前分支下的所有点（即栈当中，晚于 1 入栈所有点）进行逐一的出栈以及表记，标记说明这些点（1，2，3这三个点）构成了编号为 1 的一个强连通分量。
+
+
+![图片描述](/uploads/mtlljqp7-ede44b80.png)
+
+向 4 进行搜索的分支任然正常继续，此时栈中只剩 4 一个数。
+
+当 4 访问到 5 后，5 发现自己的邻居 4 已经入栈，则同样要更新自己的low；然后 5 通过与 4 连接的平行边又回到了 4，这是的low[4]与dfn[4]相等，这说明 4 是当前这个强联通分量中最早被访问到的点。和上述 1 2 3 构成的强连通分量一样，4 5 也将被打上标记，他们归属于编号为 2 的一个强连通分量。
+
+通过上述过程，整个图的强连通分量就被分割好了。
+
+## 明星牛问题
+
+对于[洛谷P2431](https://www.luogu.com.cn/problem/P2341)这道题
+
+
+![图片描述](/uploads/mtllvdny-667ec0ab.png)
+
+即要求一个N个点、M条边的图中有多少个点是其他所有点可达的。
+
+这道题在单纯求SCC上又加了一层思维量，即怎么想到会用强连通分量的视角来分析这道题。
+
+我们想，题中所述，喜欢可以传递，这与有向图两点可达之间的性质很像；所以粉丝牛对应的那个节点，就是有向图上所有节点可达的那个节点。
+
+而强连通分量中，所有点都彼此可达。既然这样，一整个强连通分量其实完全可以看成是一个节点，为方便讲述，我们将这个由一个强连通分量坍缩得来的点叫做 C，所有强连通分量都坍缩成 C点 的图称为DAG。
+
+然后我们想，如果 C 有一条出边，指向外部的一个D点，那么这个D可能是没法指回C的（因为如果D能指回C，D也会成为C的强连通分量中的一部分），所以可知D的牛是不喜欢C的，C中的所有牛都成为不了明星。所以我们可以得出以下结论：
+
+*明星牛只可能出现在出度为 0 的分量里。*
+
+同时，如果图中存在多个强连通分量（包括孤立点的情况在内），这多个强连通分量里的牛互相不喜欢，所以**只有在图中仅存在 1 个出度为 0 的C点，这道题的答案才不为 0**。
+
+题目分析到这儿，剩下的部分就很显然了；过题代码如下：
+```
+#include<bits/stdc++.h>
+#define int long long
+#define endl '\n'
+#define mod 1000000007
+using ull = unsigned long long;
+using ld = long double;
+using namespace std;
+using ll = long long;
+using pii = pair<int, int>;
+
+const int N = 10005;
+
+vector<int> graph[N];
+
+int dfn[N], low[N];
+int timer = 0;
+stack<int> stk;
+bool in_stack[N];
+
+int sccNode[N];
+int sccNum = 0;
+int sccSize[N];
+
+void tarjan(int u){
+	timer ++;
+	dfn[u] = low[u] = timer;
+	in_stack[u] = true;
+	stk.push(u);
+	
+	for(auto v : graph[u]){
+		if(!dfn[v]){
+			tarjan(v);
+			low[u] = min(low[u], low[v]);
+		}
+		else if(in_stack[v]){
+			low[u] = min(low[u], dfn[v]);
+		}
+	}
+	
+	if(low[u] == dfn[u]){
+		sccNum++;
+		int v;
+		while(true){
+			v = stk.top();
+			stk.pop();
+			in_stack[v] = false;
+			sccNode[v] = sccNum;
+			sccSize[sccNum]++;
+			
+			if(u == v) break;
+		}
+	}
+}
+
+int out_degree[N];
+
+void solve(){
+	int n, m;cin >> n >> m;
+	
+	for(int i = 1;i <= m;++i){
+		int x, y;cin >> x >> y;
+		graph[x].push_back(y);
+	}
+	
+	for(int i = 1;i <= n;++i){
+		if(!dfn[i]) tarjan(i);
+	}
+	
+	for(int u = 1;u <= n;++u){
+		for(int v : graph[u]){
+			if(sccNode[u] != sccNode[v]){
+				out_degree[sccNode[u]]++;
+			}
+		}
+	}
+	
+	int ans = 0;
+	int zero_degree_num = 0;
+	for(int i = 1;i <= sccNum;++i){
+		if(out_degree[i] == 0){
+			zero_degree_num ++;
+			ans = sccSize[i];
+		}
+	}
+	
+	if(zero_degree_num == 1) cout << ans;
+	else cout << 0;
+	
+	return;
+}
+
+signed main(void){
+	ios::sync_with_stdio(false);
+    cin.tie(0);
+    
+    int t = 1;
+	//cin >> t;
+	while(t--){
+		solve();
+	} 
+    
+    return 0;
+}
+```
+
+要注意的是，此处为了方便统计强连通分量中节点的个数，所以还多声明了一个sccSize数组用于存储每个分量的节点数量。
+
+---
+
+Tarjan是一个设计极为优雅的算法，通过一次 DFS 以O(V+E)的时间复杂度完成了通过关系闭包O(V*E)才能解决的问题，是 DFS 基础上的一种高效算法。

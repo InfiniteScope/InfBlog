@@ -11,6 +11,7 @@ import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 import rehypeKatex from "rehype-katex"
+import rehypePrettyCode from "rehype-pretty-code"
 import { rehypeStyleObject } from "@/lib/rehype-style-object"
 
 import { auth } from "@/auth"
@@ -169,7 +170,20 @@ export default async function BlogPostPage({ params }: PageProps) {
           options={{
             mdxOptions: {
               remarkPlugins: [remarkGfm, remarkMath],
-              rehypePlugins: [rehypeKatex, rehypeStyleObject],
+              rehypePlugins: [
+                rehypeKatex,
+                [
+                  rehypePrettyCode,
+                  {
+                    // 跟随站点明暗主题（next-themes .dark class）
+                    theme: { light: "github-light", dark: "github-dark" },
+                    keepBackground: false,
+                    defaultLang: "plaintext",
+                  },
+                ],
+                // 必须最后：把 Shiki/Katex 的内联 style 字符串转成 JSX 对象
+                rehypeStyleObject,
+              ],
             },
           }}
         />
