@@ -3,6 +3,12 @@ import { RefreshCw, Clock, Image as ImageIcon, Tag, Type, Eye } from "lucide-rea
 
 import { getAllPosts } from "@/lib/mdx"
 import { getPostStatsMap } from "@/lib/post-stats"
+import {
+  parseSortMetric,
+  parseSortOrder,
+  sortPosts,
+} from "@/lib/post-sort"
+import { PostSortControl } from "@/components/blog/post-sort-control"
 
 export const metadata = {
   title: "博客 | InfBlog",
@@ -11,23 +17,35 @@ export const metadata = {
 
 export const revalidate = 60
 
+interface PageProps {
+  searchParams: Promise<{ sort?: string; order?: string }>
+}
+
 /** 博客列表双主题：探索 = 发丝线分行；经典 = 098bc72 盒式卡片 */
-export default async function BlogPage() {
-  const posts = await getAllPosts()
-  const statsMap = await getPostStatsMap(posts.map((p) => p.slug))
+export default async function BlogPage({ searchParams }: PageProps) {
+  const { sort, order } = await searchParams
+  const metric = parseSortMetric(sort)
+  const sortOrder = parseSortOrder(order)
+
+  const rawPosts = await getAllPosts()
+  const statsMap = await getPostStatsMap(rawPosts.map((p) => p.slug))
+  const posts = sortPosts(rawPosts, statsMap, metric, sortOrder)
 
   return (
     <>
       {/* ==================== 探索主题 ==================== */}
       <div className="ui-explore-only mx-auto flex w-full max-w-3xl flex-col gap-6 py-4 md:gap-8 md:py-8">
-        <section className="space-y-2">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            // BLOG
-          </p>
-          <h1 className="font-display text-3xl tracking-tight md:text-4xl">博客</h1>
-          <p className="text-muted-foreground">
-            技术、设计与生活的文章集合
-          </p>
+        <section className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              // BLOG
+            </p>
+            <h1 className="font-display text-3xl tracking-tight md:text-4xl">博客</h1>
+            <p className="text-muted-foreground">
+              技术、设计与生活的文章集合
+            </p>
+          </div>
+          <PostSortControl metric={metric} order={sortOrder} />
         </section>
 
         <section className="v2-list">
@@ -99,12 +117,15 @@ export default async function BlogPage() {
       {/* ==================== 经典主题（098bc72 服务器版） ==================== */}
       <div className="ui-classic-only">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-4 md:gap-8 md:py-8">
-          <section className="space-y-2">
-            <p className="font-mono text-xs tracking-widest text-accent">// BLOG</p>
-            <h1 className="font-display text-3xl tracking-tight md:text-4xl">博客</h1>
-            <p className="text-muted-foreground">
-              技术、设计与生活的文章集合
-            </p>
+          <section className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <p className="font-mono text-xs tracking-widest text-accent">// BLOG</p>
+              <h1 className="font-display text-3xl tracking-tight md:text-4xl">博客</h1>
+              <p className="text-muted-foreground">
+                技术、设计与生活的文章集合
+              </p>
+            </div>
+            <PostSortControl metric={metric} order={sortOrder} />
           </section>
 
           <section className="grid gap-4">
