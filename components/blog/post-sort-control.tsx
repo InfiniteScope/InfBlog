@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowUpDown, Check } from "lucide-react"
 
 import {
@@ -36,6 +36,7 @@ interface PostSortControlProps {
 /** 博客列表排序：标题右侧按钮 → 双列弹层（指标 / 排序方式），URL 驱动 */
 export function PostSortControl({ metric, order }: PostSortControlProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -56,9 +57,12 @@ export function PostSortControl({ metric, order }: PostSortControlProps) {
   }, [open])
 
   const apply = (nextMetric: SortMetric, nextOrder: SortOrder) => {
-    const params = new URLSearchParams()
+    // 保留其他查询参数（如 tag 筛选）
+    const params = new URLSearchParams(searchParams.toString())
     if (nextMetric !== DEFAULT_SORT) params.set("sort", nextMetric)
+    else params.delete("sort")
     if (nextOrder !== DEFAULT_ORDER) params.set("order", nextOrder)
+    else params.delete("order")
     const query = params.toString()
     router.push(query ? `/blog?${query}` : "/blog", { scroll: false })
   }

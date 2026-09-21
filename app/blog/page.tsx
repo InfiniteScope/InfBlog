@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { RefreshCw, Clock, Image as ImageIcon, Tag, Type, Eye } from "lucide-react"
+import { Clock, Image as ImageIcon, Tag, Type, Eye } from "lucide-react"
 
 import { getAllPosts } from "@/lib/mdx"
 import { getPostStatsMap } from "@/lib/post-stats"
@@ -9,6 +9,8 @@ import {
   sortPosts,
 } from "@/lib/post-sort"
 import { PostSortControl } from "@/components/blog/post-sort-control"
+import { BlogTagFilter } from "@/components/blog/blog-tag-filter"
+import { PostDates } from "@/components/blog/post-dates"
 
 export const metadata = {
   title: "博客 | InfBlog",
@@ -18,18 +20,33 @@ export const metadata = {
 export const revalidate = 60
 
 interface PageProps {
-  searchParams: Promise<{ sort?: string; order?: string }>
+  searchParams: Promise<{ sort?: string; order?: string; tag?: string }>
 }
 
 /** 博客列表双主题：探索 = 发丝线分行；经典 = 098bc72 盒式卡片 */
 export default async function BlogPage({ searchParams }: PageProps) {
-  const { sort, order } = await searchParams
+  const { sort, order, tag } = await searchParams
   const metric = parseSortMetric(sort)
   const sortOrder = parseSortOrder(order)
 
   const rawPosts = await getAllPosts()
-  const statsMap = await getPostStatsMap(rawPosts.map((p) => p.slug))
-  const posts = sortPosts(rawPosts, statsMap, metric, sortOrder)
+
+  /* 标签统计（按出现次数降序，次数相同按名称） */
+  const tagCounts = new Map<string, number>()
+  for (const post of rawPosts) {
+    for (const t of post.tags) {
+      tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1)
+    }
+  }
+  const allTags = Array.from(tagCounts.entries()).sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN")
+  )
+
+  const taggedPosts = tag
+    ? rawPosts.filter((p) => p.tags.includes(tag))
+    : rawPosts
+  const statsMap = await getPostStatsMap(taggedPosts.map((p) => p.slug))
+  const posts = sortPosts(taggedPosts, statsMap, metric, sortOrder)
 
   return (
     <>
@@ -48,10 +65,14 @@ export default async function BlogPage({ searchParams }: PageProps) {
           <PostSortControl metric={metric} order={sortOrder} />
         </section>
 
+        <BlogTagFilter tags={allTags} />
+
         <section className="v2-list">
           {posts.length === 0 ? (
             <div className="v2-card border-dashed p-8 text-center">
-              <p className="text-muted-foreground">暂无文章</p>
+              <p className="text-muted-foreground">
+                {tag ? `「${tag}」标签下暂无文章` : "暂无文章"}
+              </p>
             </div>
           ) : (
             posts.map((post) => (
@@ -72,9 +93,11 @@ export default async function BlogPage({ searchParams }: PageProps) {
                   )}
                   <div className="flex flex-1 flex-col justify-center space-y-2.5">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
-                      <span>
-                        {new Date(post.updatedAt ?? post.date).toLocaleDateString("zh-CN")}
-                      </span>
+                      <PostDates
+                        date={post.date}
+                        updatedAt={post.updatedAt}
+                        iconClassName="h-3 w-3"
+                      />
                       <span aria-hidden className="text-border">
                         /
                       </span>
@@ -89,7 +112,16 @@ export default async function BlogPage({ searchParams }: PageProps) {
                           <span aria-hidden className="text-border">
                             /
                           </span>
-                          <span>{post.tags.join(" · ")}</span>
+                          <span className="flex flex-wrap items-center gap-1.5">
+                            {post.tags.map((t) => (
+                              <span
+                                key={t}
+                                className="rounded-full border border-border/60 px-2 py-px text-[10px] tracking-wide"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </span>
                         </>
                       )}
                     </div>
@@ -128,10 +160,14 @@ export default async function BlogPage({ searchParams }: PageProps) {
             <PostSortControl metric={metric} order={sortOrder} />
           </section>
 
+          <BlogTagFilter tags={allTags} />
+
           <section className="grid gap-4">
             {posts.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border bg-card/30 p-8 text-center">
-                <p className="text-muted-foreground">暂无文章</p>
+                <p className="text-muted-foreground">
+                  {tag ? `「${tag}」标签下暂无文章` : "暂无文章"}
+                </p>
               </div>
             ) : (
               posts.map((post) => (
@@ -152,10 +188,11 @@ export default async function BlogPage({ searchParams }: PageProps) {
                     )}
                     <div className="space-y-3 p-5">
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          {new Date(post.updatedAt ?? post.date).toLocaleDateString("zh-CN")}
-                        </span>
+                        <PostDates
+                          date={post.date}
+                          updatedAt={post.updatedAt}
+                          className="font-mono text-[11px]"
+                        />
                         <span
                           className="flex items-center gap-1"
                           title="总浏览量 / 本月浏览量"

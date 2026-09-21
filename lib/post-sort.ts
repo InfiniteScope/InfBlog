@@ -20,7 +20,8 @@ export type SortMetric = (typeof SORT_METRICS)[number]
 export const SORT_ORDERS = ["normal", "reverse"] as const
 export type SortOrder = (typeof SORT_ORDERS)[number]
 
-export const DEFAULT_SORT: SortMetric = "updatedAt"
+/** 博客列表默认排序：发布时间（正序 = 新→旧） */
+export const DEFAULT_SORT: SortMetric = "publishedAt"
 export const DEFAULT_ORDER: SortOrder = "normal"
 
 export function parseSortMetric(value?: string): SortMetric {

@@ -83,7 +83,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   }
 
   return (
-    <nav aria-label="本页目录" className="w-52 text-sm">
+    <nav aria-label="本页目录" className="w-44 text-sm">
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="font-mono text-xs tracking-widest text-accent">
           // ON_THIS_PAGE

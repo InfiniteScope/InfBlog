@@ -1,7 +1,6 @@
 import Link from "next/link"
 import {
   ArrowUpRight,
-  RefreshCw,
   Clock,
   Image as ImageIcon,
   Tag,
@@ -17,6 +16,7 @@ import { getUpdates } from "@/lib/updates"
 import { getLatestDigest } from "@/lib/digest"
 import { Button } from "@/components/ui/button"
 import { SectionHeading } from "@/components/ui/section-heading"
+import { PostDates } from "@/components/blog/post-dates"
 import { Reveal } from "@/components/motion/reveal"
 import { MusicPlayerExpanded } from "@/components/music/music-player-expanded"
 import { DataStrip } from "@/components/home/data-strip"
@@ -264,11 +264,11 @@ export default async function HomePage() {
                       </span>
                       <div className="min-w-0 flex-1 space-y-1.5">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
-                          <span>
-                            {new Date(
-                              post.updatedAt ?? post.date
-                            ).toLocaleDateString("zh-CN")}
-                          </span>
+                          <PostDates
+                            date={post.date}
+                            updatedAt={post.updatedAt}
+                            iconClassName="h-3 w-3"
+                          />
                           <span aria-hidden className="text-border">
                             /
                           </span>
@@ -440,12 +440,11 @@ export default async function HomePage() {
                             )}
                             <div className="flex flex-1 flex-col justify-center space-y-3 p-5">
                               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <RefreshCw className="h-3.5 w-3.5" />
-                                  {new Date(
-                                    post.updatedAt ?? post.date
-                                  ).toLocaleDateString("zh-CN")}
-                                </span>
+                                <PostDates
+                                  date={post.date}
+                                  updatedAt={post.updatedAt}
+                                  className="font-mono text-[11px]"
+                                />
                                 <span
                                   className="flex items-center gap-1"
                                   title="总浏览量 / 本月浏览量"

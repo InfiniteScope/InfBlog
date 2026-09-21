@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Download, FileText, Home, LayoutDashboard, MessageSquare, Rss, User } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
 import type { Post } from "@/lib/mdx"
@@ -18,14 +20,19 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 
-const navigationItems = [
+const navigationItems: {
+  name: string
+  href: string
+  icon: LucideIcon
+  adminOnly?: boolean
+}[] = [
   { name: "首页", href: "/", icon: Home },
   { name: "博客", href: "/blog", icon: FileText },
   { name: "动态", href: "/updates", icon: Rss },
   { name: "资源分享", href: "/resources", icon: Download },
   { name: "留言墙", href: "/guestbook", icon: MessageSquare },
   { name: "关于", href: "/about", icon: User },
-  { name: "管理后台", href: "/admin/posts", icon: LayoutDashboard },
+  { name: "管理后台", href: "/admin/posts", icon: LayoutDashboard, adminOnly: true },
 ]
 
 interface SearchCommandProps {
@@ -35,6 +42,12 @@ interface SearchCommandProps {
 export function SearchCommand({ posts = [] }: SearchCommandProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { data: session } = useSession()
+  const isAdmin =
+    session?.user?.role === "OWNER" || session?.user?.role === "ADMIN"
+  const visibleItems = navigationItems.filter(
+    (item) => !item.adminOnly || isAdmin
+  )
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -83,7 +96,7 @@ export function SearchCommand({ posts = [] }: SearchCommandProps) {
         <CommandList>
           <CommandEmpty>未找到结果</CommandEmpty>
           <CommandGroup heading="导航">
-            {navigationItems.map((item) => (
+            {visibleItems.map((item) => (
               <CommandItem
                 key={item.href}
                 onSelect={() => runCommand(() => router.push(item.href))}
