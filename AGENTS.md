@@ -45,7 +45,15 @@
 
 ## 当前状态（2026-09-20）
 
-- 最新改动（**已部署服务器 2026-09-20**）：首页「最新文章」展示顺序改为**按发布时间从新到旧**（commit `6011573`）——`app/page.tsx` 新增 `displayPosts`（`[...posts].sort(date desc)`），仅首页展示数组（featured/latestPosts/classicPosts）使用，widgets/标签统计仍用原序；`/blog` 列表默认仍是更新时间排序（有排序控件可切）。
+- 最新改动（**已部署服务器 2026-09-20**）：阅读与列表体验批改（commit `858de27`）——
+  1. **文章页布局**：3 列网格（中列 48rem）文章**始终居中**（侧栏收起/展开都不变）；目录用**容器查询**（`@container` + `@min-[1150px]`）贴内容区右缘，可用宽度不足时自动隐藏；TOC 宽度 w-44。
+  2. **粒子/光晕图层**下调为 `-z-10`（`particle-background.tsx`/`blob-background.tsx`），不再遮挡图片与文字。
+  3. **博客 tag 筛选**：`components/blog/blog-tag-filter.tsx`（胶囊：全部+各标签计数，URL `?tag=`，切排序保留筛选）；`lib/post-sort.ts` 默认排序改 `publishedAt`（正序=新→旧）；探索卡片标签改胶囊样式。
+  4. **卡片双日期**：`components/blog/post-dates.tsx`（📅发布在前、🔄更新在后；按「日期字符串」去重，避免 mtime 回退导致同日双显）。
+  5. **搜索门控**：搜索弹层「管理后台」仅 OWNER/ADMIN 可见（`search-command.tsx` 用 useSession）。
+  6. 首页 tag 链接（`/blog?tag=`）自此真实生效闭环。
+  - 坑：Turbopack 缓存损坏（`Failed to mmap SST file`）时删 `.next/cache/turbopack` 重建即可。
+- 上一轮改动（**已部署 2026-09-20**）：首页「最新文章」展示顺序改为**按发布时间从新到旧**（commit `6011573`）——`app/page.tsx` 新增 `displayPosts`（`[...posts].sort(date desc)`），仅首页展示数组（featured/latestPosts/classicPosts）使用，widgets/标签统计仍用原序；`/blog` 列表默认仍是更新时间排序（有排序控件可切）。
 - 上一轮改动（**已部署服务器 2026-09-20，pm2 online，公网验证通过**）：阅读体验三项（commits `c723043`/`b6ed94f`/`17b4f9d`/`cefd24f`）——
   1. **代码高亮**：rehype-pretty-code（Shiki，双主题 github-light/dark 跟随站点明暗）；`components/blog/code-block.tsx`（语言徽标 + 一键复制，复制读 DOM 不重复携带源码）；样式在 globals.css（行号 `showLineNumbers`/行高亮 `{3-5}`/标题 `title=` 备好）；**`rehypeStyleObject` 必须排在 rehypePlugins 最后**（转换 Shiki 内联 style 为 JSX 对象）；围栏不写语言 = plaintext 无配色（如 Tarjan 篇）。
   2. **文章目录**：`lib/headings.ts`（与 mdx-components 共享 slugify，保证锚点一致；收录 h2/h3）+ `components/blog/table-of-contents.tsx`（滚动高亮、可收起为竖直细条、当前项自动滚入可视区）；布局 `xl:max-w-6xl + justify-between` 右靠。
