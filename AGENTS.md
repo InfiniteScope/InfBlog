@@ -43,9 +43,10 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 
-## 当前状态（2026-09-20）
+## 当前状态（2026-09-23）
 
-- 最新改动（**已部署服务器 2026-09-20**）：阅读与列表体验批改（commit `858de27`）——
+- 最新改动（**已部署服务器 2026-09-23**）：首页 `// RECENT_PROJECTS` 改为展示 profile 三个 pin 项目（commit `ecd6856`）——`siteConfig.githubRepos` 改 **`owner/repo` 全名格式**（`nisconder/npm-safe`、`InfiniteScope/InfBlog`、`Soren-ABT/dsh-knowledge`，按序展示、单个失败即隐藏）；API 由"拉用户仓库再过滤"改为**逐个 `GET /repos/{owner}/{repo}`**（支持跨 owner），成功后写回 `data/github-repos-cache.json` 降级缓存。改 pin 项目只动 `lib/config.ts` 一行。
+- 上一轮改动（**已部署服务器 2026-09-20**）：阅读与列表体验批改（commit `858de27`）——
   1. **文章页布局**：3 列网格（中列 48rem）文章**始终居中**（侧栏收起/展开都不变）；目录用**容器查询**（`@container` + `@min-[1150px]`）贴内容区右缘，可用宽度不足时自动隐藏；TOC 宽度 w-44。
   2. **粒子/光晕图层**下调为 `-z-10`（`particle-background.tsx`/`blob-background.tsx`），不再遮挡图片与文字。
   3. **博客 tag 筛选**：`components/blog/blog-tag-filter.tsx`（胶囊：全部+各标签计数，URL `?tag=`，切排序保留筛选）；`lib/post-sort.ts` 默认排序改 `publishedAt`（正序=新→旧）；探索卡片标签改胶囊样式。
