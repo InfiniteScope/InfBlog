@@ -1,26 +1,29 @@
 [
   {
     "name": "npm-safe",
-    "description": "一款服务于VibeCoding的npm包安全Skill及配套外围工具。此为共同开发者的副仓库，主仓库https://github.com/nisconder/npm-safe。",
+    "full_name": "nisconder/npm-safe",
+    "description": "Local-first npm supply-chain security scanner: static + optional LLM analysis, CLI/CI gates, desktop app, and AI-agent skills.",
     "language": "TypeScript",
-    "stargazers_count": 4,
-    "html_url": "https://github.com/InfiniteScope/npm-safe",
-    "fork": true
+    "stargazers_count": 6,
+    "html_url": "https://github.com/nisconder/npm-safe",
+    "fork": false
   },
   {
     "name": "InfBlog",
-    "description": null,
+    "full_name": "InfiniteScope/InfBlog",
+    "description": "开源个人博客。部分组件可需要者供参考。",
     "language": "TypeScript",
-    "stargazers_count": 1,
+    "stargazers_count": 5,
     "html_url": "https://github.com/InfiniteScope/InfBlog",
     "fork": false
   },
   {
-    "name": "DailyLikeTrees",
-    "description": "记录你的专注时长，让你点点滴滴无形的专注变成一片郁林",
-    "language": "Vue",
-    "stargazers_count": 4,
-    "html_url": "https://github.com/InfiniteScope/DailyLikeTrees",
+    "name": "dsh-knowledge",
+    "full_name": "Soren-ABT/dsh-knowledge",
+    "description": "Knowledge base & RAG plugin for DeepSeek Harness (DSH): chunking, local embeddings, hybrid search, management panel",
+    "language": "TypeScript",
+    "stargazers_count": 39,
+    "html_url": "https://github.com/Soren-ABT/dsh-knowledge",
     "fork": false
   }
 ]
