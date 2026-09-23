@@ -10,8 +10,12 @@ export const siteConfig = {
   education: "Sichuan Normal University - Undergraduate",
   github: "https://github.com/InfiniteScope",
   bilibili: "https://space.bilibili.com/364698333",
-  /** 首页 RECENT_PROJECTS 展示的仓库（按此顺序，不存在则隐藏） */
-  githubRepos: ["npm-safe", "InfBlog", "DailyLikeTrees"],
+  /** 首页 RECENT_PROJECTS 展示的 pin 项目（owner/repo 全名，按此顺序，不存在则隐藏） */
+  githubRepos: [
+    "nisconder/npm-safe",
+    "InfiniteScope/InfBlog",
+    "Soren-ABT/dsh-knowledge",
+  ],
   links: {
     tools: [
       { name: "结构绘图工具", url: "/tools/datastruct" },

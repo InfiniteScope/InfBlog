@@ -8,6 +8,7 @@ import { LoadingDots } from "@/components/ui/loading-dots"
 
 export interface GithubRepo {
   name: string
+  full_name: string
   description: string | null
   language: string | null
   stargazers_count: number
@@ -80,10 +81,11 @@ export function GithubProjects() {
     <div className="flex h-full flex-col justify-start gap-1">
       {repos.slice(0, 3).map((repo) => (
         <Link
-          key={repo.name}
+          key={repo.full_name ?? repo.name}
           href={repo.html_url}
           target="_blank"
           rel="noopener noreferrer"
+          title={repo.full_name}
           className="group flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-accent/5 sm:gap-2 sm:px-2 sm:py-2"
         >
           <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
