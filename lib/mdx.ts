@@ -18,8 +18,7 @@ export interface Post {
 
 const postsDirectory = path.join(process.cwd(), "content/posts")
 
-function computeContentMeta(content: string) {
-  const cjkMatches = content.match(/[\u4e00-\u9fa5]/g) || []
+export function computeContentMeta(content: string) {  const cjkMatches = content.match(/[\u4e00-\u9fa5]/g) || []
   const wordMatches = content.match(/[a-zA-Z0-9_]+/g) || []
   const cjkCount = cjkMatches.length
   const wordCount = wordMatches.length

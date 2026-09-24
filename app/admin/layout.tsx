@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft, Download, FileText, Plus, Rss, Users } from "lucide-react"
+import { ArrowLeft, Download, FileText, LibraryBig, Plus, Rss, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -55,6 +55,12 @@ export default function AdminLayout({
           <Link href="/admin/resources">
             <Download className="mr-2 h-4 w-4" />
             资源审核
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/admin/docs">
+            <LibraryBig className="mr-2 h-4 w-4" />
+            文库管理
           </Link>
         </Button>
       </div>

@@ -38,6 +38,7 @@ export const siteConfig = {
     { name: "博客", href: "/blog" },
     { name: "动态", href: "/updates" },
     { name: "资源分享", href: "/resources" },
+    { name: "文库", href: "/docs" },
     { name: "留言墙", href: "/guestbook" },
     { name: "关于", href: "/about" },
   ],

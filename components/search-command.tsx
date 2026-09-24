@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Download, FileText, Home, LayoutDashboard, MessageSquare, Rss, User } from "lucide-react"
+import { Download, FileText, Home, LayoutDashboard, LibraryBig, MessageSquare, Rss, User } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
@@ -30,6 +30,7 @@ const navigationItems: {
   { name: "博客", href: "/blog", icon: FileText },
   { name: "动态", href: "/updates", icon: Rss },
   { name: "资源分享", href: "/resources", icon: Download },
+  { name: "文库", href: "/docs", icon: LibraryBig },
   { name: "留言墙", href: "/guestbook", icon: MessageSquare },
   { name: "关于", href: "/about", icon: User },
   { name: "管理后台", href: "/admin/posts", icon: LayoutDashboard, adminOnly: true },
