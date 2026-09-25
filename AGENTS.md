@@ -45,7 +45,13 @@
 
 ## 当前状态（2026-09-23）
 
-- 最新改动（**已部署服务器 2026-09-23**）：首页 `// RECENT_PROJECTS` 改为展示 profile 三个 pin 项目（commit `ecd6856`）——`siteConfig.githubRepos` 改 **`owner/repo` 全名格式**（`nisconder/npm-safe`、`InfiniteScope/InfBlog`、`Soren-ABT/dsh-knowledge`，按序展示、单个失败即隐藏）；API 由"拉用户仓库再过滤"改为**逐个 `GET /repos/{owner}/{repo}`**（支持跨 owner），成功后写回 `data/github-repos-cache.json` 降级缓存。改 pin 项目只动 `lib/config.ts` 一行。
+- 最新改动（**已部署服务器 2026-09-23**）：**文库模块上线**（commits `5858c29`/`a83aabe`）——
+  1. **文库**：`content/docs/*.mdx`（数据层 `lib/docs.ts`，比 Post 多 `source`/`sourceUrl` 出处字段）；`/docs` 卡片列表（统计条 + Reveal 动效 + hover 上浮）；`/docs/[slug]` 详情（复用文章全套管线：KaTeX+Shiki+居中布局+右侧目录+来源链接）；导航「资源分享」和「留言墙」之间；搜索命令同步；管理后台「文库管理」。
+  2. **站长 CRUD**：`/admin/docs`（列表/新建/编辑/删除，仅 OWNER，复用 MdxEditor + DocForm + removeDoc action）。
+  3. **图片本地化**：`scripts/cache-external-images.ts`（外链图片 → sharp WebP q80 宽≤1600 → `public/uploads/docs/<url sha1 10位>.webp` → 原地改写 MDX；幂等/去重/动图支持；nginx `/uploads/` alias 直服）；首份档案「Java面试八股」48 图 4.63MB→1.67MB（省 81%）；`mdx-components` 正文图加 `loading="lazy"`。
+  4. **首份档案**：Java面试八股（语雀密码文档爬取，Lake HTML→MDX 自写转换器；4.9 万字/203 标题/13 代码块/2 表格）。
+  - 坑：语雀 Lake 内容在内容 API 的 `data.content`（`body_asl` 为空）；`<card name="codeblock|image|board">` 的 value 是 URL 编码 JSON；转换器需把文本节点 `{}`→HTML 实体、`<`→`&lt;`（防 MDX 解析炸），`<code>` 内嵌 span 需 `get_text()`。
+- 上一轮改动（**已部署服务器 2026-09-23**）：首页 `// RECENT_PROJECTS` 改为展示 profile 三个 pin 项目（commit `ecd6856`）——`siteConfig.githubRepos` 改 **`owner/repo` 全名格式**（`nisconder/npm-safe`、`InfiniteScope/InfBlog`、`Soren-ABT/dsh-knowledge`，按序展示、单个失败即隐藏）；API 由"拉用户仓库再过滤"改为**逐个 `GET /repos/{owner}/{repo}`**（支持跨 owner），成功后写回 `data/github-repos-cache.json` 降级缓存。改 pin 项目只动 `lib/config.ts` 一行。
 - 上一轮改动（**已部署服务器 2026-09-20**）：阅读与列表体验批改（commit `858de27`）——
   1. **文章页布局**：3 列网格（中列 48rem）文章**始终居中**（侧栏收起/展开都不变）；目录用**容器查询**（`@container` + `@min-[1150px]`）贴内容区右缘，可用宽度不足时自动隐藏；TOC 宽度 w-44。
   2. **粒子/光晕图层**下调为 `-z-10`（`particle-background.tsx`/`blob-background.tsx`），不再遮挡图片与文字。
