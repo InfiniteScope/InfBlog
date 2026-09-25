@@ -188,6 +188,8 @@ function Img({
   return (
     <img
       alt={alt}
+      loading="lazy"
+      decoding="async"
       className="my-6 h-auto w-full rounded-lg border border-border object-cover"
       {...props}
     />

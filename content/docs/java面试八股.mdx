@@ -182,7 +182,7 @@ JDK中包含了JRE，JRE中包含了JVM。
 
 ## Java中的异常体系是怎样的
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/8380143/1695274034795-52b82cbb-b6e2-40b4-8586-1057fa2c1a55.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_31%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/1aee14de77.webp)
 
 - Java中的所有异常都来自顶级父类Throwable。
 - Throwable下有两个子类Exception和Error。
@@ -204,41 +204,41 @@ JDK中包含了JRE，JRE中包含了JVM。
 
 JDK1.5及1.5之前都是没有泛型的概念的，JDK1.5之后引入了泛型的概念并为了与之前的JDK版本兼容，所以引入了泛型擦除的概念。
 
-![画板](https://cdn.nlark.com/yuque/0/2023/png/365147/1690198303149-50524a16-913b-45bd-bb04-292cb29a07c6.png)
+![画板](/uploads/docs/14f0aee063.webp)
 
 ​
 
 以下两个类型是相等的，表面泛型被擦除了，都是ArrayList
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690198625500-1a5cfb9b-de48-4ce8-88ad-fc73a6897b11.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_41%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/6a4649f3df.webp)
 
 ​
 
 以下API，只能拿到泛型的个数，不能拿到具体的泛型类型
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690198875882-a806955a-7613-4cb1-bc4b-c40781c2958b.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_49%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/153575ceaf.webp)
 
 通过放射可以往List添加不同类型的元素，因为类型其实被擦除了，变成了Object
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690199113277-e7b32550-e3e3-4e86-b2c1-4847b615a797.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_41%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/fc2e7d62fd.webp)
 
 泛型虽然被擦除了，但是具体的泛型信息还是被保存在了字节码中
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690199450688-73573112-c70c-4e4d-9694-11dce711d9cb.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_36%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/21c897f75a.webp)
 
 所以还是有一些方式可以很方便的获取到泛型的真实类型的
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690204026748-814cb0a1-3cce-4be3-9224-0d994281976f.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_26%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/ea93c579cd.webp)
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690204033411-b32de53b-8bdf-462c-be63-9957ab8021a3.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_29%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/b1a39e68df.webp)
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1690204051908-3f65da0b-5e7f-410e-80fe-f2aee29dbe2f.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_47%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/21c4e17a11.webp)
 
 另外，对于JVM，如果对每个泛型类型都生成不同的目标代码，假如现在有10个不同泛型的List，就要生成10份字节码，这样会造成不仅造成代码膨胀，而且一份字节码对应一个Class对象，占据大量的内存。
 
 ## Java中有哪些类加载器
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/8380143/1695284933934-d95c0fda-b61f-4fe2-900d-6aab251605a4.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_30%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/998db443f2.webp)
 
 JDK自带有三个类加载器：bootstrap ClassLoader、ExtClassLoader、AppClassLoader。
 
@@ -266,7 +266,7 @@ JVM在加载一个类时，会调用AppClassLoader的loadClass方法来加载这
 
 堆区和方法区是所有线程共享的，栈、本地方法栈、程序计数器是每个线程独有的
 
-![](https://cdn.nlark.com/yuque/0/2021/png/365147/1622816824404-17d018de-eb06-41eb-9936-64e4c6cc046d.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_15%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/f744554585.webp)
 
 ## 你们项目如何排查JVM问题
 
@@ -351,7 +351,7 @@ JVM参数大致可以分为三类：
 3. 如果在线程池中使用ThreadLocal会造成内存泄漏，因为当ThreadLocal对象使用完之后，应该要把设置的key，value，也就是Entry对象进行回收，但线程池中的线程不会回收，而线程对象是通过强引用指向ThreadLocalMap，ThreadLocalMap也是通过强引用指向Entry对象，线程不被回收，Entry对象也就不会被回收，从而出现内存泄漏，解决办法是，在使用了ThreadLocal对象之后，手动调用ThreadLocal的remove方法，手动清楚Entry对象
 4. ThreadLocal经典的应用场景就是连接管理（一个线程持有一个连接，该连接对象可以在不同的方法之间进行传递，线程之间不共享同一个连接）
 
-![](https://cdn.nlark.com/yuque/0/2021/png/365147/1622816023795-3ae4931c-bcab-4e8c-a987-4fecf53f9855.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_25%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/c843dec32d.webp)
 
 ## 并发、并行、串行之间的区别
 
@@ -398,7 +398,7 @@ JVM参数大致可以分为三类：
 
 另外，ReentrantLock是可重入锁，不管是公平锁还是非公平锁都是可重入的。
 
-![ReentrantLock公平锁加锁.png](https://cdn.nlark.com/yuque/0/2021/png/365147/1626185425264-6d9a8ab7-12d9-4032-8fa4-1bcc40231009.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_65%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)                                                   ![ReentrantLock非公平锁加锁.png](https://cdn.nlark.com/yuque/0/2021/png/365147/1626185427450-d6a6ab8e-94a4-4e7a-be68-bab2d06b320c.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_65%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![ReentrantLock公平锁加锁.png](/uploads/docs/4986372e13.webp)                                                   ![ReentrantLock非公平锁加锁.png](/uploads/docs/c7986dafa5.webp)
 
 **​**
 
@@ -567,7 +567,7 @@ Spring中一个Bean的创建大概分为以下几个步骤：
 
 当然其实真正的步骤更加细致，可以看下面的流程图
 
-![Bean的生命周期.png](https://cdn.nlark.com/yuque/0/2021/png/365147/1625729452241-4bc1dbb0-a827-49f1-83b8-70e61fd29a65.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_123%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![Bean的生命周期.png](/uploads/docs/68e967d5c5.webp)
 
 ​
 
@@ -602,7 +602,7 @@ BeanFactory是Spring中非常核心的组件，表示Bean工厂，可以生成Be
 10. Spring事务的传播机制是Spring事务自己实现的，也是Spring事务中最复杂的
 11. Spring事务的传播机制是基于数据库连接来做的，一个数据库连接一个事务，如果传播机制配置为需要新开一个事务，那么实际上就是先建立一个数据库连接，在此新数据库连接上执行sql
 
-![](https://cdn.nlark.com/yuque/0/2021/png/365147/1622966825505-41961ccc-19e0-4f70-8182-e6e3337eb3af.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_223%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/e7669a0a98.webp)
 
 ​
 
@@ -625,13 +625,13 @@ BeanFactory是Spring中非常核心的组件，表示Bean工厂，可以生成Be
 7. 在源码中会更复杂，比如源码中会提供一些模板方法，让子类来实现，比如源码中还涉及到一些BeanFactoryPostProcessor和BeanPostProcessor的注册，Spring的扫描就是通过BenaFactoryPostProcessor来实现的，依赖注入就是通过BeanPostProcessor来实现的
 8. 在Spring启动过程中还会去处理@Import等注解
 
-![](https://cdn.nlark.com/yuque/0/2021/png/365147/1622965863563-ce71fb30-d01f-4829-93a8-a94d784ccc2c.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_151%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/636f9ef6ee.webp)
 
 ​
 
 ## Spring用到了哪些设计模式
 
-![Spring中的设计模式.png](https://cdn.nlark.com/yuque/0/2021/png/365147/1638187280609-2738d2ba-22f1-4107-9c0f-9c7a8144dcba.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_80%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![Spring中的设计模式.png](/uploads/docs/28bbdaa547.webp)
 
 ## Spring Boot中常用注解及其底层实现
 
@@ -793,67 +793,67 @@ insert into t1 values(6,6,4,4,'f');
 
 索引情况：
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441269905-beaa3167-d54b-459f-81b2-8511fa98d205.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_52%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/482273bdeb.webp)
 
 a字段是主键，对应主键索引，bcd三个字段组成一个联合索引，e字段一个索引
 
 ### 1. 不符合最左匹配原则
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676440676093-add4ff6a-d422-4f40-b3cb-b37e47649586.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_41%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/69f17d142a.webp)
 
 去掉b=1的条件就不符合最左匹配原则了，导致所有失效
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676440694138-21cb9f9e-62fd-4407-8a59-35dac67b4bb0.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_35%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/81fda71e1c.webp)
 
 ### 2. 不正确的Like查询
 
 不用like能走索引：
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441388985-dd894fe7-5e62-4963-82d0-f35527244b5a.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_35%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/09a303f638.webp)
 
 正常使用like：
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441439769-58372ca6-248e-4751-8d33-516c484eb3e4.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_40%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/5e7dd39e08.webp)
 
 不正确使用like：
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441454918-10d3d846-cb50-49a6-b27d-7d581e47cf6e.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_36%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/fcc30dcf67.webp)
 
 ### 3. 对索引列进行了计算或使用了函数
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441511562-24c5629c-7592-46fc-ada6-8cb799f74565.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_34%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/d71b3ae531.webp)
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441536615-677899cc-8abb-481a-85b6-61b58ea76179.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_38%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/7c7d47de95.webp)
 
 ### 4. 索引列进行了类型转换
 
 e字段的类型是vachar，下面这个sql需要把e字段中的字符转换成数字，会导致索引失效
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441574914-0b982490-b3cb-45ab-a5f5-9b92380e78dc.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_36%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/8b27254812.webp)
 
 ### 5. &lt;>不等于导致索引失效
 
 b=1可以走索引，b&lt;>1就不能走索引
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676441625277-08d21740-9d77-485f-9915-3f43e703cfe2.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_38%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/038dea75ee.webp)
 
 ### 6. order by导致索引失效
 
 就算利用索引，但是由于是select * 所以需要回表，而且回表成本比较高，所以不会走索引。
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676442107674-6566e5ed-784a-4325-9869-a9ad0b8bb6e6.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_36%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/eecde4dbd9.webp)
 
 如果是select b就需要回表了，就会选择走索引
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676442170113-f7ec872a-ddb1-4183-b477-131b056fb588.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_38%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/eec55da6b2.webp)
 
 ### 7. 使用or导致索引失效
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676442219810-663f0bb0-5ed1-4cac-b93d-be3eaf7452e2.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_36%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/5d19085011.webp)
 
 ### 8. select * 导致索引失效
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676442285345-6dce4534-c3dc-4348-b712-c1ec27164afb.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_39%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/f9e66b466b.webp)
 
 ### 9. 范围查询数据量过多导致索引失效
 
@@ -870,7 +870,7 @@ insert into t1 values(17,4,5,5,'g');
 insert into t1 values(22,6,4,4,'f');
 ```
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/365147/1676443326948-a9f418ab-1606-47ab-9ebd-618fde89d761.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_48%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/8310c61487.webp)
 
 ##### 
 
@@ -954,7 +954,7 @@ Mysql索引使用的是B+树，因为索引是用来加快查询的，而B+树�
 
 ​
 
-![未命名文件.png](https://cdn.nlark.com/yuque/0/2022/png/365147/1668599070561-7707946a-4402-48e1-8dad-63169f07d2b0.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_63%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![未命名文件.png](/uploads/docs/e4413d17ce.webp)
 
 上图是Innodb中的一个主键索引，也就是一颗B+树，树中的每个节点是一个Innodb Page，大小默认为16kb，叶子节点中的每个节点主要存储的就是一条条数据，非叶子节点中存储的是主键和页地址。
 
@@ -962,7 +962,7 @@ Mysql索引使用的是B+树，因为索引是用来加快查询的，而B+树�
 
 所以，我们可以来计算一下，如果B+树的高度为2，能存多少条数据。
 
-![未命名文件 (1).png](https://cdn.nlark.com/yuque/0/2022/png/365147/1668599322284-46fcb513-6e94-46d0-845e-3c69378854ad.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_31%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![未命名文件 (1).png](/uploads/docs/9bb64e87b2.webp)
 
 - 假如一条记录为1kb
 - 主键类型为int类型，也就一个主键占4b
@@ -1056,7 +1056,7 @@ COUNT(*) is somewhat different in that it returns a count of the number of rows 
 
 比如现在有一个表，只有一个字段，有三条记录，两个f，一个null
 
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/365147/1671959484035-6355ab75-49c9-4197-92eb-48f7615c0aae.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_9%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/d2e3e9d7b1.webp)
 
 此时count(*)的结果为3，count(e)的结果为2，count(1)的结果为3
 
@@ -1086,7 +1086,7 @@ explain select count(*) from t1
 
 会发现，这个sql会走bcd联合索引
 
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/365147/1671960159223-f31eea23-3b5a-49e0-ab1e-a44c4e7b966e.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_27%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/e8c90bc9d7.webp)
 
 因为bcd联合索引对于的B+树存的字段更少，导致B+树的叶子节点个数更少，但是并没有影响数据行数（没行只存了b,c,d字段，严格来说也存了a字段，但是e字段是肯定没有存的）。
 
@@ -1259,10 +1259,10 @@ Redis提供了三种集群策略：
 缓存中存放的大多都是热点数据，目的就是防止请求可以直接从缓存中获取到数据，而不用访问Mysql。
 
 1. 缓存雪崩：如果缓存中某一时刻大批热点数据同时过期，那么就可能导致大量请求直接访问Mysql了，解决办法就是在过期时间上增加一点随机值，另外如果搭建一个高可用的Redis集群也是防止缓存雪崩的有效手段
-2. 缓存击穿：和缓存雪崩类似，缓存雪崩是大批热点数据失效，而缓存击穿是指某一个热点key突然失效，也导致了大量请求直接访问Mysql数据库，这就是缓存击穿，解决方案就是考虑这个热点key不设过期时间![image.png](https://cdn.nlark.com/yuque/0/2023/png/8380143/1673876566077-e90007d2-41ec-4158-b6c2-2bb51b455ecb.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_52%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+2. 缓存击穿：和缓存雪崩类似，缓存雪崩是大批热点数据失效，而缓存击穿是指某一个热点key突然失效，也导致了大量请求直接访问Mysql数据库，这就是缓存击穿，解决方案就是考虑这个热点key不设过期时间![image.png](/uploads/docs/c645f14108.webp)
 3. 缓存穿透：假如某一时刻访问redis的大量key都在redis中不存在（比如黑客故意伪造一些乱七八糟的key），那么也会给数据造成压力，这就是缓存穿透，解决方案是使用布隆过滤器，它的作用就是如果它认为一个key不存在，那么这个key就肯定不存在，所以可以在缓存之前加一层布隆过滤器来拦截不存在的key
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/8380143/1673876513755-d29f5617-1937-484d-ad49-7bb26cc3c51f.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_52%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/b6985e3d4e.webp)
 
 ## Redis和Mysql如何保证数据一致
 
@@ -1554,7 +1554,7 @@ Dubbo中的架构设计是非常优秀的，分为了很多层次，并且每层
 - 而 Remoting 实现是 Dubbo 协议的实现，如果你选择 RMI 协议，整个 Remoting 都不会用上，Remoting 内部再划为 Transport 传输层和 Exchange 信息交换层，Transport 层只负责单向消息传输，是对 Mina, Netty, Grizzly 的抽象，它也可以扩展 UDP 传输，而 Exchange 层是在传输层之上封装了 Request-Response 语义。
 - Registry 和 Monitor 实际上不算一层，而是一个独立的节点，只是为了全局概览，用层的方式画在一起。
 
-![](https://cdn.nlark.com/yuque/0/2021/jpeg/365147/1626176708107-3ad83a45-25b3-403e-beaf-02185e787ff9.jpeg?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_26%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/365d06f379.webp)
 
 ## 负载均衡算法有哪些
 
@@ -1655,7 +1655,7 @@ Eureka各个节点都是平等的，几个节点挂掉不会影响正常节点�
 
 ## 雪花算法原理
 
-![image.png](https://cdn.nlark.com/yuque/0/2021/png/365147/1627449092303-9281aa79-94f4-4eae-9ddc-22e5b53eed2e.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_16%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/a52b92f226.webp)
 
 第一位符号位固定为0，41位时间戳，10位workId，12位序列号，位数可以有不同实现。
 
@@ -1878,7 +1878,7 @@ DDD分为战略设计和战术设计。 上层的战略设计能够很好的指�
 
 ## RocketMQ的事务消息是如何实现的
 
-![image.png](https://cdn.nlark.com/yuque/0/2021/png/365147/1627371194711-08b1bccb-cebb-4aa8-ae4d-14932f6dee74.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_25%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![image.png](/uploads/docs/eb95f53986.webp)
 
 1. 生产者订单系统先发送一条half消息到Broker，half消息对消费者而言是不可见的
 2. 再创建订单，根据创建订单成功与否，向Broker发送commit或rollback
@@ -2018,7 +2018,7 @@ TCP协议是7层网络协议中的传输层协议，负责数据的可靠传输�
 
 零拷贝指的是，应用程序在需要把内核中的一块区域数据转移到另外一块内核区域去时，不需要经过先复制到用户空间，再转移到目标内核区域去了，而直接实现转移。
 
-![](https://cdn.nlark.com/yuque/0/2021/gif/365147/1625820731086-61084cde-5942-4121-b7bb-a0a06e95d2b1.gif)                        ![](https://cdn.nlark.com/yuque/0/2021/gif/365147/1625820737332-3edf976d-4def-464d-9eee-e41ea3a0c5a4.gif)
+![](/uploads/docs/f5a51294f0.webp)                        ![](/uploads/docs/aec8049653.webp)
 
 ## MySQL里有2000w数据Redis中只存20w的数据，如何保证 redis 中的数据都是热点数据？（北冥）
 
@@ -2259,7 +2259,7 @@ Redis会将一个事务中的所有命令序列化，然后按顺序执行。
 1. **文件体积大，AOF的文件体积要大于RDB**
 2. **在大数据量情况下恢复速度慢**
 
-![](https://cdn.nlark.com/yuque/0/2022/jpeg/8380143/1668258325801-576d4ca1-5a5b-4f4a-b91d-ecabdaaaeb8e.jpeg?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_65%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/29dcba2e47.webp)
 
 #### 混合持久化
 
@@ -2281,7 +2281,7 @@ aof-use-rdb-preamble yes
 
 #### 一张图带你弄懂Redisson分布式锁原理
 
-![](https://cdn.nlark.com/yuque/0/2022/jpeg/8380143/1668513379681-00f7ed75-e093-4688-9b9a-cfd9ac16fe9c.jpeg?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_50%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/08ea69cdcd.webp)
 
 ## 什么是CAP定理和Base理论？(北冥)
 
@@ -2291,7 +2291,7 @@ aof-use-rdb-preamble yes
 
 起源是美国一所高校的教授在2000年在ACM研讨会上提出了猜想，到02年的时候MIT的两名学生就证明了猜想就成为了定理。
 
-![](https://raw.githubusercontent.com/csunny/etcd-from-arch-to-souce-code/master/_asserts/images/cap.jpg?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_16%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/43099d292a.webp)
 
 CAP定理是由三次单词组成：
 
@@ -2468,4 +2468,4 @@ MySQL官方团队对于在8.0版本中彻底移除Query Cache的决策做出了�
 
 如下图所示，MySQL官方给出了使用ProxySQL 对比原生Query Cache 性能报告，从图中可以清晰的看到，ProxySQL 的查询性能完胜原生的Query Cache。
 
-![](https://cdn.nlark.com/yuque/0/2022/png/8380143/1670317738162-e224abb6-ea76-479c-a861-4e762f47d2a9.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_25%2Ctext_5Zu-54G16K--5aCC%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![](/uploads/docs/9a2404620d.webp)
