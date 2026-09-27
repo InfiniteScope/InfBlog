@@ -43,9 +43,14 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 
-## 当前状态（2026-09-23）
+## 当前状态（2026-09-27）
 
-- 最新改动（**已部署服务器 2026-09-23**）：**文库模块上线**（commits `5858c29`/`a83aabe`）——
+- 最新改动（**已部署服务器 2026-09-27**）：定制 404 + 阅读书签系统（commits `75a2ab9`/`532e25b`）——
+  1. **404**：`app/not-found.tsx`（站点风格 + 去向引导）；nginx 三个 alias（`/uploads/ /music/ /environment/`）加 `error_page 404 @app_404`（rewrite 到 Next `/404`，命名 location 里 `proxy_pass` 不能带 URI）。
+  2. **书签**：`Bookmark` 模型（userId+type+slug 唯一）+ `/api/bookmarks`（GET/POST/DELETE）；浮栏按钮（博客/文库）记录 percent+最近章节锚点；底部 toast（独立 bottom Toaster，含「查看书签」动作经 `infblog:open-library` 事件开弹层）；用户菜单「书签&收藏」弹层双区；`ReadingResume` 按 `#bm-` 恢复（原生 hashchange 监听 + 懒加载漂移两次校正 + 2s 去重守卫防 StrictMode 双跑）。
+  3. **坑**：`params.slug` 是 URL 编码态，中文 slug 直接用于 schema/统计会超限/错位——博客详情页统一改用解码后 `post.slug`；书签链接须原生 `<a>`（Next Link pushState 不触发 hashchange）。
+  4. 服务器部署 schema 变更：`pnpm exec prisma migrate deploy && pnpm exec prisma generate`（migrate deploy 不生成 client）。
+- 上一轮改动（**已部署服务器 2026-09-23**）：**文库模块上线**（commits `5858c29`/`a83aabe`）——
   1. **文库**：`content/docs/*.mdx`（数据层 `lib/docs.ts`，比 Post 多 `source`/`sourceUrl` 出处字段）；`/docs` 卡片列表（统计条 + Reveal 动效 + hover 上浮）；`/docs/[slug]` 详情（复用文章全套管线：KaTeX+Shiki+居中布局+右侧目录+来源链接）；导航「资源分享」和「留言墙」之间；搜索命令同步；管理后台「文库管理」。
   2. **站长 CRUD**：`/admin/docs`（列表/新建/编辑/删除，仅 OWNER，复用 MdxEditor + DocForm + removeDoc action）。
   3. **图片本地化**：`scripts/cache-external-images.ts`（外链图片 → sharp WebP q80 宽≤1600 → `public/uploads/docs/<url sha1 10位>.webp` → 原地改写 MDX；幂等/去重/动图支持；nginx `/uploads/` alias 直服）；首份档案「Java面试八股」48 图 4.63MB→1.67MB（省 81%）；`mdx-components` 正文图加 `loading="lazy"`。
