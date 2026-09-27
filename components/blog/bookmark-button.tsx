@@ -70,6 +70,8 @@ export function BookmarkButton({ type, slug, title }: BookmarkButtonProps) {
 
   async function save() {
     if (busy) return
+    // 会话加载中：静默忽略，避免刚加载时误报「请先登录」
+    if (status === "loading") return
     if (status !== "authenticated") {
       toast.error("请先登录后使用书签", {
         toasterId: "bottom-toaster",
@@ -102,10 +104,17 @@ export function BookmarkButton({ type, slug, title }: BookmarkButtonProps) {
       } else if (res.status === 401) {
         toast.error("登录已过期，请重新登录", { toasterId: "bottom-toaster" })
       } else {
-        toast.error("保存失败，请稍后再试", { toasterId: "bottom-toaster" })
+        const body = await res.text().catch(() => "")
+        console.error("[bookmark] save failed:", res.status, body)
+        toast.error(`保存失败（HTTP ${res.status}），请稍后再试`, {
+          toasterId: "bottom-toaster",
+        })
       }
-    } catch {
-      toast.error("保存失败，请稍后再试", { toasterId: "bottom-toaster" })
+    } catch (error) {
+      console.error("[bookmark] save error:", error)
+      toast.error("保存失败（网络异常），请稍后再试", {
+        toasterId: "bottom-toaster",
+      })
     } finally {
       setBusy(false)
     }

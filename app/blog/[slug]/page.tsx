@@ -80,15 +80,15 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const session = await auth()
   const canManage = session?.user?.role === "OWNER"
-  const stats = await getPostStats(slug)
+  const stats = await getPostStats(post.slug)
 
   // SSR 阶段算好“是否已赞/已收藏”：与客户端 API 同源（相同指纹逻辑），
   // 首帧即为真实状态，避免浮动按钮挂载后状态跳变闪烁
   const headersList = await headers()
   const visitorKey = visitorKeyFromHeaders(headersList)
   const [initialLiked, initialFavorited] = await Promise.all([
-    hasLiked(slug, visitorKey, session?.user?.id),
-    session?.user ? hasFavorited(slug, session.user.id) : Promise.resolve(false),
+    hasLiked(post.slug, visitorKey, session?.user?.id),
+    session?.user ? hasFavorited(post.slug, session.user.id) : Promise.resolve(false),
   ])
 
   const headings = extractHeadings(post.content)
@@ -112,7 +112,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 编辑
               </Link>
             </Button>
-            <RemovePostButton slug={slug} redirectTo="/blog" />
+            <RemovePostButton slug={post.slug} redirectTo="/blog" />
           </div>
         )}
       </div>
@@ -143,7 +143,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </span>
           )}
           <span className="ml-auto flex items-center gap-4">
-            <PostStatBadges slug={slug} initial={stats} />
+            <PostStatBadges slug={post.slug} initial={stats} />
           </span>
         </div>
         <p className="sr-only">
@@ -197,9 +197,9 @@ export default async function BlogPostPage({ params }: PageProps) {
 
       <ReadingTracker />
       <ReadingResume />
-      <PostViewTracker slug={slug} />
+      <PostViewTracker slug={post.slug} />
       <PostActionsFloat
-        slug={slug}
+        slug={post.slug}
         title={post.title}
         initialLikes={stats.likes}
         initialFavorites={stats.favorites}

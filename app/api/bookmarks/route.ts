@@ -60,6 +60,12 @@ export async function POST(request: Request) {
 
   const validated = upsertSchema.safeParse(body)
   if (!validated.success) {
+    console.error(
+      "[bookmarks] validation failed:",
+      JSON.stringify(validated.error.flatten().fieldErrors),
+      "| body:",
+      JSON.stringify(body).slice(0, 500)
+    )
     return jsonResponse({ message: "参数不合法" }, 400)
   }
 
