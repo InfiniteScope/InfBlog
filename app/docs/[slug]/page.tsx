@@ -14,6 +14,8 @@ import { rehypeStyleObject } from "@/lib/rehype-style-object"
 import { mdxComponents } from "@/components/mdx-components"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { PostDates } from "@/components/blog/post-dates"
+import { ReadingResume } from "@/components/blog/reading-resume"
+import { DocBookmarkFloat } from "@/components/blog/bookmark-float"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
 import { Button } from "@/components/ui/button"
 
@@ -145,6 +147,9 @@ export default async function DocDetailPage({ params }: PageProps) {
           />
         </div>
       </article>
+
+      <ReadingResume />
+      <DocBookmarkFloat slug={doc.slug} title={doc.title} />
 
       {headings.length >= 3 && (
         <aside className="hidden @min-[1150px]:block xl:col-start-3 xl:row-start-1 xl:justify-self-end">

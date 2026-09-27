@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { Bell, BookMarked, Bookmark, Box, LogOut, Settings, Trophy, User } from "lucide-react"
+import { Bell, BookMarked, Box, LogOut, Settings, Trophy, User } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -66,6 +66,12 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
     }
   }, [user?.id])
 
+  useEffect(() => {
+    const openLibrary = () => setFavoritesOpen(true)
+    window.addEventListener("infblog:open-library", openLibrary)
+    return () => window.removeEventListener("infblog:open-library", openLibrary)
+  }, [])
+
   const displayName = user?.nickname || user?.name || "用户"
   const fallback = displayName.slice(0, 2)
 
@@ -112,8 +118,8 @@ export function UserMenu({ unreadCount = 0 }: { unreadCount?: number }) {
             }}
             className="cursor-pointer"
           >
-            <Bookmark className="mr-2 h-4 w-4" />
-            我的收藏
+            <BookMarked className="mr-2 h-4 w-4" />
+            书签&收藏
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/resources/mine" className="cursor-pointer">

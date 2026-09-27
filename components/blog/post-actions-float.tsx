@@ -8,6 +8,7 @@ import { Bookmark, BookmarkCheck, Heart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { BookmarkButton } from "@/components/blog/bookmark-button"
 import { POST_STATS_EVENT, type PostStatsPayload } from "@/components/blog/post-stat-badges"
 
 function broadcastStats(payload: Partial<PostStatsPayload>) {
@@ -16,6 +17,8 @@ function broadcastStats(payload: Partial<PostStatsPayload>) {
 
 interface PostActionsFloatProps {
   slug: string
+  /** 文章标题（书签记录用） */
+  title: string
   initialLikes: number
   initialFavorites?: number
   /** SSR 阶段已算好的状态（与 API 同源），首帧即真实值，避免挂载后跳变闪烁 */
@@ -31,6 +34,7 @@ interface PostActionsFloatProps {
  */
 export function PostActionsFloat({
   slug,
+  title,
   initialLikes,
   initialFavorites = 0,
   initialLiked = false,
@@ -157,6 +161,9 @@ export function PostActionsFloat({
           </motion.span>
         )}
       </AnimatePresence>
+
+      {/* 书签（记录阅读位置） */}
+      <BookmarkButton type="post" slug={slug} title={title} />
 
       {/* 收藏 */}
       <Button

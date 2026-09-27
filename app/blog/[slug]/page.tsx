@@ -27,6 +27,7 @@ import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
 import { ReadingTracker } from "@/components/collectibles/reading-tracker"
+import { ReadingResume } from "@/components/blog/reading-resume"
 import { PostActionsFloat } from "@/components/blog/post-actions-float"
 import { PostViewTracker } from "@/components/blog/post-view-tracker"
 import { PostStatBadges } from "@/components/blog/post-stat-badges"
@@ -195,9 +196,11 @@ export default async function BlogPostPage({ params }: PageProps) {
       </div>
 
       <ReadingTracker />
+      <ReadingResume />
       <PostViewTracker slug={slug} />
       <PostActionsFloat
         slug={slug}
+        title={post.title}
         initialLikes={stats.likes}
         initialFavorites={stats.favorites}
         initialLiked={initialLiked}

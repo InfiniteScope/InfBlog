@@ -56,6 +56,8 @@ export default function RootLayout({
           <ThemeProvider>
             <UiThemeTransitionProvider>
               <Toaster theme="system" position="top-center" richColors />
+        {/* 书签等底部提示专用（全局 toasts 保持顶部居中不变） */}
+        <Toaster id="bottom-toaster" theme="system" position="bottom-center" richColors />
             <CollectibleReveal />
             <LoginReturnTracker />
             <ViewsTracker />

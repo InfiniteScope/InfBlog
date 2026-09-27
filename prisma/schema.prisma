@@ -76,6 +76,7 @@ model User {
   collectibles     UserCollectible[]
   favorites        PostFavorite[]
   postLikes        PostLike[]
+  bookmarks        Bookmark[]
   resourceComments ResourceComment[]
 
   createdAt DateTime @default(now())
@@ -261,4 +262,23 @@ model PostFavorite {
   @@unique([userId, slug])
   @@index([userId])
   @@map("post_favorites")
+}
+
+/** 阅读书签（登录用户）：记录文章/档案的阅读进度，可重复保存更新 */
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  slug      String
+  title     String
+  percent   Float
+  anchor    String?
+  label     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type, slug])
+  @@index([userId])
+  @@map("bookmarks")
 }
