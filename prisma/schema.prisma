@@ -282,3 +282,12 @@ model Bookmark {
   @@index([userId])
   @@map("bookmarks")
 }
+
+/** 站点计数器（key/value 自增，如 card-visits = 名片卡访问总数） */
+model Counter {
+  key       String   @id
+  value     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@map("counters")
+}

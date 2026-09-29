@@ -14,6 +14,8 @@ import "@fontsource/orbitron/700.css"
 import "katex/dist/katex.min.css"
 import "./globals.css"
 import { Toaster } from "sonner"
+
+import { CardWelcome } from "@/components/card-welcome"
 import { ThemeProvider } from "@/components/theme-provider"
 import { UiThemeTransitionProvider } from "@/components/theme/ui-theme-transition"
 import { SessionProvider } from "@/components/session-provider"
@@ -61,6 +63,7 @@ export default function RootLayout({
             <CollectibleReveal />
             <LoginReturnTracker />
             <ViewsTracker />
+            <CardWelcome />
             <BackgroundProvider>
               <TimePrecisionProvider>
                 <Background />
