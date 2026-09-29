@@ -45,7 +45,8 @@
 
 ## 当前状态（2026-09-29）
 
-- 最新改动（**已部署服务器 2026-09-29**）：名片卡入口 `/card`（commit `b862b3e`）——PCB 名片二维码直达路由：`counters` 表 `card-visits` 计数（通用 key/value 计数器，失败不阻塞）→ 307 跳主页 + 120s `from_card` cookie → 根布局 `CardWelcome` 弹窗「欢迎通过名片卡访问本站！」（弹出即清 cookie，刷新不再弹）。线上实测计数自增 ✓。
+- 最新改动（**已部署服务器 2026-09-29**）：名片卡入口 `/card`（commit `b862b3e` + 修复 `d356f24`）——PCB 名片二维码直达路由：`counters` 表 `card-visits` 计数（通用 key/value 计数器，失败不阻塞）→ 307 跳主页 + 120s `from_card` cookie → 根布局 `CardWelcome` 弹窗「欢迎通过名片卡访问本站！」（弹出即清 cookie，刷新不再弹）。线上实测计数自增 ✓。
+  - 坑：**反代后的重定向必须用相对 Location**（`Location: /`）——next start 跑在 nginx 后，`request.url` 是内部地址（http://localhost:3000），`new URL("/", request.url)` 会把线上用户重定向到 localhost。
 - 上一轮改动（**已部署服务器 2026-09-27**）：定制 404 + 阅读书签系统（commits `75a2ab9`/`532e25b`）——
   1. **404**：`app/not-found.tsx`（站点风格 + 去向引导）；nginx 三个 alias（`/uploads/ /music/ /environment/`）加 `error_page 404 @app_404`（rewrite 到 Next `/404`，命名 location 里 `proxy_pass` 不能带 URI）。
   2. **书签**：`Bookmark` 模型（userId+type+slug 唯一）+ `/api/bookmarks`（GET/POST/DELETE）；浮栏按钮（博客/文库）记录 percent+最近章节锚点；底部 toast（独立 bottom Toaster，含「查看书签」动作经 `infblog:open-library` 事件开弹层）；用户菜单「书签&收藏」弹层双区；`ReadingResume` 按 `#bm-` 恢复（原生 hashchange 监听 + 懒加载漂移两次校正 + 2s 去重守卫防 StrictMode 双跑）。
