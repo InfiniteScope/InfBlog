@@ -45,7 +45,13 @@
 
 ## 当前状态（2026-09-29）
 
-- 最新改动（**已部署服务器 2026-09-29**）：名片卡入口 `/card`（commit `b862b3e` + 修复 `d356f24`）——PCB 名片二维码直达路由：`counters` 表 `card-visits` 计数（通用 key/value 计数器，失败不阻塞）→ 307 跳主页 + 120s `from_card` cookie → 根布局 `CardWelcome` 弹窗「欢迎通过名片卡访问本站！」（弹出即清 cookie，刷新不再弹）。线上实测计数自增 ✓。
+- 最新改动（**已推送 GitHub cb17b1b，未部署服务器**）：响应式四层加固——
+  1. **硬伤修复**：RECENT_PROJECTS 项目名 `shrink-0`（不再被描述列挤没）；封面图统一 `components/ui/cover-image.tsx`（onError 整容器隐藏，不再撑出死白盒）；从服务器 scp 补齐缺失封面 `muqn60sd-*.webp`；EARTH_RADIO 标签移到播放器下方；MISSION_LOG 的 Scroll 提示内联到标题旁；FEATURED 标题改 `clamp(2rem,2.4vw+1rem,2.6rem)`。
+  2. **顶栏天气实测避让**（替代比例阈值猜测）：天气条内嵌进 navbar 绝对居中，ResizeObserver 实测左右**内容**边沿（注意左右组是 flex-1 弹性盒，必须量子元素而非组盒），空间不足淡出（窄屏走抽屉）；`weather-bar.tsx` 已删，`useAspectRatio` 仅用于右侧折叠（wideLayout）与抽屉天气。
+  3. **右下角悬浮件锚点契约** `components/layout/corner.ts`（CORNER.backToTop/float/write 三档 + CORNER_RIGHT），回到顶部/文章操作/文库书签/书写入口（从右上挪回右下角第三档，原设计意图）统一取用，新增悬浮件禁止散落坐标。
+  4. **短高度紧凑档**：globals.css 末尾 `@media (max-height:780px) and (min-width:1024px)` 压缩 `.v2-band` 纵向节奏（信息带 py 2.25rem、标题降档、marquee 6rem）。
+  - 验收：typecheck/build 过；真机矩阵截图 1280×800（天气收起无碰撞）/ 1920×1080（天气居中）/ 1366×768（紧凑档）/ 393 手机（封面正常）均通过。
+- 最新线上部署 2026-09-29：名片卡入口 `/card`（`b862b3e` + 修复 `d356f24`，**反代后重定向必须相对 Location**）。——PCB 名片二维码直达路由：`counters` 表 `card-visits` 计数（通用 key/value 计数器，失败不阻塞）→ 307 跳主页 + 120s `from_card` cookie → 根布局 `CardWelcome` 弹窗「欢迎通过名片卡访问本站！」（弹出即清 cookie，刷新不再弹）。线上实测计数自增 ✓。
   - 坑：**反代后的重定向必须用相对 Location**（`Location: /`）——next start 跑在 nginx 后，`request.url` 是内部地址（http://localhost:3000），`new URL("/", request.url)` 会把线上用户重定向到 localhost。
 - 上一轮改动（**已部署服务器 2026-09-27**）：定制 404 + 阅读书签系统（commits `75a2ab9`/`532e25b`）——
   1. **404**：`app/not-found.tsx`（站点风格 + 去向引导）；nginx 三个 alias（`/uploads/ /music/ /environment/`）加 `error_page 404 @app_404`（rewrite 到 Next `/404`，命名 location 里 `proxy_pass` 不能带 URI）。
