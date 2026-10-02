@@ -16,6 +16,7 @@ import { rehypeStyleObject } from "@/lib/rehype-style-object"
 
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
+import { normalizeMdxSource } from "@/lib/mdx-normalize"
 import { extractHeadings } from "@/lib/headings"
 import {
   getPostStats,
@@ -171,7 +172,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
       <div className="max-w-none">
         <MDXRemote
-          source={post.content}
+          source={normalizeMdxSource(post.content)}
           components={mdxComponents}
           options={{
             mdxOptions: {

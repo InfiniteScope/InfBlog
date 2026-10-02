@@ -1,0 +1,529 @@
+---
+title: Spring 学习笔记03：使用 SpringBoot 简化 Spring 项目的初始搭建以及开发过程
+date: '2026-10-02T07:28:46.195Z'
+description: 讲解如何使用 SpringBoot 完成 Spring 项目的简化开发，以及实际开发时需着重注意的框架特性。
+tags:
+  - Spring
+  - 后端
+  - 技术
+  - Java
+  - SpringBoot
+coverImage: /uploads/muqn60sd-be42f794.webp
+---
+> 本系列是本人学习 Spring 框架的手记，**而非完整的教程**（资料多数参考自黑马程序员 SSM 系列视频教程，部分文本资料参考自廖雪峰的个人网站与 Spring 官方文档），可供与我一样的初学者参考学习路线，或供熟练工复习概念。
+
+> 接上一篇笔记。本篇从"为什么要用 Spring Boot"讲起，跑通一个最小 Web 工程，再聊它的三大特性与配置文件体系，最后落到实际开发绕不开的多环境配置。
+
+---
+
+前两篇笔记里，我们用 `spring-context` 手写配置类、组件扫描、`@EnableAspectJAutoProxy`，把 IoC 和 AOP 跑了一遍。但如果真用这套方式去开一个新项目，会发现每个项目开头都要做一套类似的重复：引入一堆版本互相兼容的依赖、写配置类；如果是 Web 项目，还得安装 Tomcat、打 war 包部署……这些动作和业务没有任何关系，却一个都省不掉。
+
+**Spring Boot 就是来简化这些重复劳动的。**
+
+## 1. Spring Boot 是什么
+
+Spring Boot 最初由 Pivotal 团队（Spring 框架背后的公司，后经 VMware 转手，现归 Broadcom）提供，定位非常明确：**简化 Spring 应用的初始搭建以及开发过程**。
+
+它不是 Spring 的替代品，而是站在 Spring 之上的一层“简化开发工具”——前两篇学的 IoC、AOP 该怎么跑还怎么跑，只是装配工作从“完全手写”变成了“Boot 按约定自动完成”。这套设计哲学的名字或许各位已经在别处听说过：**约定优于配置**（Convention over Configuration）。
+
+> 截至目前（2026 年），Spring Boot 最新大版本为 4.x（2025 年 11 月发布 4.0，构建于 Spring Framework 7 之上，最低 JDK 17）；本文示例使用教程生态中最主流的 3.5.x，本篇涉及的内容在两个大版本间基本一致，跟紧手头教程的版本即可。
+
+![图片描述](/uploads/muqmgx4t-a3cbbf92.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>同样是启动一个 Web 工程：传统 Spring Web 需要六步，Spring Boot 只需三步</div>
+
+<br />
+
+---
+
+## 2. 快速入门：最小可跑的 Web 工程
+
+### 2.1 创建工程
+
+官方提供的脚手架是 Spring Initializr（[https://start.spring.io](https://start.spring.io)），IDEA 等 IDE 也内置了它。勾选 Web 场景（Spring Web）后生成工程，下载解压即可导入。国内网络访问慢的话，可以用阿里云的镜像脚手架 [https://start.aliyun.com](https://start.aliyun.com)。
+
+生成出来的基础文件只有以下几个：
+
+| 文件 | 作用 |
+| --- | --- |
+| `pom.xml` | 继承 parent、引入起步依赖（见下） |
+| `Application.java` | **引导类**：程序主入口，内含 main 方法与 `SpringApplication.run(...)` |
+| `application.properties` | 配置文件，初始为空 |
+| `ApplicationTests.java` | 测试类（起步依赖里带了 test，了解即可） |
+
+这些全是生成器给的，**真正需要手写的只有业务代码**——比如一个 Controller。
+
+### 2.2 pom.xml：parent + 起步依赖
+
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.16</version>
+</parent>
+
+<dependencies>
+    <!-- Web 场景的"起步依赖"：Spring MVC + 内嵌 Tomcat + JSON 处理等一整套依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+</dependencies>
+```
+
+对比笔记的 01/02 篇手写 `spring-context` + `aspectjweaver` 还得自己挑版本号，这里只有一个 `spring-boot-starter-web`，开发者**连版本号都不用写**——这正是后面要说的"起步依赖"与"版本管理"。
+
+### 2.3 引导类
+
+```java
+package com.infinitescope;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+这个类是整个工程的入口，仅需一句`SpringApplication.run()` ，容器和 Web 服务器全都起来了。
+
+### 2.4 手写一个 Controller
+
+```java
+package com.infinitescope.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello, Spring Boot!";
+    }
+}
+```
+
+> `@RestController` / `@GetMapping` 属于 Spring MVC 的内容，之后的笔记或许会讲解。这里的意思是：它们声明了"GET 请求 /hello 时，由这个方法响应"（有点类似 FastAPI 中的路由 `@router.get("/hello")`）。
+
+### 2.5 运行
+
+直接运行引导类的 main 方法，控制台出现：
+
+```plaintext
+Tomcat started on port 8080 (http) with context path '/'
+Started Application in 1.056 seconds (process running for 1.302)
+```
+
+![图片描述](/uploads/muqml8z6-b171b147.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>本机实跑输出：内嵌 Tomcat 随应用一起启动（Spring Boot 3.5.16 + Java 25）</div>
+
+<br />
+
+浏览器访问 `http://localhost:8080/hello`，即可看到返回的字符串：
+
+![图片描述](/uploads/muqmlk3o-ddac97c0.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>浏览器访问 localhost:8080/hello 的真实返回</div>
+
+<br />
+
+注意一个细节：**我们从头到尾没有安装过 Tomcat**。`spring-boot-starter-web` 里内嵌了一个 Tomcat，跟随应用一起启动——所以更准确的说法是：Spring Boot 并非“不依赖 Tomcat”，而是**把 Tomcat 装进了应用里**，省掉的是“独立安装、配置、部署外部 Tomcat”这一整套流程。
+
+`mvn package` 打出来的是一个**可执行 jar 包**（parent 已配好 `spring-boot-maven-plugin`），扔到任何装了 JDK 的机器上：
+
+```bash
+java -jar infblog-0.0.1-SNAPSHOT.jar
+```
+
+服务就启动了。从“装 Tomcat、打 war 包、部署到外部服务器”到“一条命令启动 jar”——这就是“简化初始搭建与开发”最直观的体现。
+
+---
+
+## 3. Spring Boot 三大特性
+
+官方与教程里常把 Spring Boot 的特点概括为三条：
+
+| 特性 | 解决的问题 |
+| --- | --- |
+| **起步依赖**（starter） | 依赖要一堆一堆地引，版本互相打架 |
+| **自动配置** | 配置类、组件声明全靠手写 |
+| **辅助功能** | 服务器安装部署、运行监控等杂事 |
+
+### 3.1 起步依赖与版本管理
+
+**starter 本质上是"按场景打包好的一组依赖"**：`spring-boot-starter-web` 一次性带进了 Spring MVC、内嵌 Tomcat、Jackson（JSON 处理）等一揽子依赖；以后要连数据库，就换 `spring-boot-starter-data-jpa` 这样的 starter。命名规律是 `spring-boot-starter-*`，`*` 即场景名。
+
+那依赖的版本谁来管？答案是 **parent**。`spring-boot-starter-parent` 继承了 `spring-boot-dependencies`，后者用 `dependencyManagement` 把 Spring、MySQL、Tomcat 等几百个常用依赖的**兼容版本全部锁定**——所以引入 starter 时才不用写版本号。换句话说：**选定 Spring Boot 的版本，就等于选定了整套依赖的版本**，"依赖版本冲突"这个 Java 开发的老大难问题被釜底抽薪。
+
+> 个别 parent 没有管理的依赖（或你就是想换版本），仍然可以在自己的 pom 里显式写 `<version>` 覆盖。
+
+![图片描述](/uploads/muqmmlje-ccb4d2e8.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>起步依赖按场景打包一揽子依赖，版本号由 parent 背后的 BOM 统一锁定</div>
+
+<br />
+
+### 3.2 自动配置
+
+引导类上只有一个 `@SpringBootApplication`，它其实是三个注解的合体：
+
+| 注解 | 作用 |
+| --- | --- |
+| `@SpringBootConfiguration` | 本质是 `@Configuration`，声明这是一个配置类 |
+| `@EnableAutoConfiguration` | **开启自动配置**：按 classpath 里的依赖决定帮你装配什么 |
+| `@ComponentScan` | 组件扫描，默认扫引导类所在包及其子包 |
+
+自动配置的直觉理解：启动时 Boot 会检查 classpath——发现 Tomcat 在，就内嵌启动 Web 服务器；发现 spring-webmvc 在，就把 `DispatcherServlet` 配好；发现什么都不在，就安静待着。底层靠 `@Conditional` 系列条件注解（如 `@ConditionalOnClass`）判断"条件满足才装配"，这属于面试高频点，入门阶段了解即可。
+
+这也让 01 篇的知识接上了：`@ComponentScan` 默认扫描范围是**引导类所在包及其子包**，所以 `HelloController` 放在 `com.infinitescope.controller` 下才能被扫到——放到别的包里，接口就 404 了。
+
+### 3.3 辅助功能
+
+内嵌服务器就是最典型的辅助功能：默认 Tomcat，也可以在 starter 中排除后换成 Jetty 等。除此之外还有 Actuator（应用监控端点）、devtools（热重启）等，用到时再查，入门不展开。
+
+---
+
+## 4. 配置文件：properties 与 YAML
+
+业务里"可变的部分"（端口、数据库地址、功能开关……）不该写死在代码里，Spring Boot 的答案是集中放在配置文件中。它认三种格式：
+
+- `application.properties`（properties 键值对）
+- `application.yml`
+- `application.yaml`
+
+yml 与 yaml 是同一种格式的两个扩展名，习惯上写 yml。三种文件在**同一位置同时存在**时，优先级为 **properties > yml > yaml**（高优先级覆盖低优先级的同名属性）。
+
+### 4.1 YAML 语法速览
+
+```yaml
+# 键值对：冒号后必须有空格
+server:
+  port: 8081        # 用缩进（空格，不能用 Tab）表示层级
+
+# 对象 / 级联属性
+datasource:
+  driver: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/infblog
+
+# 数组：用 - 列出
+servers:
+  - 192.168.0.1
+  - 192.168.0.2
+```
+
+对比 properties 写同样的内容：
+
+```properties
+server.port=8081
+datasource.driver=com.mysql.cj.jdbc.Driver
+datasource.url=jdbc:mysql://localhost:3306/infblog
+servers[0]=192.168.0.1
+servers[1]=192.168.0.2
+```
+
+YAML 的优点一目了然：**层级即数据、易于阅读，同时以数据为核心、易于与脚本语言交互**——这也是它成为 Boot 社区主流选择的原因（官方示例也清一色 yml）。后文示例统一使用 yml。
+
+---
+
+## 5. 读取配置数据的三种方式
+
+配置文件写好了，代码里怎么拿到？先准备一份配置：
+
+```yaml
+app:
+  name: infblog
+  version: 1.0.0
+
+datasource:
+  url: jdbc:mysql://localhost:3306/infblog
+  username: root
+  password: root
+```
+
+### 5.1 @Value：取单个值
+
+01 篇见过 `@Value`，当时注入的是字面量；配合 `${}` 占位符就能读配置文件：
+
+```java
+@RestController
+public class HelloController {
+
+    @Value("${app.name}")
+    private String appName;
+
+    @Value("${server.port}")
+    private String port;
+}
+```
+
+适合**零散的个别属性**。
+
+### 5.2 Environment：编程式读取
+
+注入 Spring 的 `Environment` 对象（容器启动时即存在），调用它的实例方法 `getProperty`：
+
+```java
+@Autowired
+private Environment env;
+
+public void show() {
+    String name = env.getProperty("app.name");
+    Integer port = env.getProperty("server.port", Integer.class);  // 可指定目标类型
+}
+```
+
+适合**运行过程中动态读取**的场景。
+
+### 5.3 @ConfigurationProperties：绑定成对象（推荐）
+
+属性一多，逐个 `@Value` 就很蠢。更优雅的做法是定义一个 domain 类，让对象属性与配置**一一对应、批量绑定**：
+
+```java
+package com.infinitescope.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component                                        // 交给容器管理
+@ConfigurationProperties(prefix = "datasource")   // 绑定 datasource 前缀下的属性
+public class DataSourceProperties {
+
+    private String url;       // 对应 datasource.url
+    private String username;  // 对应 datasource.username
+    private String password;  // 对应 datasource.password
+
+    // 必须提供 setter（或用 Lombok @Data），绑定靠 setter 完成；getter 按需
+}
+```
+
+使用时直接注入这个对象：
+
+```java
+@Autowired
+private DataSourceProperties dataSource;
+```
+
+即完成了从**数据配置**到**配置对象**的转换。这样的绑定方式主要带来了两个好处：
+
+1. **宽松绑定**（Relaxed Binding）：`user-name`、`userName`、`USER_NAME` 都能绑到 `userName` 属性上，配置写法很自由；
+2. 支持集合、嵌套对象的级联绑定——这是 `@Value` 做不到的。
+
+> 想让 IDE 编辑 yml 时自动补全自定义属性，可以额外引入 `spring-boot-configuration-processor`（可选，只是个元数据处理器）。
+> 不想加 `@Component` 的话，也可以在配置类上用 `@EnableConfigurationProperties(DataSourceProperties.class)` 注册，效果相同。
+
+三种方式对比：
+
+| 方式 | 粒度 | 典型场景 |
+| --- | --- | --- |
+| `@Value("${...}")` | 单个属性 | 零散落单的值 |
+| `Environment` | 单个属性，编程式 | 运行期动态判断 |
+| `@ConfigurationProperties` | 批量绑定成对象 | 成组配置，实际开发主流 |
+
+---
+
+## 6. 多环境开发
+
+同一份代码，开发环境连本地库、测试环境连测试库、生产环境连线上库——端口、地址全都不一样。总不能每换一次环境就改一遍配置文件。Spring Boot 原生支持"一份代码、多套配置、一键切换"，约定俗成三套环境：`dev`（开发）/ `test`（测试）/ `prod`（生产）。
+
+### 6.1 yml 单文件：多文档写法
+
+YAML 支持用 `---` 把一个文件拆成多个文档，每个文档用 `spring.config.activate.on-profile` 声明自己属于哪个环境，最上方的"主文档"用 `spring.profiles.active` 指定启用哪套：
+
+```yaml
+# 主文档：公共配置 + 指定启用的环境
+spring:
+  profiles:
+    active: dev
+
+---
+# 开发环境
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  port: 8081
+
+---
+# 测试环境
+spring:
+  config:
+    activate:
+      on-profile: test
+server:
+  port: 8082
+
+---
+# 生产环境
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: 8083
+```
+
+启动时只有"主文档 + 被激活的环境文档"生效，控制台会打印 `The following 1 profile is active: "dev"`。
+
+**两个容易踩的坑**：
+
+1. 在老一些的教程中也有类似 `spring.profiles: dev` 这样的写法，这种“用 spring.profiles 给单个文档指定环境”的写法自 Spring Boot 2.4 起被废弃，在 Boot 3 中会直接启动报错。新的、标准的写法就是上面的 `spring.config.activate.on-profile`。
+2. Boot 2.4 起，`spring.profiles.active` 只能写在**不属于任何环境的主文档**里（或通过命令行等外部途径指定），写进某个环境文档内部同样会报错。
+
+![图片描述](/uploads/muqmv805-287c6385.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>active 为 dev 时，只有主文档与 dev 文档参与生效，test / prod 文档被忽略</div>
+
+<br />
+
+### 6.2 多文件写法
+
+yml 单文件看着短，但环境一多，全挤在一个文件里并不好维护。更常见的是**一个环境一个文件**，命名规则 `application-{环境名}.yml`：
+
+```plaintext
+src/main/resources/
+├── application.yml          # 主配置：公共配置 + spring.profiles.active
+├── application-dev.yml      # 开发环境
+├── application-test.yml     # 测试环境
+└── application-prod.yml     # 生产环境
+```
+
+主配置里只需一行：
+
+```yaml
+spring:
+  profiles:
+    active: dev
+```
+
+properties 格式没有多文档语法，**只能**用多文件：`application-dev.properties`、`application-prod.properties` 等，规则完全一样。
+
+### 6.3 启动时临时切换：命令行参数
+
+配置文件里写的是默认环境；打包部署到测试服务器时想临时换，不必改文件——启动命令后追加参数即可：
+
+```bash
+java -jar infblog.jar --spring.profiles.active=test
+```
+
+同样的 `--key=value` 格式可以覆盖配置文件里几乎任意参数，比如临时换端口：
+
+```bash
+java -jar infblog.jar --spring.profiles.active=test --server.port=9999
+```
+
+IDEA 里则是在启动配置的 Program arguments 中填写同样的内容。
+
+"带参启动"之所以有效，是因为 **Spring Boot 的外部化配置有一套明确的优先级**：命令行参数的优先级高于配置文件，同名属性由高优先级覆盖。完整优先级链很长（命令行 > Java 系统属性 > 操作系统环境变量 > jar 外配置文件 > jar 内配置文件……），官方文档有完整列表：[https://docs.spring.io/spring-boot/reference/features/external-config.html](https://docs.spring.io/spring-boot/reference/features/external-config.html)。
+
+![图片描述](/uploads/muqmwugk-1d9efa5d.png)
+
+---
+
+## 7. 多级配置文件：jar 包外的配置
+
+带参启动能应急，但如果测试/生产环境每次都要敲一长串参数，也太蠢了。Spring Boot 还提供了**多级配置文件**：除了 `resources` 下，它还认 jar 包"身边"的配置文件，共四级（优先级从高到低）：
+
+| 级别 | 位置 | 打包后在哪 | 面向 |
+| --- | --- | --- | --- |
+| 1（最高） | 项目根目录 `config/` 下（`file:config/`） | jar 包外 | 生产环境 |
+| 2 | 项目根目录下（`file:./`） | jar 包外 | 生产环境 |
+| 3 | `resources/config/` 下（`classpath:config/`） | 打进 jar | 开发环境 |
+| 4（最低） | `resources/` 下（`classpath:/`，即我们一直在用的位置） | 打进 jar | 开发环境 |
+
+规则就两条：**高级别覆盖低级别的同名属性，不同名的属性互补合并**；同级别多种格式并存时，仍是 properties > yml > yaml。
+
+设计意图很清晰：1、2 级在 jar 包**外面**——服务器上把配置文件放在 jar 旁边（或旁边的 `config` 目录里），运维**不用拆包就能改配置**，所以面向生产；3、4 级跟着源码走、打进 jar，是开发阶段的默认值。
+
+> Boot 2.4 起还支持 `config/` 的直接子目录（如 `config/dev/`），优先级更高，了解即可。
+
+![图片描述](/uploads/muqmx5r3-2aeac826.png)
+
+<div style={{textAlign: 'center', fontStyle: 'italic', color: '#666'}}>四级配置文件：jar 外两级面向生产环境，jar 内两级面向开发环境</div>
+
+<br />
+
+---
+
+## 8. 与 Maven 协作：多环境以 Maven profile 为主
+
+到这里，Spring Boot 侧的多环境已经齐了。但实际开发中还有个现实问题：**最后的项目打包成 jar ，jar包跑在服务器上，而 jar 是 Maven 打包的**——“这次打包是给哪个环境用的”这个决定发生在打包环节，天然属于 Maven 的辖域。所以业内通行做法是：**多环境的选择以 Maven 的 profile 为主（写在 pom.xml 里），Spring Boot 侧只负责引用**。
+
+### 8.1 pom.xml 中定义 profile
+
+```xml
+<profiles>
+    <profile>
+        <id>dev</id>
+        <properties>
+            <profile.active>dev</profile.active>
+        </properties>
+        <!-- 默认激活：不指定 -P 时就默认 -->
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+    <profile>
+        <id>test</id>
+        <properties>
+            <profile.active>test</profile.active>
+        </properties>
+    </profile>
+    <profile>
+        <id>prod</id>
+        <properties>
+            <profile.active>prod</profile.active>
+        </properties>
+    </profile>
+</profiles>
+```
+
+### 8.2 Spring Boot 配置中引用
+
+`application.yml` 里不再写死环境，而是用占位符引用 Maven 的属性：
+
+```yaml
+spring:
+  profiles:
+    active: @profile.active@
+```
+
+注意这里用的是 `@...@` 而不是 `${...}`：`spring-boot-starter-parent` 已经把资源过滤的占位符定界符改成了 `@...@`，正是为了避免和 Spring 自己的 `${}` 占位符打架。
+
+### 8.3 打包时决定环境
+
+```bash
+mvn package            # 默认 dev
+mvn package -P test    # 测试环境
+mvn package -P prod    # 生产环境
+```
+
+打包时 Maven 会把 `@profile.active@` 替换成对应值，打出来的 jar 天生就带着目标环境的配置。IDEA 的 Maven 面板里也可以直接勾选 profile。
+
+**Maven 与 SpringBoot 协作总结**：Maven 决定"这次打包用哪套环境"，Spring Boot 负责"这套环境里有哪些参数"。
+
+---
+
+## 9. 小结
+> **Spring Boot = 约定优于配置：起步依赖解决"引什么"，版本管理解决"什么版本"，自动配置解决"怎么装配"，配置文件体系解决"可变的部分放哪"。**
+
+- **定位**：Pivotal 团队提供，简化 Spring 应用的初始搭建与开发过程；不是新框架，是 Spring 的自动化外壳
+- **最小工程**：pom.xml + 引导类，Web 场景只需手写 Controller；可执行 jar 一键启动，内嵌 Tomcat 免安装
+- **三大特性**：起步依赖（starter 按场景打包依赖）、自动配置（`@SpringBootApplication` 三合一）、辅助功能（内嵌服务器等）
+- **配置文件**：properties / yml / yaml 三种格式（优先级递减）；读值三方式：`@Value`、`Environment`、`@ConfigurationProperties`
+- **多环境**：yml 多文档（`---` + `on-profile`）或多文件（`application-{env}.yml`），`spring.profiles.active` 启用；命令行 `--key=value` 可临时覆盖任意配置
+- **多级配置文件**：四级，jar 外两级面向生产、jar 内两级面向开发
+- **实际开发**：多环境以 Maven profile（pom.xml）为主，Boot 配置用 `@profile.active@` 引用
+
+---
+
+回头看这个系列的脉络：01 篇把对象交给容器（IoC），02 篇把公共功能织入方法（AOP），本篇把"搭建项目"这件事本身也交了出去——**Spring 家族一以贯之的主题，就是把“与业务无关的控制权”替开发者手里代行**。
+
+到此为止，我们已经看完了现代 Spring 开发的大多数基础设施设计；如果之后还有Spring学习笔记的话我们或许会聊聊 Spring MVC——本篇 `HelloController` 上那两个没来得及解释的注解，就是这一部分的内容（~~这次不知道要鸽到多久之后~~）~~，本系列有缘再见吧~~。

@@ -9,6 +9,7 @@ import rehypePrettyCode from "rehype-pretty-code"
 
 import { auth } from "@/auth"
 import { getDocBySlug, getDocSlugs } from "@/lib/docs"
+import { normalizeMdxSource } from "@/lib/mdx-normalize"
 import { extractHeadings } from "@/lib/headings"
 import { rehypeStyleObject } from "@/lib/rehype-style-object"
 import { mdxComponents } from "@/components/mdx-components"
@@ -124,9 +125,9 @@ export default async function DocDetailPage({ params }: PageProps) {
         </header>
 
         <div className="max-w-none">
-          <MDXRemote
-            source={doc.content}
-            components={mdxComponents}
+        <MDXRemote
+          source={normalizeMdxSource(doc.content)}
+          components={mdxComponents}
             options={{
               mdxOptions: {
                 remarkPlugins: [remarkGfm, remarkMath],
