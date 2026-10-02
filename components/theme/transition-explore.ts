@@ -1,4 +1,4 @@
-import { createMoonScene } from "@/components/theme/moon-scene"
+import { createMoonScene, moonRadiusFor } from "@/components/theme/moon-scene"
 import { siteConfig } from "@/lib/config"
 
 interface EngineCallbacks {
@@ -38,10 +38,12 @@ export function playExploreTransition(
   const W = window.innerWidth
   const H = window.innerHeight
 
-  /* 月亮"家"与起点：先按视口估计，换肤后按 hero 实际几何精调 */
+  /* 月亮"家"与起点：先按视口估计，换肤后按 hero 实际几何精调。
+     半径与 hero 场景共用 moonRadiusFor（窄屏收缩），消除尺寸差 */
   let homeX = 0.44
   let homeY = 0.5
-  let homeR = (Math.min(W, H * 0.92) * 0.13) / H
+  const heroHEst = H - 56 // hero 画布 ≈ 100svh - 3.5rem
+  let homeR = (heroHEst * moonRadiusFor(W, heroHEst)) / H
   const riseFrom = homeY + (H * 0.55 + homeR * H) / H
 
   let raf = 0
@@ -61,7 +63,7 @@ export function playExploreTransition(
     if (!r || !r.width || !r.height) return
     homeX = (r.left + r.width * 0.44) / W
     homeY = (r.top + r.height * 0.5) / H
-    homeR = (r.height * 0.13) / H
+    homeR = (r.height * moonRadiusFor(r.width, r.height)) / H
     scene.setMoon(homeX, homeY, homeR)
   }
 

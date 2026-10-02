@@ -128,7 +128,7 @@ export default async function HomePage() {
           <div className="v2-hero-copy relative z-10 flex min-h-[calc(100svh-3.5rem)] flex-col justify-center space-y-5 py-12 lg:absolute lg:right-[38vw] lg:top-1/2 lg:min-h-0 lg:-translate-y-1/2 lg:py-0">
             <TypedHeading className="v2-hero-typed" />
             <h1
-              className="v2-hero-title font-future text-[clamp(4.5rem,13vmin,12.5rem)] leading-none tracking-tight lg:whitespace-nowrap"
+              className="v2-hero-title font-future text-[clamp(3.25rem,13vmin,12.5rem)] leading-none tracking-tight lg:whitespace-nowrap"
             >
               {siteConfig.name}
             </h1>
@@ -330,20 +330,15 @@ export default async function HomePage() {
         {/* 03 // 任务日志 MISSION_LOG：横向滚动带 */}
         <section className="v2-band space-y-8 py-14 lg:py-20">
           <Reveal>
-            <div className="flex items-end gap-4">
-              <div className="space-y-2">
-                <SectionHeading index="03">// MISSION_LOG</SectionHeading>
-                <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
-                  任务日志
-                </h2>
-              </div>
-              <span className="v2-only pb-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
-                Scroll →
-              </span>
+            <div className="space-y-2">
+              <SectionHeading index="03">// MISSION_LOG</SectionHeading>
+              <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
+                任务日志
+              </h2>
             </div>
           </Reveal>
           <Reveal delay={0.08}>
-            <UpdatesStrip updates={latestUpdates} />
+            <UpdatesStrip updates={latestUpdates} digest={digest} />
           </Reveal>
         </section>
 

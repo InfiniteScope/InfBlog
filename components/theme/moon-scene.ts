@@ -82,9 +82,11 @@ void main() {
   float t = uTime;
 
   float density = 1.05;
+  /* 窄屏（竖屏手机）按比例放大纹理采样范围，避免标题被放大到溢出 */
+  float fit = max(1.0, 0.85 / aspect);
   vec2 tp;
-  tp.x = uv.x * aspect * density + t * 0.012;
-  tp.y = (uv.y - 0.5) * 2.7 + 0.5;
+  tp.x = uv.x * aspect * density * fit + t * 0.012;
+  tp.y = (uv.y - 0.5) * 2.7 * fit + 0.5;
 
   vec2 warp = vec2(
     fbm(uv * 2.6 + vec2(t * 0.10, 0.0)),
@@ -100,7 +102,7 @@ void main() {
   float R = uR;
 
   float inside = smoothstep(R, R * 0.82, d);
-  vec2 mTP = vec2(m.x * aspect * density + t * 0.012, (m.y - 0.5) * 2.7 + 0.5);
+  vec2 mTP = vec2(m.x * aspect * density * fit + t * 0.012, (m.y - 0.5) * 2.7 * fit + 0.5);
   vec2 tpLens = mTP + (tp - mTP) * 0.55;
   tp = mix(tp, tpLens, inside * 0.85);
 
@@ -172,6 +174,12 @@ void main() {
   gl_FragColor = vec4(col, 1.0);
 }
 `
+
+/** 月亮半径（uv，画布高度单位）：窄屏按宽度约束收缩，避免手机上月球过大 */
+export function moonRadiusFor(w: number, h: number) {
+  if (!w || !h) return 0.13
+  return Math.min(0.13, (0.19 * w) / h)
+}
 
 export function createMoonScene(
   canvas: HTMLCanvasElement,
@@ -268,6 +276,7 @@ export function createMoonScene(
     const w = canvas.offsetWidth
     const h = canvas.offsetHeight
     if (!w || !h) return
+    moonR = moonRadiusFor(w, h) // 窄屏收缩月球（转场引擎每帧 setMoon 覆盖，互不干扰）
     const pw = Math.round(w * dpr)
     const ph = Math.round(h * dpr)
     if (canvas.width !== pw || canvas.height !== ph) {
@@ -277,6 +286,17 @@ export function createMoonScene(
       if (ready && !paused && !disposed) render(lastT)
     }
   }
+
+  // ---- 月亮：基准点（+ 可选鼠标牵引，平滑跟随）----
+  /* 声明必须在 resize() 首次调用之前（resize 会按窄屏公式回写 moonR） */
+  const base = opts.base ?? { x: 0.44, y: 0.5 }
+  let moonX = base.x
+  let moonY = base.y
+  let moonR = moonRadiusFor(canvas.offsetWidth, canvas.offsetHeight)
+  let targetX = base.x
+  let targetY = base.y
+  const parallax = opts.parallax ?? false
+
   resize()
 
   /* 画布自身尺寸变化即重设 backing store（侧边栏收起、分栏动画等
@@ -284,15 +304,6 @@ export function createMoonScene(
   const ro =
     typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null
   ro?.observe(canvas)
-
-  // ---- 月亮：基准点（+ 可选鼠标牵引，平滑跟随）----
-  const base = opts.base ?? { x: 0.44, y: 0.5 }
-  let moonX = base.x
-  let moonY = base.y
-  let moonR = 0.13
-  let targetX = base.x
-  let targetY = base.y
-  const parallax = opts.parallax ?? false
 
   const onMouseMove = (e: MouseEvent) => {
     const nx = e.clientX / window.innerWidth
