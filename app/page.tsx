@@ -16,6 +16,7 @@ import { getUpdates } from "@/lib/updates"
 import { getLatestDigest } from "@/lib/digest"
 import { Button } from "@/components/ui/button"
 import { SectionHeading } from "@/components/ui/section-heading"
+import { CoverImage } from "@/components/ui/cover-image"
 import { PostDates } from "@/components/blog/post-dates"
 import { Reveal } from "@/components/motion/reveal"
 import { MusicPlayerExpanded } from "@/components/music/music-player-expanded"
@@ -140,27 +141,29 @@ export default async function HomePage() {
           </div>
 
           <div className="relative z-10 pb-2 lg:absolute lg:bottom-10 lg:right-8 lg:w-[380px] lg:pb-0">
-            <SectionHeading className="mb-3">// EARTH_RADIO</SectionHeading>
             <MusicPlayerExpanded />
+            <SectionHeading className="mt-3 justify-end">
+              // EARTH_RADIO
+            </SectionHeading>
           </div>
         </div>
 
         {/* 斜向 TECH marquee：全宽纹理分隔带（恒动，与全页静止对比） */}
         <Reveal
           variant="wipe"
-          className="marquee-fade-x relative h-32 overflow-hidden md:h-40"
+          className="marquee-fade-x v2-marquee-band relative h-32 overflow-hidden md:h-40"
         >
           <TechMarquee items={TECH_STACK} />
         </Reveal>
 
       <div className="mx-auto max-w-6xl">
         {/* 01 // 信号 TRANSMISSIONS：FEATURED 编辑卡 + 幽灵序号发丝行 */}
-        <section className="py-14 lg:py-20">
+        <section className="v2-band py-14 lg:py-20">
           <Reveal>
             <div className="flex items-end justify-between pb-8">
               <div className="space-y-2">
                 <SectionHeading index="01">// TRANSMISSIONS</SectionHeading>
-                <h2 className="font-display text-3xl tracking-tight md:text-4xl">
+                <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
                   最新文章
                 </h2>
               </div>
@@ -220,7 +223,7 @@ export default async function HomePage() {
                             </>
                           )}
                         </div>
-                        <h3 className="font-display text-4xl tracking-tight transition-colors group-hover:text-accent md:text-5xl">
+                        <h3 className="font-display text-3xl tracking-tight transition-colors group-hover:text-accent md:text-[clamp(2rem,2.4vw+1rem,2.6rem)]">
                           {featured.title}
                         </h3>
                         <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground line-clamp-3 md:text-base">
@@ -235,14 +238,12 @@ export default async function HomePage() {
                         </div>
                       </div>
                       {featured.coverImage && (
-                        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-md">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={featured.coverImage}
-                            alt={featured.title}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        </div>
+                        <CoverImage
+                          src={featured.coverImage}
+                          alt={featured.title}
+                          containerClassName="relative aspect-[16/10] w-full overflow-hidden rounded-md"
+                          imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
                       )}
                     </Link>
                   </article>
@@ -312,11 +313,11 @@ export default async function HomePage() {
         </section>
 
         {/* 02 // 遥测 TELEMETRY：全宽数据仪表带 */}
-        <section className="space-y-8 py-14 lg:py-20">
+        <section className="v2-band space-y-8 py-14 lg:py-20">
           <Reveal>
             <div className="space-y-2">
               <SectionHeading index="02">// TELEMETRY</SectionHeading>
-              <h2 className="font-display text-3xl tracking-tight md:text-4xl">
+              <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
                 遥测
               </h2>
             </div>
@@ -327,16 +328,16 @@ export default async function HomePage() {
         </section>
 
         {/* 03 // 任务日志 MISSION_LOG：横向滚动带 */}
-        <section className="space-y-8 py-14 lg:py-20">
+        <section className="v2-band space-y-8 py-14 lg:py-20">
           <Reveal>
-            <div className="flex items-end justify-between">
+            <div className="flex items-end gap-4">
               <div className="space-y-2">
                 <SectionHeading index="03">// MISSION_LOG</SectionHeading>
-                <h2 className="font-display text-3xl tracking-tight md:text-4xl">
+                <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
                   任务日志
                 </h2>
               </div>
-              <span className="v2-only font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
+              <span className="v2-only pb-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70">
                 Scroll →
               </span>
             </div>
@@ -347,11 +348,11 @@ export default async function HomePage() {
         </section>
 
         {/* 04 // 探测器 PROBES：GitHub 项目紧凑行 */}
-        <section className="space-y-8 py-14 lg:py-20">
+        <section className="v2-band space-y-8 py-14 lg:py-20">
           <Reveal>
             <div className="space-y-2">
               <SectionHeading index="04">// PROBES</SectionHeading>
-              <h2 className="font-display text-3xl tracking-tight md:text-4xl">
+              <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
                 探测器
               </h2>
             </div>
@@ -362,11 +363,11 @@ export default async function HomePage() {
         </section>
 
         {/* 05 // 频段 FREQUENCIES：标签流，不规则延迟飘落 */}
-        <section className="space-y-8 py-14 lg:py-20">
+        <section className="v2-band space-y-8 py-14 lg:py-20">
           <Reveal>
             <div className="space-y-2">
               <SectionHeading index="05">// FREQUENCIES</SectionHeading>
-              <h2 className="font-display text-3xl tracking-tight md:text-4xl">
+              <h2 className="v2-band-title font-display text-3xl tracking-tight md:text-4xl">
                 频段
               </h2>
             </div>
@@ -429,14 +430,12 @@ export default async function HomePage() {
                             className="flex flex-col sm:flex-row-reverse"
                           >
                             {post.coverImage && (
-                              <div className="relative aspect-video w-full shrink-0 overflow-hidden sm:aspect-square sm:w-40">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={post.coverImage}
-                                  alt={post.title}
-                                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                />
-                              </div>
+                              <CoverImage
+                                src={post.coverImage}
+                                alt={post.title}
+                                containerClassName="relative aspect-video w-full shrink-0 overflow-hidden sm:aspect-square sm:w-40"
+                                imgClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
                             )}
                             <div className="flex flex-1 flex-col justify-center space-y-3 p-5">
                               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

@@ -19,6 +19,7 @@ import { ReadingResume } from "@/components/blog/reading-resume"
 import { DocBookmarkFloat } from "@/components/blog/bookmark-float"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
 import { Button } from "@/components/ui/button"
+import { CoverImage } from "@/components/ui/cover-image"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -113,14 +114,12 @@ export default async function DocDetailPage({ params }: PageProps) {
           </h1>
           <p className="text-lg text-muted-foreground">{doc.description}</p>
           {doc.coverImage && (
-            <div className="aspect-video w-full overflow-hidden rounded-xl border border-border">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={doc.coverImage}
-                alt={doc.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            <CoverImage
+              src={doc.coverImage}
+              alt={doc.title}
+              containerClassName="aspect-video w-full overflow-hidden rounded-xl border border-border"
+              imgClassName="h-full w-full object-cover"
+            />
           )}
         </header>
 

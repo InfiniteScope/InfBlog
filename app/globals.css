@@ -962,3 +962,23 @@ code [data-highlighted-chars] {
   box-shadow: 0 0 0 2px hsl(var(--accent) / 0.15);
 }
 
+
+/* ==========================================================================
+   短高度紧凑档：矮屏（笔记本横屏/分屏）压缩探索主题信息带的纵向节奏
+   （解决"长边较短的横屏"下信息带过于稀疏的问题）
+   ========================================================================== */
+@media (max-height: 780px) and (min-width: 1024px) {
+  .v2-band {
+    padding-top: 2.25rem;
+    padding-bottom: 2.25rem;
+  }
+
+  .v2-band-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  .v2-marquee-band {
+    height: 6rem;
+  }
+}

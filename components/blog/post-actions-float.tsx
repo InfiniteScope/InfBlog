@@ -9,6 +9,7 @@ import { Bookmark, BookmarkCheck, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { BookmarkButton } from "@/components/blog/bookmark-button"
+import { CORNER, CORNER_RIGHT } from "@/components/layout/corner"
 import { POST_STATS_EVENT, type PostStatsPayload } from "@/components/blog/post-stat-badges"
 
 function broadcastStats(payload: Partial<PostStatsPayload>) {
@@ -146,7 +147,7 @@ export function PostActionsFloat({
   if (!mounted || typeof document === "undefined") return null
 
   return createPortal(
-    <div className="fixed bottom-20 right-6 z-40 flex flex-col items-end gap-3">
+    <div className={`fixed ${CORNER.float} ${CORNER_RIGHT} z-40 flex flex-col items-end gap-3`}>
       {/* 未登录收藏提示（按钮左侧气泡） */}
       <AnimatePresence>
         {showLoginHint && (

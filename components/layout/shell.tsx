@@ -10,7 +10,6 @@ import { PageTransition } from "@/components/motion/page-transition"
 import { MusicProvider } from "@/components/music/music-provider"
 import { MusicCollapseController } from "@/components/music/music-collapse-controller"
 import { MusicPlayerOverlay } from "@/components/music/music-player-overlay"
-import { WeatherBar } from "@/components/weather/weather-bar"
 import {
   NavbarExpandButton,
   NavbarVisibilityProvider,
@@ -34,7 +33,6 @@ export async function Shell({ children }: ShellProps) {
         <FlowProvider>
           <MusicCollapseController />
           <NavbarVisibilityProvider>
-            <WeatherBar />
             <NavbarExpandButton />
             <Navbar danmaku={danmaku} posts={posts} unreadCount={unreadCount} />
           </NavbarVisibilityProvider>

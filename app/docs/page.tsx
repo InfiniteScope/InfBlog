@@ -6,6 +6,7 @@ import { getAllDocs } from "@/lib/docs"
 import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/reveal"
 import { PostDates } from "@/components/blog/post-dates"
+import { CoverImage } from "@/components/ui/cover-image"
 
 export const metadata = {
   title: "文库 | InfBlog",
@@ -70,14 +71,12 @@ export default async function DocsPage() {
               <Link href={`/docs/${doc.slug}`} className="group block h-full">
                 <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card/50 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-card hover:shadow-lg hover:shadow-accent/5">
                   {doc.coverImage && (
-                    <div className="aspect-video w-full overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={doc.coverImage}
-                        alt={doc.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
+                    <CoverImage
+                      src={doc.coverImage}
+                      alt={doc.title}
+                      containerClassName="aspect-video w-full overflow-hidden"
+                      imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                   )}
                   <div className="flex flex-1 flex-col gap-3 p-5">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">

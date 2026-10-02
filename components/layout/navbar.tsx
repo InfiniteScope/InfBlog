@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Loader2, Menu, User, ChevronUp } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { siteConfig } from "@/lib/config"
 import { cn } from "@/lib/utils"
@@ -46,10 +46,74 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
   const viewport = useAspectRatio()
   const { aspectRatio } = viewport
   const { hidden, collapse } = useNavbarVisibility()
-  // 细长屏幕（比例 + 宽度双条件，与 WeatherBar 一致）：次要功能收起进"更多"
+  // 细长屏幕（比例 + 宽度双条件）：次要功能收起进"更多"
   const wideLayout =
     aspectRatio >= ASPECT_RATIO_THRESHOLD ||
     viewport.width >= DRAWER_BREAKPOINT
+
+  // 顶栏空间实测：天气条保持视觉居中；左右内容侵入中线安全区时收起。
+  // 替代旧的比例阈值猜测（ASPECT_RATIO_THRESHOLD 只决定右侧次要功能折叠）。
+  const headerInnerRef = useRef<HTMLDivElement>(null)
+  const leftGroupRef = useRef<HTMLDivElement>(null)
+  const rightGroupRef = useRef<HTMLDivElement>(null)
+  const weatherRef = useRef<HTMLDivElement>(null)
+  const [weatherFits, setWeatherFits] = useState(true)
+
+  useEffect(() => {
+    const header = headerInnerRef.current
+    if (!header) return
+
+    const measure = () => {
+      const left = leftGroupRef.current
+      const right = rightGroupRef.current
+      const weather = weatherRef.current
+      if (!left || !right || !weather) return
+      if (window.innerWidth < DRAWER_BREAKPOINT) return // 窄屏天气走抽屉
+
+      const headerRect = header.getBoundingClientRect()
+      const hw = weather.offsetWidth
+      const centerLeft = headerRect.width / 2 - hw / 2
+      const centerRight = headerRect.width / 2 + hw / 2
+
+      /* 左右组是 flex-1 弹性盒，盒子会顶到中线——要量的是"内容"的边沿，
+         即左组可见子元素的最右缘、右组可见子元素的最左缘 */
+      const visibleRight = (el: HTMLElement) =>
+        Math.max(
+          0,
+          ...Array.from(el.children)
+            .filter((c) => (c as HTMLElement).offsetWidth > 0)
+            .map((c) => c.getBoundingClientRect().right - headerRect.left)
+        )
+      const visibleLeft = (el: HTMLElement) =>
+        Math.min(
+          Infinity,
+          ...Array.from(el.children)
+            .filter((c) => (c as HTMLElement).offsetWidth > 0)
+            .map((c) => c.getBoundingClientRect().left - headerRect.left)
+        )
+
+      const leftEdge = visibleRight(left)
+      const rightEdge = visibleLeft(right)
+      setWeatherFits(
+        leftEdge <= centerLeft - 12 && rightEdge >= centerRight + 12
+      )
+    }
+
+    measure()
+    const timer = setTimeout(measure, 300) // 等天气数据/字体就位
+    document.fonts?.ready.then(measure).catch(() => {})
+
+    const ro = new ResizeObserver(measure)
+    ro.observe(header)
+    if (leftGroupRef.current) ro.observe(leftGroupRef.current)
+    if (rightGroupRef.current) ro.observe(rightGroupRef.current)
+    if (weatherRef.current) ro.observe(weatherRef.current)
+
+    return () => {
+      clearTimeout(timer)
+      ro.disconnect()
+    }
+  }, [pathname, status, wideLayout])
 
   useEffect(() => {
     const current = window.location.pathname + window.location.search
@@ -68,9 +132,9 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
         hidden && "-translate-y-full"
       )}
     >
-      <div className="relative flex h-14 items-center justify-between px-4 md:px-6">
+      <div ref={headerInnerRef} className="relative flex h-14 items-center justify-between px-4 md:px-6">
         {/* Left: mobile menu + desktop nav */}
-        <div className="flex items-center gap-1 md:flex-1">
+        <div ref={leftGroupRef} className="flex items-center gap-1 md:flex-1">
           <Sheet open={navOpen} onOpenChange={setNavOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden">
@@ -158,7 +222,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1 md:flex-1 md:justify-end">
+        <div ref={rightGroupRef} className="flex items-center gap-1 md:flex-1 md:justify-end">
           <MusicPlayerMini />
           {wideLayout ? (
             <>
@@ -184,6 +248,17 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
               </Link>
             </Button>
           )}
+        </div>
+
+        {/* Center: 天气/时间——视觉居中优先；实测空间不足时收起（淡入淡出） */}
+        <div
+          ref={weatherRef}
+          className={cn(
+            "absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200 lg:block",
+            weatherFits ? "opacity-100" : "invisible opacity-0"
+          )}
+        >
+          <WeatherWidget />
         </div>
       </div>
 

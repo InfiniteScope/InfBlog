@@ -26,6 +26,7 @@ import {
 } from "@/lib/post-stats"
 import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
+import { CoverImage } from "@/components/ui/cover-image"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
 import { ReadingTracker } from "@/components/collectibles/reading-tracker"
 import { ReadingResume } from "@/components/blog/reading-resume"
@@ -159,14 +160,12 @@ export default async function BlogPostPage({ params }: PageProps) {
         </h1>
         <p className="text-lg text-muted-foreground">{post.description}</p>
         {post.coverImage && (
-          <div className="aspect-video w-full overflow-hidden rounded-xl border border-border">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={post.coverImage}
-              alt={post.title}
-              className="h-full w-full object-cover"
-            />
-          </div>
+          <CoverImage
+            src={post.coverImage}
+            alt={post.title}
+            containerClassName="aspect-video w-full overflow-hidden rounded-xl border border-border"
+            imgClassName="h-full w-full object-cover"
+          />
         )}
       </header>
 

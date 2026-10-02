@@ -5,6 +5,7 @@ import { PenLine } from "lucide-react"
 import { useSession } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
+import { CORNER, CORNER_RIGHT } from "@/components/layout/corner"
 
 export function WriteBlogButton() {
   const { data: session } = useSession()
@@ -16,7 +17,7 @@ export function WriteBlogButton() {
   return (
     <Button
       asChild
-      className="fixed right-6 top-16 z-50 h-12 gap-2 rounded-full px-5 shadow-lg"
+      className={`fixed ${CORNER_RIGHT} ${CORNER.write} z-40 h-12 gap-2 rounded-full px-5 shadow-lg`}
     >
       <Link href="/admin/posts/new">
         <PenLine className="h-5 w-5" />

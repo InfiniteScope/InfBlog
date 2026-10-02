@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 
 import { BookmarkButton } from "@/components/blog/bookmark-button"
+import { CORNER, CORNER_RIGHT } from "@/components/layout/corner"
 
 interface DocBookmarkFloatProps {
   slug: string
@@ -18,7 +19,7 @@ export function DocBookmarkFloat({ slug, title }: DocBookmarkFloatProps) {
   if (!mounted || typeof document === "undefined") return null
 
   return createPortal(
-    <div className="fixed bottom-20 right-6 z-40">
+    <div className={`fixed ${CORNER.float} ${CORNER_RIGHT} z-40`}>
       <BookmarkButton type="doc" slug={slug} title={title} />
     </div>,
     document.body

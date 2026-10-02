@@ -5,6 +5,7 @@ import { ArrowUp } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 
 import { Button } from "@/components/ui/button"
+import { CORNER, CORNER_RIGHT } from "@/components/layout/corner"
 
 const SCROLL_THRESHOLD = 480
 
@@ -39,7 +40,7 @@ export function BackToTop() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.9 }}
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-6 right-6 z-40"
+          className={`fixed ${CORNER.backToTop} ${CORNER_RIGHT} z-40`}
         >
           <Button
             variant="outline"
