@@ -45,7 +45,11 @@
 
 ## 当前状态（2026-09-29）
 
-- 最新改动（**已推送 GitHub cb17b1b，未部署服务器**）：响应式四层加固——
+- 最新改动（**已推送 GitHub 674b14f，未部署服务器**）：移动端两处修复——
+  1. **探索主题 MISSION_LOG 双模式**：`updates-strip.tsx` 重写为客户端组件，科技快讯/网站动态 pill 切换 + 2 分钟自动轮换（与经典 TimelineWidget 同策略），快报摘要卡链详情 + 条目卡外链 + 「查看全部快报」尾卡；Scroll 提示并入带内右上角。本地无快报服务时回退网站动态属预期。
+  2. **移动端 hero 尺寸**：`moon-scene.ts` 新增导出 `moonRadiusFor(w,h)=min(0.13, 0.19w/h)`（窄屏按宽度约束月球），hero 场景初始化/resize 均用之；转场引擎估计值与 alignToHero 精调都用同一公式（消除了转场月球与 hero 月球在移动端的尺寸差）；shader 加 `fit=max(1,0.85/aspect)` 窄屏放大纹理采样范围使折射标题收缩；兜底 h1 clamp 下限 4.5rem→3.25rem。
+  - 坑：TDZ——`resize()` 在 `let moonR` 声明之前被调用会崩（"Cannot access before initialization"），状态声明必须先于首次 resize() 调用。
+- 此前：`cb17b1b` 响应式四层加固（天气实测避让/悬浮件锚点/紧凑档/封面兜底，**未部署**）。
   1. **硬伤修复**：RECENT_PROJECTS 项目名 `shrink-0`（不再被描述列挤没）；封面图统一 `components/ui/cover-image.tsx`（onError 整容器隐藏，不再撑出死白盒）；从服务器 scp 补齐缺失封面 `muqn60sd-*.webp`；EARTH_RADIO 标签移到播放器下方；MISSION_LOG 的 Scroll 提示内联到标题旁；FEATURED 标题改 `clamp(2rem,2.4vw+1rem,2.6rem)`。
   2. **顶栏天气实测避让**（替代比例阈值猜测）：天气条内嵌进 navbar 绝对居中，ResizeObserver 实测左右**内容**边沿（注意左右组是 flex-1 弹性盒，必须量子元素而非组盒），空间不足淡出（窄屏走抽屉）；`weather-bar.tsx` 已删，`useAspectRatio` 仅用于右侧折叠（wideLayout）与抽屉天气。
   3. **右下角悬浮件锚点契约** `components/layout/corner.ts`（CORNER.backToTop/float/write 三档 + CORNER_RIGHT），回到顶部/文章操作/文库书签/书写入口（从右上挪回右下角第三档，原设计意图）统一取用，新增悬浮件禁止散落坐标。
