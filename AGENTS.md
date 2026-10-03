@@ -45,8 +45,11 @@
 
 ## 当前状态（2026-09-29）
 
-- 最新改动（**已推送 GitHub c02d6fe，未部署服务器**）：星野提亮增密（用户反馈"看不见几颗"）——程序化星野参数上调：星数 260→350（带内 220/背景 130）、半径 0.4-1.6→0.5-2.0px、基准透明度 0.1-0.65→0.25-0.95、银河光晕 ~1.5×、主角星光晕加亮；真机确认银河带清晰有结构、星点可见且不拥挤。
-- 此前：`dba0bad` 星野改程序化生成（StarfieldCanvas：银河带高斯散布+暗巷+独立闪烁）、`986849a` 镜花水月转场、`45f5f95` hero 融解（均未部署）。
+- 最新改动（**已推送 GitHub 并部署服务器 2026-10-03 验证 200**）：本轮响应式/探索主题大批量上线（`cb17b1b` → `c02d6fe` 全链）——
+  - 部署方式：服务器 git HEAD=`0df8370`（为本地祖先）→ `core.quotepath=false` diff 出 160 个代码文件 tar+scp（**排除 content/data/public/uploads 三项服务器资产**；git 中文路径引号坑已踩）；删除文件 `app/favicon.ico`、`components/weather/weather-bar.tsx` 服务器侧手删。
+  - 服务器侧：`pnpm install --frozen-lockfile`（新依赖）、`prisma migrate deploy`（无待迁移）、build ✓、`pm2 restart infblog` ✓；localhost:3000/公网/探索主题参数/博客页均 200，页面已含 `v2-starfield-canvas`。
+  - 坑：服务器工作区常有大量未提交修改（历次 tar 部署残留），部署前用 sha256 抽查关键文件确认其为历史提交版本而非前向未知版本，再覆盖。
+- 此前：`47df2fc` 星野提亮、`dba0bad` 程序化星野、`986849a` 镜花水月转场、`45f5f95` hero 融解、`674b14f` 移动端修复、`cb17b1b` 响应式四层加固（均已随本次部署上线）。
 - 此前：`986849a` 星海初版+镜花水月转场、`45f5f95` hero 融解、`674b14f` 移动端修复、`cb17b1b` 响应式四层加固（均未部署）。
   1. **硬伤修复**：RECENT_PROJECTS 项目名 `shrink-0`（不再被描述列挤没）；封面图统一 `components/ui/cover-image.tsx`（onError 整容器隐藏，不再撑出死白盒）；从服务器 scp 补齐缺失封面 `muqn60sd-*.webp`；EARTH_RADIO 标签移到播放器下方；MISSION_LOG 的 Scroll 提示内联到标题旁；FEATURED 标题改 `clamp(2rem,2.4vw+1rem,2.6rem)`。
   2. **顶栏天气实测避让**（替代比例阈值猜测）：天气条内嵌进 navbar 绝对居中，ResizeObserver 实测左右**内容**边沿（注意左右组是 flex-1 弹性盒，必须量子元素而非组盒），空间不足淡出（窄屏走抽屉）；`weather-bar.tsx` 已删，`useAspectRatio` 仅用于右侧折叠（wideLayout）与抽屉天气。
