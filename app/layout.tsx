@@ -26,6 +26,7 @@ import { TimePrecisionProvider } from "@/components/time/time-precision-provider
 import { LoginReturnTracker } from "@/components/login-return-tracker"
 import { ViewsTracker } from "@/components/views-tracker"
 import { CollectibleReveal } from "@/components/collectibles/collectible-reveal"
+import { StarfieldCanvas } from "@/components/theme/starfield-canvas"
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_SITE_TITLE || "InfBlog",
@@ -69,6 +70,8 @@ export default function RootLayout({
                 <Background />
                 {/* v2 蓝图网格纹理（legacy/flow 模式下自动隐藏） */}
                 <div className="v2-grid" aria-hidden />
+                {/* 探索主题程序化星野（银河带+独立闪烁，深色/非经典/非心流时显示） */}
+                <StarfieldCanvas />
                 <Shell>{children}</Shell>
               </TimePrecisionProvider>
             </BackgroundProvider>
