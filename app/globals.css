@@ -998,84 +998,112 @@ code [data-highlighted-chars] {
   background: linear-gradient(to bottom, #000 52%, transparent 100%);
 }
 
-/* 星野：三层结构——星云微光 + 两层错相星点（::before 呼吸层制造明灭）。
-   亮星成对出现（实点 + 大圈微晕），亮度/尺寸/色相有梯度，告别均匀撒点。 */
+/* 星野：银河带 + 三层星（带内尘埃 / 中星含色温 / 主角衍射芒星）。
+   亮星极少、暗区极大——稀疏而有结构，才是真实星海。 */
 .dark .v2-grid {
   background-image:
-    /* 星云微光（极淡的靛/青/暖三块，给星野纵深） */
-    radial-gradient(42rem 30rem at 18% 22%, hsl(var(--accent) / 0.05), transparent 70%),
-    radial-gradient(36rem 26rem at 84% 10%, hsl(232 60% 60% / 0.045), transparent 70%),
-    radial-gradient(40rem 30rem at 68% 80%, hsl(330 40% 55% / 0.028), transparent 70%),
-    /* 亮星 + 微晕 */
-    radial-gradient(1.5px 1.5px at 12% 16%, hsl(var(--foreground) / 0.8), transparent),
-    radial-gradient(7px 7px at 12% 16%, hsl(var(--foreground) / 0.1), transparent),
-    radial-gradient(2px 2px at 67% 9%, hsl(var(--accent) / 0.85), transparent),
-    radial-gradient(8px 8px at 67% 9%, hsl(var(--accent) / 0.14), transparent),
-    radial-gradient(1.5px 1.5px at 88% 34%, hsl(var(--foreground) / 0.7), transparent),
-    radial-gradient(6px 6px at 88% 34%, hsl(var(--foreground) / 0.09), transparent),
-    radial-gradient(2px 2px at 31% 52%, hsl(var(--foreground) / 0.65), transparent),
-    radial-gradient(7px 7px at 31% 52%, hsl(var(--foreground) / 0.1), transparent),
-    radial-gradient(1.5px 1.5px at 47% 88%, hsl(var(--accent) / 0.7), transparent),
-    radial-gradient(6px 6px at 47% 88%, hsl(var(--accent) / 0.1), transparent),
-    /* 中小星群 */
-    radial-gradient(1px 1px at 6% 42%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1px 1px at 18% 71%, hsl(var(--foreground) / 0.42), transparent),
-    radial-gradient(1.5px 1.5px at 24% 8%, hsl(var(--foreground) / 0.55), transparent),
-    radial-gradient(1px 1px at 38% 26%, hsl(var(--foreground) / 0.38), transparent),
-    radial-gradient(1px 1px at 52% 14%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 58% 64%, hsl(var(--foreground) / 0.45), transparent),
-    radial-gradient(1px 1px at 72% 44%, hsl(var(--foreground) / 0.4), transparent),
-    radial-gradient(1px 1px at 79% 68%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 92% 58%, hsl(var(--foreground) / 0.55), transparent),
-    radial-gradient(1px 1px at 95% 84%, hsl(var(--foreground) / 0.35), transparent),
-    radial-gradient(1px 1px at 41% 68%, hsl(var(--foreground) / 0.45), transparent),
-    radial-gradient(1px 1px at 21% 90%, hsl(var(--foreground) / 0.4), transparent),
-    radial-gradient(1.5px 1.5px at 8% 84%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1px 1px at 63% 94%, hsl(var(--foreground) / 0.42), transparent),
-    radial-gradient(1px 1px at 84% 92%, hsl(var(--foreground) / 0.45), transparent),
-    radial-gradient(1px 1px at 97% 12%, hsl(var(--foreground) / 0.4), transparent),
-    radial-gradient(1px 1px at 44% 4%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 76% 26%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1px 1px at 55% 38%, hsl(var(--foreground) / 0.35), transparent),
-    radial-gradient(1px 1px at 27% 36%, hsl(var(--foreground) / 0.4), transparent);
+    /* 银河带：斜跨的连续微光（蓝白，软边） */
+    radial-gradient(46rem 9rem at 22% 72%, hsl(212 60% 75% / 0.06), transparent 70%),
+    radial-gradient(44rem 8rem at 46% 52%, hsl(215 55% 78% / 0.07), transparent 70%),
+    radial-gradient(42rem 7rem at 70% 30%, hsl(210 60% 80% / 0.06), transparent 70%),
+    radial-gradient(34rem 6rem at 88% 12%, hsl(215 55% 78% / 0.05), transparent 70%),
+    /* 带内尘埃星（细密、极暗） */
+    radial-gradient(1px 1px at 12% 88%, hsl(var(--foreground) / 0.32), transparent),
+    radial-gradient(1px 1px at 18% 80%, hsl(var(--foreground) / 0.26), transparent),
+    radial-gradient(1px 1px at 24% 72%, hsl(var(--foreground) / 0.34), transparent),
+    radial-gradient(1px 1px at 29% 67%, hsl(var(--foreground) / 0.24), transparent),
+    radial-gradient(1px 1px at 35% 61%, hsl(var(--foreground) / 0.3), transparent),
+    radial-gradient(1px 1px at 40% 56%, hsl(var(--foreground) / 0.26), transparent),
+    radial-gradient(1px 1px at 45% 50%, hsl(var(--foreground) / 0.34), transparent),
+    radial-gradient(1px 1px at 50% 46%, hsl(var(--foreground) / 0.26), transparent),
+    radial-gradient(1px 1px at 55% 42%, hsl(var(--foreground) / 0.3), transparent),
+    radial-gradient(1px 1px at 60% 37%, hsl(var(--foreground) / 0.24), transparent),
+    radial-gradient(1px 1px at 65% 32%, hsl(var(--foreground) / 0.3), transparent),
+    radial-gradient(1px 1px at 70% 27%, hsl(var(--foreground) / 0.26), transparent),
+    radial-gradient(1px 1px at 76% 22%, hsl(var(--foreground) / 0.32), transparent),
+    radial-gradient(1px 1px at 81% 17%, hsl(var(--foreground) / 0.26), transparent),
+    radial-gradient(1px 1px at 87% 12%, hsl(var(--foreground) / 0.3), transparent),
+    radial-gradient(1px 1px at 92% 8%, hsl(var(--foreground) / 0.24), transparent),
+    /* 带外散星（中等亮度，含色温：白 / 暖黄 / 橙 / 蓝） */
+    radial-gradient(1.5px 1.5px at 8% 30%, hsl(var(--foreground) / 0.55), transparent),
+    radial-gradient(1px 1px at 15% 48%, hsl(var(--foreground) / 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 25% 20%, hsl(40 70% 85% / 0.55), transparent),
+    radial-gradient(1px 1px at 33% 88%, hsl(var(--foreground) / 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 45% 12%, hsl(210 80% 86% / 0.6), transparent),
+    radial-gradient(1px 1px at 52% 82%, hsl(var(--foreground) / 0.45), transparent),
+    radial-gradient(1px 1px at 60% 68%, hsl(var(--foreground) / 0.42), transparent),
+    radial-gradient(1.5px 1.5px at 70% 55%, hsl(var(--foreground) / 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 78% 90%, hsl(25 70% 72% / 0.5), transparent),
+    radial-gradient(1px 1px at 88% 60%, hsl(var(--foreground) / 0.42), transparent),
+    radial-gradient(1.5px 1.5px at 93% 34%, hsl(var(--foreground) / 0.5), transparent),
+    radial-gradient(1px 1px at 5% 70%, hsl(var(--foreground) / 0.4), transparent);
 }
 
-/* 呼吸层：另一组错相星点，6s 缓慢明灭，星野开始"活" */
+/* 碎闪层 A（7s 周期）：另一组星各自明灭——闪星是"各自的"，不是全场呼吸 */
 .dark .v2-grid::before {
   content: "";
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(1.5px 1.5px at 16% 30%, hsl(var(--foreground) / 0.6), transparent),
-    radial-gradient(1px 1px at 35% 12%, hsl(var(--foreground) / 0.45), transparent),
-    radial-gradient(1px 1px at 49% 58%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 61% 30%, hsl(var(--accent) / 0.6), transparent),
-    radial-gradient(1px 1px at 74% 84%, hsl(var(--foreground) / 0.45), transparent),
-    radial-gradient(1px 1px at 90% 46%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 4% 60%, hsl(var(--foreground) / 0.55), transparent),
-    radial-gradient(1px 1px at 29% 62%, hsl(var(--foreground) / 0.4), transparent),
-    radial-gradient(1px 1px at 68% 6%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 82% 52%, hsl(var(--foreground) / 0.5), transparent),
-    radial-gradient(1px 1px at 11% 54%, hsl(var(--foreground) / 0.42), transparent),
-    radial-gradient(1px 1px at 57% 76%, hsl(var(--foreground) / 0.45), transparent),
-    radial-gradient(1px 1px at 39% 94%, hsl(var(--foreground) / 0.4), transparent),
-    radial-gradient(1.5px 1.5px at 94% 72%, hsl(var(--accent) / 0.55), transparent);
-  animation: star-twinkle 6s ease-in-out infinite;
+    radial-gradient(1.5px 1.5px at 14% 38%, hsl(var(--foreground) / 0.55), transparent),
+    radial-gradient(1px 1px at 27% 10%, hsl(var(--foreground) / 0.45), transparent),
+    radial-gradient(1px 1px at 39% 34%, hsl(var(--foreground) / 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 54% 88%, hsl(var(--foreground) / 0.55), transparent),
+    radial-gradient(1px 1px at 63% 8%, hsl(var(--foreground) / 0.45), transparent),
+    radial-gradient(1px 1px at 74% 62%, hsl(var(--foreground) / 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 85% 80%, hsl(var(--accent) / 0.6), transparent),
+    radial-gradient(1px 1px at 96% 52%, hsl(var(--foreground) / 0.42), transparent);
+  animation: star-twinkle-a 7s ease-in-out infinite;
 }
 
-@keyframes star-twinkle {
+/* 主角星层（11s 错相）：3 颗带光晕与十字衍射芒的亮星（SVG 内联）+ 碎闪子集 B */
+.dark .v2-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0%25' stop-color='%23fff'/%3E%3Cstop offset='30%25' stop-color='%23fff' stop-opacity='.85'/%3E%3Cstop offset='55%25' stop-color='%23fff' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect x='13.75' y='1' width='.5' height='26' fill='%23fff' fill-opacity='.5'/%3E%3Crect x='1' y='13.75' width='26' height='.5' fill='%23fff' fill-opacity='.5'/%3E%3Ccircle cx='14' cy='14' r='14' fill='url(%23g)'/%3E%3C/svg%3E") 46% 48% / 28px 28px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0%25' stop-color='%23cfeef8'/%3E%3Cstop offset='30%25' stop-color='%23cfeef8' stop-opacity='.85'/%3E%3Cstop offset='55%25' stop-color='%23cfeef8' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23cfeef8' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect x='10.75' y='1' width='.5' height='20' fill='%23fff' fill-opacity='.45'/%3E%3Crect x='1' y='10.75' width='20' height='.5' fill='%23fff' fill-opacity='.45'/%3E%3Ccircle cx='11' cy='11' r='11' fill='url(%23g)'/%3E%3C/svg%3E") 70% 22% / 22px 22px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0%25' stop-color='%23fff'/%3E%3Cstop offset='30%25' stop-color='%23fff' stop-opacity='.85'/%3E%3Cstop offset='55%25' stop-color='%23fff' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect x='9.75' y='1' width='.5' height='18' fill='%23fff' fill-opacity='.45'/%3E%3Crect x='1' y='9.75' width='18' height='.5' fill='%23fff' fill-opacity='.45'/%3E%3Ccircle cx='10' cy='10' r='10' fill='url(%23g)'/%3E%3C/svg%3E") 18% 76% / 20px 20px no-repeat,
+    radial-gradient(1px 1px at 21% 42%, hsl(var(--foreground) / 0.45), transparent),
+    radial-gradient(1px 1px at 57% 24%, hsl(var(--foreground) / 0.5), transparent),
+    radial-gradient(1px 1px at 66% 76%, hsl(var(--foreground) / 0.42), transparent),
+    radial-gradient(1px 1px at 83% 44%, hsl(var(--foreground) / 0.48), transparent),
+    radial-gradient(1px 1px at 36% 74%, hsl(var(--foreground) / 0.4), transparent);
+  animation: star-twinkle-b 11s ease-in-out -4s infinite;
+}
+
+@keyframes star-twinkle-a {
   0%,
   100% {
-    opacity: 0.25;
+    opacity: 0.3;
   }
   50% {
     opacity: 0.75;
   }
 }
 
+@keyframes star-twinkle-b {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .dark .v2-grid::before {
+  .dark .v2-grid::before,
+  .dark .v2-grid::after {
     animation: none;
+  }
+
+  .dark .v2-grid::before {
     opacity: 0.5;
+  }
+
+  .dark .v2-grid::after {
+    opacity: 0.75;
   }
 }
