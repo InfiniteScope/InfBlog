@@ -43,14 +43,14 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 
-## 当前状态（2026-09-29）
+## 当前状态（2026-10-03）
 
-- 最新改动（**已推送 GitHub 并部署服务器 2026-10-03 验证 200**）：本轮响应式/探索主题大批量上线（`cb17b1b` → `c02d6fe` 全链）——
+- 最新改动（**已推送 GitHub 并部署服务器 2026-10-03 验证 200**）：用户文案调整（`c4e0809`）——关于页「关于我」重写（平台定位 + AIGC 占比声明）、竖排诗行「向月之暗面致意→向遥不可及致意」、外观设置主题/背景描述微调；typecheck 过，3 文件 tar+scp 部署，build ✓，localhost 与 /about 均 200。
+- 此前：同日全量部署（`cb17b1b` → `c02d6fe` 响应式+探索主题全链，160 文件 tar+scp）。
   - 部署方式：服务器 git HEAD=`0df8370`（为本地祖先）→ `core.quotepath=false` diff 出 160 个代码文件 tar+scp（**排除 content/data/public/uploads 三项服务器资产**；git 中文路径引号坑已踩）；删除文件 `app/favicon.ico`、`components/weather/weather-bar.tsx` 服务器侧手删。
   - 服务器侧：`pnpm install --frozen-lockfile`（新依赖）、`prisma migrate deploy`（无待迁移）、build ✓、`pm2 restart infblog` ✓；localhost:3000/公网/探索主题参数/博客页均 200，页面已含 `v2-starfield-canvas`。
   - 坑：服务器工作区常有大量未提交修改（历次 tar 部署残留），部署前用 sha256 抽查关键文件确认其为历史提交版本而非前向未知版本，再覆盖。
 - 此前：`47df2fc` 星野提亮、`dba0bad` 程序化星野、`986849a` 镜花水月转场、`45f5f95` hero 融解、`674b14f` 移动端修复、`cb17b1b` 响应式四层加固（均已随本次部署上线）。
-- 此前：`986849a` 星海初版+镜花水月转场、`45f5f95` hero 融解、`674b14f` 移动端修复、`cb17b1b` 响应式四层加固（均未部署）。
   1. **硬伤修复**：RECENT_PROJECTS 项目名 `shrink-0`（不再被描述列挤没）；封面图统一 `components/ui/cover-image.tsx`（onError 整容器隐藏，不再撑出死白盒）；从服务器 scp 补齐缺失封面 `muqn60sd-*.webp`；EARTH_RADIO 标签移到播放器下方；MISSION_LOG 的 Scroll 提示内联到标题旁；FEATURED 标题改 `clamp(2rem,2.4vw+1rem,2.6rem)`。
   2. **顶栏天气实测避让**（替代比例阈值猜测）：天气条内嵌进 navbar 绝对居中，ResizeObserver 实测左右**内容**边沿（注意左右组是 flex-1 弹性盒，必须量子元素而非组盒），空间不足淡出（窄屏走抽屉）；`weather-bar.tsx` 已删，`useAspectRatio` 仅用于右侧折叠（wideLayout）与抽屉天气。
   3. **右下角悬浮件锚点契约** `components/layout/corner.ts`（CORNER.backToTop/float/write 三档 + CORNER_RIGHT），回到顶部/文章操作/文库书签/书写入口（从右上挪回右下角第三档，原设计意图）统一取用，新增悬浮件禁止散落坐标。
