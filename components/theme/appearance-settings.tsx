@@ -23,12 +23,12 @@ const uiThemeOptions: { value: UiTheme; label: string; description: string }[] =
     {
       value: "classic",
       label: "经典",
-      description: "朴素温润的默认界面",
+      description: "朴素温润，孕育思考",
     },
     {
       value: "explore",
       label: "探索",
-      description: "月之暗面：抽象、工业、向未知致意",
+      description: "抽象实验，致意未知",
     },
   ]
 
@@ -45,7 +45,7 @@ const backgroundOptions: {
   {
     value: "particles",
     label: "粒子连线",
-    description: "仿博客园的流动粒子网络",
+    description: "流动粒子网络",
   },
   {
     value: "blobs",

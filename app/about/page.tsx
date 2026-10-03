@@ -20,12 +20,13 @@ export default function AboutPage() {
       <section className="v2-card space-y-4 p-6">
         <h2 className="font-display text-2xl tracking-tight">关于我</h2>
         <p className="leading-7 text-muted-foreground">
-          你好，我是 {siteConfig.realName}。这是一个正在建设中的个人博客，
-          用于记录技术学习、设计思考与生活随笔。
+          你好，我是 {siteConfig.nickname}，欢迎访问我的博客。
+          <br></br>
+          这是一个分享、讨论、记录的平台，也是一个留给我自己的坐标；聊聊技术、生活，以及一起见证 AI 冲击下世界的变迁。
         </p>
         <p className="leading-7 text-muted-foreground">
-          站点目前采用 Next.js App Router + Tailwind CSS + shadcn/ui 构建，
-          数据库使用 Prisma + SQLite，内容通过 MDX 管理。
+          本站博客内容保证 AIGC 占比少于 20%（文库与部分转载内容由于来自外链，并不保证 AIGC 比例）。
+          期待真诚的分享交流能创造更多乐趣、留下更多意义。
         </p>
       </section>
 

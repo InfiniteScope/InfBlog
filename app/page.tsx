@@ -105,7 +105,7 @@ export default async function HomePage() {
           className="v2-only absolute -left-12 top-[34vh] hidden font-mono text-[10px] tracking-[0.5em] text-muted-foreground/50 min-[1500px]:block"
           style={{ writingMode: "vertical-rl" }}
         >
-          向月之暗面致意 · TO THE FAR SIDE
+          向遥不可及致意 · TO THE FAR SIDE
         </p>
 
         {/* 00 // 门户：月之暗面。hero 为 WebGL「月之暗面」场景
