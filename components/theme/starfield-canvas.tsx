@@ -101,8 +101,8 @@ export function StarfieldCanvas() {
       const mkStar = (x: number, y: number, boost = 1): Star => ({
         x,
         y,
-        r: 0.4 + Math.pow(rng(), 3) * 1.2 * boost,
-        baseA: Math.min((0.1 + Math.pow(rng(), 2) * 0.55) * boost, 0.85),
+        r: 0.5 + Math.pow(rng(), 3) * 1.5 * boost,
+        baseA: Math.min((0.25 + Math.pow(rng(), 2) * 0.6) * boost, 0.95),
         color: pickColor(),
         period: 4 + rng() * 10,
         phase: rng() * Math.PI * 2,
@@ -111,7 +111,7 @@ export function StarfieldCanvas() {
 
       stars = []
       /* 带内尘埃：沿轴均匀取 s，侧向高斯散布，宽度结点式起伏 */
-      for (let i = 0; i < 170; i++) {
+      for (let i = 0; i < 220; i++) {
         const s = rng()
         const knot = 0.5 + 0.9 * Math.abs(Math.sin(s * 9.3 + 1.7) * Math.sin(s * 4.1 + 0.4))
         const lat = gauss() * base * 0.05 * knot
@@ -121,7 +121,7 @@ export function StarfieldCanvas() {
         stars.push(mkStar(x, y, 1))
       }
       /* 背景散星：全屏泊松（允许少量落在带内，自然如此） */
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < 130; i++) {
         stars.push(mkStar(rng() * W, rng() * H, 0.9))
       }
 
@@ -159,7 +159,7 @@ export function StarfieldCanvas() {
           rx: base * (0.09 + rng() * 0.07) * knotA,
           ry: base * (0.018 + rng() * 0.02) * knotA,
           rot: bandRot,
-          a: (0.028 + rng() * 0.03) * knotA,
+          a: (0.042 + rng() * 0.04) * knotA,
         })
       }
 
@@ -223,8 +223,8 @@ export function StarfieldCanvas() {
       for (const h of heroes) {
         const tw = 0.85 + 0.15 * Math.sin(t * 1.3 + h.x)
         const glow = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, h.r * 6)
-        glow.addColorStop(0, `${h.color}${0.5 * tw})`)
-        glow.addColorStop(0.35, `${h.color}${0.12 * tw})`)
+        glow.addColorStop(0, `${h.color}${0.6 * tw})`)
+        glow.addColorStop(0.35, `${h.color}${0.15 * tw})`)
         glow.addColorStop(1, `${h.color}0)`)
         ctx.fillStyle = glow
         ctx.beginPath()
