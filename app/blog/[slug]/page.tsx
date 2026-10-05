@@ -17,6 +17,7 @@ import { rehypeStyleObject } from "@/lib/rehype-style-object"
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
 import { normalizeMdxSource } from "@/lib/mdx-normalize"
+import { stripMarkdown } from "@/lib/mdx-inline"
 import { extractHeadings } from "@/lib/headings"
 import {
   getPostStats,
@@ -27,6 +28,7 @@ import {
 import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
 import { CoverImage } from "@/components/ui/cover-image"
+import { MdxInline } from "@/components/ui/mdx-inline"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
 import { ReadingTracker } from "@/components/collectibles/reading-tracker"
 import { ReadingResume } from "@/components/blog/reading-resume"
@@ -54,7 +56,8 @@ export async function generateMetadata({ params }: PageProps) {
     const post = await getPostBySlug(slug)
     return {
       title: `${post.title} | InfBlog`,
-      description: post.description,
+      // 简介支持内联 Markdown：meta 里必须是纯文本，否则搜索结果会出现 ** 与 () 残渣
+      description: stripMarkdown(post.description),
       other: {
         "article:published_time": post.date,
         ...(post.updatedAt
@@ -158,7 +161,10 @@ export default async function BlogPostPage({ params }: PageProps) {
         <h1 className="font-display text-3xl tracking-tight md:text-4xl">
           {post.title}
         </h1>
-        <p className="text-lg text-muted-foreground">{post.description}</p>
+        <MdxInline
+          text={post.description}
+          className="text-lg text-muted-foreground"
+        />
         {post.coverImage && (
           <CoverImage
             src={post.coverImage}

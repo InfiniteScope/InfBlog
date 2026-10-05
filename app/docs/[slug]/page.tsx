@@ -10,6 +10,7 @@ import rehypePrettyCode from "rehype-pretty-code"
 import { auth } from "@/auth"
 import { getDocBySlug, getDocSlugs } from "@/lib/docs"
 import { normalizeMdxSource } from "@/lib/mdx-normalize"
+import { stripMarkdown } from "@/lib/mdx-inline"
 import { extractHeadings } from "@/lib/headings"
 import { rehypeStyleObject } from "@/lib/rehype-style-object"
 import { mdxComponents } from "@/components/mdx-components"
@@ -20,6 +21,7 @@ import { DocBookmarkFloat } from "@/components/blog/bookmark-float"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
 import { Button } from "@/components/ui/button"
 import { CoverImage } from "@/components/ui/cover-image"
+import { MdxInline } from "@/components/ui/mdx-inline"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -39,7 +41,7 @@ export async function generateMetadata({ params }: PageProps) {
     const doc = await getDocBySlug(slug)
     return {
       title: `${doc.title} | 文库 | InfBlog`,
-      description: doc.description,
+      description: stripMarkdown(doc.description),
     }
   } catch {
     return { title: "档案未找到 | InfBlog" }
@@ -112,7 +114,10 @@ export default async function DocDetailPage({ params }: PageProps) {
           <h1 className="font-display text-3xl tracking-tight md:text-4xl">
             {doc.title}
           </h1>
-          <p className="text-lg text-muted-foreground">{doc.description}</p>
+          <MdxInline
+            text={doc.description}
+            className="text-lg text-muted-foreground"
+          />
           {doc.coverImage && (
             <CoverImage
               src={doc.coverImage}

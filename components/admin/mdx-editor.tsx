@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { MdxInline } from "@/components/ui/mdx-inline"
+import { hasInlineMarkdown } from "@/lib/mdx-inline"
 
 interface MdxEditorProps {
   title: string
@@ -142,7 +144,12 @@ export function MdxEditor({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">描述</Label>
+        <div className="flex items-baseline justify-between gap-3">
+          <Label htmlFor="description">描述</Label>
+          <span className="font-mono text-[10px] text-muted-foreground">
+            支持内联 Markdown：**粗体** · `代码` · [链接](url) · ~~删除线~~
+          </span>
+        </div>
         <Input
           id="description"
           name="description"
@@ -150,6 +157,20 @@ export function MdxEditor({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="文章简介，会显示在列表中"
         />
+        {/* 实时预览：列表里实际渲染的样子（列表本身有 line-clamp 截断，这里给两行） */}
+        <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-2">
+          <p className="mb-1 font-mono text-[10px] text-muted-foreground">
+            // 预览{hasInlineMarkdown(description) ? "（已识别 Markdown 标记）" : ""}
+          </p>
+          {description.trim() ? (
+            <MdxInline
+              text={description}
+              className="text-xs leading-relaxed text-muted-foreground"
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground/60">（暂无描述）</p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">

@@ -43,6 +43,16 @@
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 - **提交入口限流**：`lib/rate-limit.ts` 的 `createWaitLimiter`（等待式限流，返回 `retryAfterMs` 供 UI 倒计时；窗口内静默超时自动清零）与 `createRateLimiter`（次数式，新增 `retryAfterMs/clear`）。弹幕 `miniFree=3 / 3s / 5min`、留言墙 `2 / 15s / 5min`（均按 IP+UA 指纹 visitorKey）；资源评论 `3 / 10s / 5min`（按 userId，已有登录门禁）；注册 `3 次/10min`、登录 `6 次/1min`（按 IP，走 `clientIpFromHeaders(await headers())`，成功后 `clear` 清零）。限流态只由客户端倒计时负责显示，倒计时结束提示必须一起消失（不能回落到 `state.error`）。
+- **简介支持内联 Markdown**：`lib/mdx-inline.ts`（纯函数 `parseInline`/`stripMarkdown`/`hasInlineMarkdown`）+ `components/ui/mdx-inline.tsx`（`MdxInline`/`MdxInlineSpan`；无 `"use client"`、无 `dangerouslySetInnerHTML`）。支持 `**粗体**`、`*斜体*`、行内代码、`~~删除线~~`、`[链接](url)`、换行；块级语法不支持。接入 7 处渲染（首页 FEATURED/文章行、`/blog` 双主题、文章详情、`/docs` 列表、文库详情）；**meta description 与 `/feed.xml` 必须走 `stripMarkdown()`**（否则搜索结果/RSS 会露出 `**` 与 `()`）。编辑器「描述」框带语法提示 + 实时预览。**`MdxInline` 自身就是 `<p>`，不要再套 `<p>`**（非法嵌套）；链接协议白名单只放行 `http(s)/mailto/tel//#`，其余整段按字面显示。
+
+## 当前状态（2026-10-06）
+
+- 最新改动（**仅本地，未部署**）：博客/文库简介支持内联 Markdown——
+  1. 新增 `lib/mdx-inline.ts` + `components/ui/mdx-inline.tsx`：单遍扫描解析（优先级 行内代码 > 链接/图片 > 粗体 > 斜体 > 删除线），渲染成 React 元素而非 HTML 字符串 → 坏语法按字面显示、无 XSS 面；**未用 `react-markdown`**（它会给资源页塞 110KB/305KB 客户端 chunk），本组件是纯函数、服务端与客户端通吃。
+  2. 接入 7 处：`app/page.tsx`（FEATURED + 经典列表）、`app/blog/page.tsx`（探索 + 经典）、`app/blog/[slug]/page.tsx`、`app/docs/page.tsx`、`app/docs/[slug]/page.tsx`；两个详情页的 `generateMetadata` 与 `app/feed.xml/route.ts` 改用 `stripMarkdown()` 降级纯文本。
+  3. `components/admin/mdx-editor.tsx` 的「描述」输入框加语法提示 + 实时预览（命中标记时标注「已识别 Markdown 标记」）。简介 zod 上限保持 500 字不变。
+  - 验收：`lib/mdx-inline.ts` **24 项断言全过**（含未闭合标记按字面、`javascript:`/`data:` 协议拦截、原始 HTML 剥除、真实语料回归）；预览页 Chrome 截图确认粗体/代码/删除线/链接/换行/坏语法/XSS 样例渲染正确，`/blog` 列表截图无回归；typecheck ✓ / build ✓（52/52，删 `.next` 全量重建亦过）；`content/` 未改动。
+  - 坑：删掉临时预览路由后 `.next/types/validator.ts` 仍引用旧路径 → typecheck 报 `TS2307 Cannot find module '../../app/preview-desc/page.js'`，删 `.next` 重建即可（与 Turbopack 缓存损坏同类）。
 
 ## 当前状态（2026-10-05）
 

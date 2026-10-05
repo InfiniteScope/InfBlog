@@ -42,7 +42,8 @@ data/blog.db
 *.bak
 *.orig
 .idea/
-.vscode/*.local
+# 编辑器本地配置一律不入库（VS Code 扩展会自动写入 settings.json，如 Comment Translate）
+.vscode/
 
 # local dev logs & prompt history
 /tmp-*

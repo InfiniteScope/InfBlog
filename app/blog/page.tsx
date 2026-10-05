@@ -12,6 +12,7 @@ import { PostSortControl } from "@/components/blog/post-sort-control"
 import { BlogTagFilter } from "@/components/blog/blog-tag-filter"
 import { PostDates } from "@/components/blog/post-dates"
 import { CoverImage } from "@/components/ui/cover-image"
+import { MdxInline } from "@/components/ui/mdx-inline"
 
 export const metadata = {
   title: "博客 | InfBlog",
@@ -127,9 +128,10 @@ export default async function BlogPage({ searchParams }: PageProps) {
                     <h2 className="font-display text-xl tracking-tight transition-colors group-hover:text-accent">
                       {post.title}
                     </h2>
-                    <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
-                      {post.description}
-                    </p>
+                    <MdxInline
+                      text={post.description}
+                      className="text-sm leading-relaxed text-muted-foreground line-clamp-2"
+                    />
                     <div className="font-mono text-[10px] tracking-wide text-muted-foreground/70">
                       {(post.wordCount ?? 0).toLocaleString("zh-CN")} 字
                       {" / "}
@@ -208,9 +210,10 @@ export default async function BlogPage({ searchParams }: PageProps) {
                       <h2 className="font-display text-xl tracking-tight transition-colors group-hover:text-primary">
                         {post.title}
                       </h2>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {post.description}
-                      </p>
+                      <MdxInline
+                        text={post.description}
+                        className="text-sm text-muted-foreground line-clamp-2"
+                      />
                       <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] text-muted-foreground">
                         <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
                           <Type className="h-3 w-3" />

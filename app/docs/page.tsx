@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/reveal"
 import { PostDates } from "@/components/blog/post-dates"
 import { CoverImage } from "@/components/ui/cover-image"
+import { MdxInline } from "@/components/ui/mdx-inline"
 
 export const metadata = {
   title: "文库 | InfBlog",
@@ -106,9 +107,10 @@ export default async function DocsPage() {
                     <h2 className="font-display text-xl tracking-tight transition-colors group-hover:text-accent">
                       {doc.title}
                     </h2>
-                    <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
-                      {doc.description}
-                    </p>
+                    <MdxInline
+                      text={doc.description}
+                      className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-2"
+                    />
                     <div className="font-mono text-[10px] tracking-wide text-muted-foreground/70">
                       {(doc.wordCount ?? 0).toLocaleString("zh-CN")} 字
                       {" / "}

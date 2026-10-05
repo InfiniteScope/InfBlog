@@ -7,6 +7,7 @@ import remarkRehype from "remark-rehype"
 import { toHtml } from "hast-util-to-html"
 
 import { getAllPosts } from "@/lib/mdx"
+import { stripMarkdown } from "@/lib/mdx-inline"
 
 export const dynamic = "force-static"
 
@@ -59,7 +60,7 @@ export async function GET() {
           `      <link>${url}</link>`,
           `      <guid isPermaLink="true">${url}</guid>`,
           `      <pubDate>${new Date(post.date).toUTCString()}</pubDate>`,
-          `      <description>${escapeXml(post.description)}</description>`,
+          `      <description>${escapeXml(stripMarkdown(post.description))}</description>`,
           `      <content:encoded><![CDATA[${toCdata(html)}]]></content:encoded>`,
           ...post.tags.map(
             (tag) => `      <category>${escapeXml(tag)}</category>`

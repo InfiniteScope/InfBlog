@@ -17,6 +17,7 @@ import { getLatestDigest } from "@/lib/digest"
 import { Button } from "@/components/ui/button"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { CoverImage } from "@/components/ui/cover-image"
+import { MdxInline } from "@/components/ui/mdx-inline"
 import { PostDates } from "@/components/blog/post-dates"
 import { Reveal } from "@/components/motion/reveal"
 import { MusicPlayerExpanded } from "@/components/music/music-player-expanded"
@@ -226,9 +227,10 @@ export default async function HomePage() {
                         <h3 className="font-display text-3xl tracking-tight transition-colors group-hover:text-accent md:text-[clamp(2rem,2.4vw+1rem,2.6rem)]">
                           {featured.title}
                         </h3>
-                        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground line-clamp-3 md:text-base">
-                          {featured.description}
-                        </p>
+                        <MdxInline
+                          text={featured.description}
+                          className="max-w-2xl text-sm leading-relaxed text-muted-foreground line-clamp-3 md:text-base"
+                        />
                         <div className="font-mono text-[10px] tracking-wide text-muted-foreground/70">
                           {(featured.wordCount ?? 0).toLocaleString("zh-CN")} 字
                           {" / "}
@@ -457,9 +459,10 @@ export default async function HomePage() {
                               <h3 className="font-display text-xl tracking-tight transition-colors group-hover:text-primary">
                                 {post.title}
                               </h3>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {post.description}
-                              </p>
+                              <MdxInline
+                                text={post.description}
+                                className="text-sm text-muted-foreground line-clamp-2"
+                              />
                               <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] text-muted-foreground">
                                 <span className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1">
                                   <Type className="h-3 w-3" />
