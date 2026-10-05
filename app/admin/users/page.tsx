@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { UserRoleForm } from "@/components/admin/user-role-form"
+import { formatDate } from "@/lib/format-date"
 
 export const metadata = {
   title: "用户权限管理 | InfBlog",
@@ -35,7 +36,7 @@ export default async function AdminUsersPage() {
             <div className="space-y-1">
               <p className="font-display text-base">{user.name}</p>
               <p className="text-xs text-muted-foreground">
-                注册时间：{user.createdAt.toLocaleDateString("zh-CN")}
+                注册时间：{formatDate(user.createdAt)}
               </p>
             </div>
             <UserRoleForm username={user.name ?? ""} currentRole={user.role} />

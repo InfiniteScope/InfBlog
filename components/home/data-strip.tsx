@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { animate, useInView, useReducedMotion } from "motion/react"
 
 import { LoadingDots } from "@/components/ui/loading-dots"
+import { formatDateTime } from "@/lib/format-date"
 import type { Post } from "@/lib/mdx"
 import type { Update } from "@/lib/updates"
 
@@ -70,9 +71,7 @@ export function DataStrip({ posts, updates }: { posts: Post[]; updates: Update[]
 
   const totalWords = posts.reduce((sum, p) => sum + (p.wordCount || 0), 0)
   const totalImages = posts.reduce((sum, p) => sum + (p.imageCount || 0), 0)
-  const lastUpdate = updates[0]?.date
-    ? new Date(updates[0].date).toLocaleDateString("zh-CN")
-    : "—"
+  const lastUpdate = updates[0]?.date ? formatDateTime(updates[0].date) : "—"
 
   const numbers: { label: string; value: number | undefined }[] = [
     { label: "总浏览量", value: views?.total },

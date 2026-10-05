@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { markAllRead } from "@/app/messages/actions"
 import { Button } from "@/components/ui/button"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 export const metadata = {
   title: "消息 | InfBlog",
@@ -97,7 +98,7 @@ export default async function MessagesPage() {
                   </p>
                   <p className="text-sm leading-relaxed">{notification.message}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(notification.createdAt).toLocaleString("zh-CN")}
+                    {formatDateTimeStrict(notification.createdAt)}
                   </p>
                 </div>
               </div>

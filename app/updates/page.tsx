@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown"
 import { auth } from "@/auth"
 import { getUpdates } from "@/lib/updates"
 import { getLatestDigest } from "@/lib/digest"
+import { formatDateTime } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
 import { DigestView } from "@/components/digest/digest-view"
 import { cn } from "@/lib/utils"
@@ -98,7 +99,7 @@ function SiteTimeline({
           <div className="space-y-2">
             <span className="flex items-center gap-2 text-xs text-muted-foreground">
               <CalendarDays className="h-3.5 w-3.5" />
-              {new Date(update.date).toLocaleDateString("zh-CN")}
+              {formatDateTime(update.date)}
             </span>
             {update.title && (
               <h2 className="font-display text-lg tracking-tight">

@@ -44,10 +44,20 @@
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
 - **提交入口限流**：`lib/rate-limit.ts` 的 `createWaitLimiter`（等待式限流，返回 `retryAfterMs` 供 UI 倒计时；窗口内静默超时自动清零）与 `createRateLimiter`（次数式，新增 `retryAfterMs/clear`）。弹幕 `miniFree=3 / 3s / 5min`、留言墙 `2 / 15s / 5min`（均按 IP+UA 指纹 visitorKey）；资源评论 `3 / 10s / 5min`（按 userId，已有登录门禁）；注册 `3 次/10min`、登录 `6 次/1min`（按 IP，走 `clientIpFromHeaders(await headers())`，成功后 `clear` 清零）。限流态只由客户端倒计时负责显示，倒计时结束提示必须一起消失（不能回落到 `state.error`）。
 - **简介支持内联 Markdown**：`lib/mdx-inline.ts`（纯函数 `parseInline`/`stripMarkdown`/`hasInlineMarkdown`）+ `components/ui/mdx-inline.tsx`（`MdxInline`/`MdxInlineSpan`；无 `"use client"`、无 `dangerouslySetInnerHTML`）。支持 `**粗体**`、`*斜体*`、行内代码、`~~删除线~~`、`[链接](url)`、换行；块级语法不支持。接入 7 处渲染（首页 FEATURED/文章行、`/blog` 双主题、文章详情、`/docs` 列表、文库详情）；**meta description 与 `/feed.xml` 必须走 `stripMarkdown()`**（否则搜索结果/RSS 会露出 `**` 与 `()`）。编辑器「描述」框带语法提示 + 实时预览。**`MdxInline` 自身就是 `<p>`，不要再套 `<p>`**（非法嵌套）；链接协议白名单只放行 `http(s)/mailto/tel//#`，其余整段按字面显示。
+- **日期时间展示**：统一走 `lib/format-date.ts`（**不要再写 `toLocaleDateString`/`toLocaleString` 显示时间**）。固定 `Asia/Shanghai` + 显式 options + 手工去逗号 → 输出恒定 `2026-08-18 18:18`，服务端与客户端一致（避免水合不匹配），且对各地访客显示同一时刻。`formatDateTime`（有真实时间才到分钟，`date: '2026-08-27'` 这类只到日）、`formatDate`（强制到日）、`formatDateTimeStrict`（时间戳类强制到分钟）、`formatMonthDay`、`shouldShowUpdatedAt`（同一分钟或**更新早于发布**时不展示更新时间）、`hasTimePart`。判据：源串含 `T` 且时分秒非全零才算"有真实时间"——因为 `new Date('2026-08-27')` 会被解析成 UTC 午夜，照样格式化就会显示没有意义的 `08:00`。
+- **updatedAt 的 mtime 兜底**：`lib/mdx.ts` / `lib/docs.ts` 里 `data.updatedAt ?? 文件 mtime` 只在 mtime **比发布时间晚 1 小时以上**时采纳。否则每次 scp/复制文件（mtime 被刷新）都会让文章凭空多出"更新时间"，甚至出现"更新早于发布"。**注意：手工编辑 frontmatter 也会刷新 mtime**，所以改动内容时最好显式写上 `updatedAt`（或在后台编辑，action 会写好）。
 
 ## 当前状态（2026-10-06）
 
-- 最新改动（**已推送 GitHub `c599370` 并部署服务器 2026-10-06，线上验证通过**）：博客/文库简介支持内联 Markdown——
+- 最新改动（**仅本地，未提交未部署**）：日期时间展示精确到分钟 + 整站统一——
+  1. 新增 `lib/format-date.ts`：固定 `Asia/Shanghai`、显式 options、输出恒定 `2026-08-18 18:18`（en-CA 的逗号手工去掉）。**替换掉全站 20+ 处 `toLocaleDateString`/`toLocaleString` 时间显示**（`PostDates`、`app/page.tsx` FEATURED、`app/blog/[slug]` 元信息条+sr-only、首页时间线与 stats/data widget、`/updates`、`/docs`、留言卡、资源卡、文库与资源管理页、`/admin/{posts,docs,updates,users,danmaku,resources}`、`/messages`、资源评论、快报、收藏弹层）。
+  2. `shouldShowUpdatedAt`：**同一分钟**或**更新早于发布**（文件 mtime 回退造成的脏数据）时不显示"更新"；`hasTimePart`：`date: '2026-08-27'` 这类只有日期的内容只显示到日，不再显示无意义的 `08:00`。
+  3. 根因修复：`lib/mdx.ts` / `lib/docs.ts` 的 `data.updatedAt ?? 文件 mtime` 改为**只在 mtime 比发布时间晚 1 小时以上才采纳**——否则每次部署 scp 刷新 mtime 都会让文章凭空多出更新时间（`spring-学习笔记02` 曾出现"更新早于发布 647ms"）。
+  4. 内容补全（用户选定）：`formula-test.mdx`（`2026-08-29T08:52:58.000Z`）、`java面试八股.mdx`（`2026-09-23T20:39:42+08:00`）补上时间；`typescript-tutorial.mdx` 的 `date` 是原文（CSDN）发布日期 2025-04-27，时间取 **12:00（占位，需用户确认）**。这三个文件同时补写显式 `updatedAt`（取编辑前的真实 mtime），抵消"改 frontmatter 刷新 mtime"带来的假更新时间。
+  - 验收：typecheck ✓ / build ✓（52/52）；真实页面（Chrome CDP）抓取验证——`/blog` 10 篇卡片、详情页元信息条（`2026-08-18 18:18 更新于 2026-08-24 20:20`）、首页、`/updates` 全部输出 `YYYY-MM-DD HH:mm`；`spring-学习笔记02`/`tarjan` 的假"更新"已消失；毫秒级差异被抑制。
+  - 坑：`DateTimeFormat("en-CA")` 的官方输出是 `2026-08-18, 18:18`（**带逗号**），需 `.replace(",", "")`；`toLocaleDateString` 依赖运行环境 locale，做 UI 输出会有 SSR/CSR 不一致（水合报错）风险，故全部改用显式 options。
+  - 与内容相关：本次改动的 `content/` 文件若部署，会覆盖服务器上较新的同名文件（`spring-学习笔记03` 有用户凌晨的 `updatedAt` 改动、服务器另有「大肥鱼」新文）——**部署前需先与服务器对齐内容**。
+- 此前（**已推送 GitHub `c599370` 并部署服务器 2026-10-06，线上验证通过**）：博客/文库简介支持内联 Markdown——
   1. 新增 `lib/mdx-inline.ts` + `components/ui/mdx-inline.tsx`：单遍扫描解析（优先级 行内代码 > 链接/图片 > 粗体 > 斜体 > 删除线），渲染成 React 元素而非 HTML 字符串 → 坏语法按字面显示、无 XSS 面；**未用 `react-markdown`**（它会给资源页塞 110KB/305KB 客户端 chunk），本组件是纯函数、服务端与客户端通吃。
   2. 接入 7 处：`app/page.tsx`（FEATURED + 经典列表）、`app/blog/page.tsx`（探索 + 经典）、`app/blog/[slug]/page.tsx`、`app/docs/page.tsx`、`app/docs/[slug]/page.tsx`；两个详情页的 `generateMetadata` 与 `app/feed.xml/route.ts` 改用 `stripMarkdown()` 降级纯文本。
   3. `components/admin/mdx-editor.tsx` 的「描述」输入框加语法提示 + 实时预览（命中标记时标注「已识别 Markdown 标记」）。简介 zod 上限保持 500 字不变。

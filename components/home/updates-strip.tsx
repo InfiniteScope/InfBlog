@@ -8,6 +8,7 @@ import { motion } from "motion/react"
 
 import type { Update } from "@/lib/updates"
 import type { Digest } from "@/lib/digest"
+import { formatDateTime } from "@/lib/format-date"
 import { cn } from "@/lib/utils"
 
 const ROTATE_MS = 2 * 60 * 1000
@@ -96,7 +97,7 @@ function SiteUpdatesStrip({ updates }: { updates: Update[] }) {
           className="v2-card flex w-[280px] shrink-0 flex-col gap-2 p-4 sm:w-[320px]"
         >
           <p className="font-mono text-[10px] tracking-wide text-accent">
-            {new Date(update.date).toLocaleDateString("zh-CN")}
+            {formatDateTime(update.date)}
           </p>
           {update.title && (
             <p className="text-sm font-medium leading-snug">{update.title}</p>

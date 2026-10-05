@@ -5,6 +5,7 @@ import { Download, Globe, Pin } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { ResourceWithAuthor } from "@/lib/resources-types"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
   const authorLabel = resource.author?.nickname || resource.author?.name || "匿名"
@@ -97,7 +98,7 @@ export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
           </span>
         )}
         <span className="ml-auto shrink-0 text-[10px]">
-          {new Date(resource.createdAt).toLocaleDateString("zh-CN")}
+          {formatDateTimeStrict(resource.createdAt)}
         </span>
       </div>
     </Link>

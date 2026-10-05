@@ -4,6 +4,7 @@ import { Calendar, Pencil, Trash2 } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getAllPosts } from "@/lib/mdx"
+import { formatDateTime } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
 
@@ -39,7 +40,7 @@ export default async function AdminPostsPage() {
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {new Date(post.date).toLocaleDateString("zh-CN")}
+                    {formatDateTime(post.date)}
                   </span>
                   <span className="truncate">/{post.slug}</span>
                 </div>

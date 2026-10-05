@@ -57,12 +57,23 @@ export async function getDocBySlug(rawSlug: string): Promise<Doc> {
   const stats = await fs.stat(filePath)
   const fileDate = stats.birthtime.toISOString()
   const fileUpdatedAt = stats.mtime.toISOString()
+  const published = data.date ?? fileDate
+
+  /* 与 lib/mdx.ts 同一策略：mtime 只在"明显晚于发布时间"时才作为更新时间兜底，
+     避免部署/复制文件刷新 mtime 后凭空多出一个更新时间。 */
+  const MTIME_FALLBACK_THRESHOLD_MS = 60 * 60 * 1000
+  const updatedAt =
+    data.updatedAt ??
+    (new Date(fileUpdatedAt).getTime() - new Date(published).getTime() >
+    MTIME_FALLBACK_THRESHOLD_MS
+      ? fileUpdatedAt
+      : undefined)
 
   return {
     slug,
     title: data.title ?? slug,
-    date: data.date ?? fileDate,
-    updatedAt: data.updatedAt ?? fileUpdatedAt,
+    date: published,
+    updatedAt,
     description: data.description ?? "",
     source: data.source ?? undefined,
     sourceUrl: data.sourceUrl ?? undefined,

@@ -7,6 +7,7 @@ import { getPendingResources } from "@/lib/resources"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ReviewResourceButtons } from "@/components/admin/review-resource-buttons"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 export const metadata = {
   title: "资源审核 | InfBlog",
@@ -61,7 +62,7 @@ export default async function AdminResourcesPage() {
                     <h3 className="font-medium">{resource.name}</h3>
                     <p className="text-xs text-muted-foreground">
                       提交人：{authorLabel} ·{" "}
-                      {new Date(resource.createdAt).toLocaleString("zh-CN")}
+                      {formatDateTimeStrict(resource.createdAt)}
                     </p>
                     <div className="text-sm leading-relaxed [&_a]:text-primary [&_a]:underline [&_p]:leading-relaxed">
                       <ReactMarkdown>{resource.description}</ReactMarkdown>

@@ -8,6 +8,7 @@ import { ArrowRight, ExternalLink, Newspaper, Sparkles } from "lucide-react"
 
 import type { Update } from "@/lib/updates"
 import type { Digest } from "@/lib/digest"
+import { formatDateTime } from "@/lib/format-date"
 import { cn } from "@/lib/utils"
 
 const ROTATE_MS = 2 * 60 * 1000
@@ -162,7 +163,7 @@ function SiteTimeline({ updates }: { updates: Update[] }) {
 
           <div className="rounded-xl border border-border bg-card/50 p-3 transition-colors hover:border-accent/40 hover:bg-card">
             <p className="mb-1 text-[10px] font-mono text-accent">
-              {new Date(update.date).toLocaleDateString("zh-CN")}
+              {formatDateTime(update.date)}
             </p>
             {update.title && (
               <p className="mb-1 text-sm font-medium leading-snug">

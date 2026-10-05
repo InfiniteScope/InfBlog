@@ -1,6 +1,7 @@
 import { AlertTriangle, ExternalLink, Sunrise, Sunset } from "lucide-react"
 
 import type { Digest } from "@/lib/digest"
+import { formatDateTimeStrict, formatMonthDay } from "@/lib/format-date"
 import { SectionHeading } from "@/components/ui/section-heading"
 
 /**
@@ -25,8 +26,7 @@ export function DigestView({ digest }: { digest: Digest }) {
             {isMorning ? "早报" : "晚报"}
           </span>
           <span className="font-mono text-xs text-muted-foreground">
-            {digest.date} · 生成于{" "}
-            {generatedAt.toLocaleString("zh-CN", { hour12: false })}
+            {digest.date} · 生成于 {formatDateTimeStrict(generatedAt)}
           </span>
           {digest.degraded && (
             <span
@@ -86,10 +86,7 @@ export function DigestView({ digest }: { digest: Digest }) {
                         ))}
                         {item.publishedAt && (
                           <span className="font-mono text-[11px] text-muted-foreground/50">
-                            {new Date(item.publishedAt).toLocaleDateString(
-                              "zh-CN",
-                              { month: "numeric", day: "numeric" }
-                            )}
+                            {formatMonthDay(item.publishedAt)}
                           </span>
                         )}
                       </div>

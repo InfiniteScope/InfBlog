@@ -8,6 +8,7 @@ import {
   deleteGuestbookMessage,
   type GuestbookMessage,
 } from "@/app/guestbook/actions"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 const palettes = [
   "bg-amber-100 text-amber-950 dark:bg-amber-900/60 dark:text-amber-50",
@@ -68,7 +69,7 @@ export function MessageCard({
         </span>
         <span className="flex shrink-0 items-center gap-1 text-[10px] opacity-70">
           <Calendar className="h-3 w-3" />
-          {message.createdAt.toLocaleDateString("zh-CN")}
+          {formatDateTimeStrict(message.createdAt)}
         </span>
       </div>
       <div className="max-h-[200px] overflow-y-auto text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-bold [&_em]:italic [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:py-0.5 dark:[&_code]:bg-white/10 [&_a]:underline [&_a]:underline-offset-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:ml-4 [&_ol]:list-decimal [&_blockquote]:border-l-2 [&_blockquote]:border-current [&_blockquote]:pl-2 [&_blockquote]:opacity-80">

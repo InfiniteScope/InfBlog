@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/auth"
 import { getDanmakuAll } from "@/app/danmaku/actions"
 import { RemoveDanmakuButton } from "@/components/admin/remove-danmaku-button"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 export const metadata = {
   title: "弹幕管理 | InfBlog",
@@ -42,7 +43,7 @@ export default async function AdminDanmakuPage() {
                 </p>
               </div>
               <span className="shrink-0 text-xs text-muted-foreground">
-                {new Date(item.createdAt).toLocaleString("zh-CN")}
+                {formatDateTimeStrict(item.createdAt)}
               </span>
               <RemoveDanmakuButton id={item.id} />
             </div>

@@ -4,6 +4,7 @@ import { CalendarDays, Edit, Plus } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getUpdates } from "@/lib/updates"
+import { formatDateTimeStrict } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
 import { RemoveUpdateButton } from "@/components/admin/remove-update-button"
 
@@ -52,7 +53,7 @@ export default async function UpdatesAdminPage() {
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CalendarDays className="h-3.5 w-3.5" />
-                  {new Date(update.date).toLocaleString("zh-CN")}
+                  {formatDateTimeStrict(update.date)}
                 </div>
                 {update.title ? (
                   <h3 className="font-medium">{update.title}</h3>

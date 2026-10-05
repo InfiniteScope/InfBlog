@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { formatDateTime } from "@/lib/format-date"
 
 interface FavoriteItem {
   slug: string
@@ -179,7 +180,7 @@ export function FavoritesDialog({
                       <p className="truncate text-sm font-medium">{item.title}</p>
                       <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                         <RefreshCw className="h-3 w-3" />
-                        更新于 {new Date(item.updatedAt).toLocaleDateString("zh-CN")}
+                        更新于 {formatDateTime(item.updatedAt)}
                       </p>
                     </div>
                   </Link>

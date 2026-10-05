@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 /** 评论冷却倒计时：由 action 返回的 retryAfterMs 本地计时，归零即恢复 */
 function useCooldown(state: ResourceCommentActionState) {
@@ -160,7 +161,7 @@ export function ResourceComments({
                   <div className="flex items-baseline justify-between gap-2">
                     <p className="text-sm font-medium">{label}</p>
                     <p className="shrink-0 text-[10px] text-muted-foreground">
-                      {new Date(c.createdAt).toLocaleString("zh-CN")}
+                      {formatDateTimeStrict(c.createdAt)}
                     </p>
                   </div>
                   <p className="mt-0.5 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">

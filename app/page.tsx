@@ -197,11 +197,11 @@ export default async function HomePage() {
                           <span aria-hidden className="text-border">
                             /
                           </span>
-                          <span>
-                            {new Date(
-                              featured.updatedAt ?? featured.date
-                            ).toLocaleDateString("zh-CN")}
-                          </span>
+                          <PostDates
+                            date={featured.date}
+                            updatedAt={featured.updatedAt}
+                            iconClassName="h-3 w-3"
+                          />
                           <span aria-hidden className="text-border">
                             /
                           </span>

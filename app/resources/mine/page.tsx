@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ResourceForm } from "@/components/resources/resource-form"
 import { DeleteResourceButton } from "@/components/resources/delete-resource-button"
+import { formatDateTimeStrict } from "@/lib/format-date"
 
 export const metadata = {
   title: "资源管理 | InfBlog",
@@ -141,7 +142,7 @@ export default async function MyResourcesPage() {
                 {resource.summary || resource.description}
               </p>
               <p className="text-[10px] text-muted-foreground">
-                {new Date(resource.createdAt).toLocaleString("zh-CN")}
+                {formatDateTimeStrict(resource.createdAt)}
               </p>
             </div>
           ))}

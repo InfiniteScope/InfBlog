@@ -4,6 +4,7 @@ import { Calendar, Pencil, Plus } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getAllDocs } from "@/lib/docs"
+import { formatDateTime } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
 
@@ -51,7 +52,7 @@ export default async function AdminDocsPage() {
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {new Date(doc.date).toLocaleDateString("zh-CN")}
+                    {formatDateTime(doc.date)}
                   </span>
                   <span className="truncate">/{doc.slug}</span>
                   <span>{(doc.wordCount ?? 0).toLocaleString("zh-CN")} 字</span>

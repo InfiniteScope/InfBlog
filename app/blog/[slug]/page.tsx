@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation"
 import { headers } from "next/headers"
 import {
-  Calendar,
   Tag,
   ArrowLeft,
   Pencil,
-  RefreshCw,
 } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
@@ -18,6 +16,7 @@ import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
 import { normalizeMdxSource } from "@/lib/mdx-normalize"
 import { stripMarkdown } from "@/lib/mdx-inline"
+import { formatDateTime, shouldShowUpdatedAt } from "@/lib/format-date"
 import { extractHeadings } from "@/lib/headings"
 import {
   getPostStats,
@@ -29,6 +28,7 @@ import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
 import { CoverImage } from "@/components/ui/cover-image"
 import { MdxInline } from "@/components/ui/mdx-inline"
+import { PostDates } from "@/components/blog/post-dates"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
 import { ReadingTracker } from "@/components/collectibles/reading-tracker"
 import { ReadingResume } from "@/components/blog/reading-resume"
@@ -131,16 +131,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           data-nosnippet
           className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground"
         >
-          <span className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {new Date(post.date).toLocaleDateString("zh-CN")}
-          </span>
-          {post.updatedAt && post.updatedAt !== post.date && (
-            <span className="flex items-center gap-1">
-              <RefreshCw className="h-3.5 w-3.5" />
-              更新于 {new Date(post.updatedAt).toLocaleDateString("zh-CN")}
-            </span>
-          )}
+          <PostDates
+            date={post.date}
+            updatedAt={post.updatedAt}
+            iconClassName="h-4 w-4"
+            updatedLabel="更新于 "
+          />
           {post.tags.length > 0 && (
             <span className="flex items-center gap-1">
               <Tag className="h-4 w-4" />
@@ -152,9 +148,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           </span>
         </div>
         <p className="sr-only">
-          发布于 {new Date(post.date).toLocaleDateString("zh-CN")}
-          {post.updatedAt && post.updatedAt !== post.date
-            ? `，更新于 ${new Date(post.updatedAt).toLocaleDateString("zh-CN")}`
+          发布于 {formatDateTime(post.date)}
+          {shouldShowUpdatedAt(post.date, post.updatedAt)
+            ? `，更新于 ${formatDateTime(post.updatedAt!)}`
             : ""}
           {post.tags.length > 0 ? `，标签：${post.tags.join("、")}` : ""}
         </p>

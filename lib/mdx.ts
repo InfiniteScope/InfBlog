@@ -65,12 +65,25 @@ export async function getPostBySlug(rawSlug: string): Promise<Post> {
   const stats = await fs.stat(filePath)
   const fileDate = stats.birthtime.toISOString()
   const fileUpdatedAt = stats.mtime.toISOString()
+  const published = data.date ?? fileDate
+
+  /* 没有显式 updatedAt 时，用文件 mtime 兜底，且仅当它"明显晚于"发布时间才采纳。
+     原因：mtime 会被部署/复制文件刷新——若只判断 mtime > date，
+     任何一次 scp 都会让文章凭空多一个"更新时间"（甚至出现更新早于发布的假象）。
+     阈值 1 小时用于吸收这类批量操作的抖动，同时不影响真正的后续编辑。 */
+  const MTIME_FALLBACK_THRESHOLD_MS = 60 * 60 * 1000
+  const updatedAt =
+    data.updatedAt ??
+    (new Date(fileUpdatedAt).getTime() - new Date(published).getTime() >
+    MTIME_FALLBACK_THRESHOLD_MS
+      ? fileUpdatedAt
+      : undefined)
 
   return {
     slug,
     title: data.title ?? slug,
-    date: data.date ?? fileDate,
-    updatedAt: data.updatedAt ?? fileUpdatedAt,
+    date: published,
+    updatedAt,
     description: data.description ?? "",
     tags: data.tags ?? [],
     coverImage: data.coverImage ?? undefined,
