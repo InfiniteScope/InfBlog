@@ -46,13 +46,15 @@
 
 ## 当前状态（2026-10-05）
 
-- 最新改动（**仅本地，未部署**）：提交入口限流 + 鉴权加固（`updateUserRole` 等自证身份）——
+- 最新改动（**已推送 GitHub `dc92f41` 并部署服务器 2026-10-05，线上验证通过**）：提交入口限流 + 鉴权加固（`updateUserRole` 等自证身份）——
   0. **鉴权加固**：`updateUserRole` 原先函数内**无任何校验**，只靠 `/admin` 的 proxy 与 `/admin/users` 的 `notFound()` 保护"页面渲染"这条路——而 Server Action 编译后是可直接 POST 的入口，一旦 actionId 经 source map/日志/后续重构外泄就是一条请求提权。现改为函数内 `auth()` + `role === "OWNER"` + 角色枚举校验 + **禁止改自己** + 禁止改 OWNER 账号；`updateNickname`/`changePassword` 同批改为**只操作 `session.user.id`**，签名去掉客户端传入的 `userId`（组件 `bind` 已同步移除）。`user-role-form.tsx` 改为展示失败原因 + 成功后 `location.reload()`。
   1. `lib/rate-limit.ts` 新增 `createWaitLimiter`（免费额度 + 最小间隔 + 静默窗口自动清零，返回 `retryAfterMs`）、`createRateLimiter.retryAfterMs/clear`、`clientIpFromHeaders`、`describeRetryAfter`。
   2. 弹幕（`app/danmaku/actions.ts` + `components/danmaku/danmaku-form.tsx`）：**保持人人可发、不做角色校验**，仅防刷屏——前 3 条不限速，第 4 条起每条 ≥3 秒，5 分钟静默后从免费额度重新起算；输入框下方行内倒计时「发送过快，请 N 秒后再试」，冷却期间输入与按钮禁用，归零自动恢复（无需刷新）。
   3. 留言墙 `2 条免费 / 15s`、资源评论 `3 条免费 / 10s`（按钮显示 `Ns` 倒计时 + 行内提示）、注册 `3 次/10min`、登录 `6 次/1min`（成功即清零，防撞库/批量注册）。
   4. 坑：冷却结束必须让提示一起消失——初版在 `cooling=false` 时回落到 `state.error`，会留下已过期的「请 N 秒后再试」（E2E 抓出来的）；限流器是**进程内存态**，改代码触发热更新或重启进程即清零（E2E 连跑两次会互相污染，需换 UA 或重启）。
   - 验收：typecheck ✓ / build ✓；Chrome CDP 真机 E2E——弹幕 1-3 放行、第 4 条限速且倒计时归零后自动恢复（连发 5 条全程通过）、留言墙第 3 条起限速 15s、登录第 7 次被限（前 6 次为密码错误）、资源评论第 4 条限速 10s 且 10.5s 后按钮恢复；393px 抽屉内提示不破版（wrap 197px / input 157px、无横向溢出）；鉴权侧——访客访问 `/admin/users` 被 proxy 挡回 `/`，站长在 `/admin/users` 点「升为管理员」成功（`currentRole` 由 VISITOR→ADMIN，落库复核同值），服务端拒绝分支因非站长无任何可达调用面而无法从 E2E 触达（**这本身即是"action 仅在 OWNER 页面注册"的额外防线**）。测试数据与夹具已从本地库清除。
+  - **线上部署（2026-10-05）**：12 文件 tar+scp（`deploy.tar.gz`，本地/服务器 sha256 三处抽查一致）→ 覆盖前用 `git hash-object` 逐个比对——6 个等于服务器 HEAD `0df8370`，另 6 个经 blob 遍历证明来自 main 历史上的提交（`871a7a3`/`52459ba`/`47df2fc`），确认为历史版本而非前向未知版本后才解压；无依赖/schema 变更，服务器 `next build` ✓、`pm2 restart infblog` ✓；localhost 8 条路由 + 公网 3 条均 200，`grep .next/static/chunks` 确认「发送过快/评论过于频繁/只有站长可以调整用户权限」已进构建产物。
+  - **线上实测**：公网 Chrome CDP 连发弹幕，两轮各**恰好落库 3 条**、第 4 条被服务端拒绝（`danmaku` 表 count 复核：23/24/25 为第一轮，26/27/28 为第二轮），证明新构建的 Server Action 可用且限流在线上生效；线上测试弹幕 6 条已从生产库删除（现 15 条）。**坑**：探测限流不能靠"输入框被清空"判断（React 提交后无论成败都会重置非受控 input），且公网响应回程比本机慢，探针须轮询到「冷却中」再断言，否则会把"限流成功"误读成"未限流"；排查该问题时 `curl` 在 PowerShell 里被 `Invoke-WebRequest` 别名劫持，服务器侧脚本一律写成 `.sh` 文件 scp 过去执行。
 - 此前（**已推送 GitHub 并部署服务器 2026-10-03 验证 200**）：用户文案调整（`c4e0809`）——关于页「关于我」重写（平台定位 + AIGC 占比声明）、竖排诗行「向月之暗面致意→向遥不可及致意」、外观设置主题/背景描述微调；typecheck 过，3 文件 tar+scp 部署，build ✓，localhost 与 /about 均 200。
 - 此前：同日全量部署（`cb17b1b` → `c02d6fe` 响应式+探索主题全链，160 文件 tar+scp）。
   - 部署方式：服务器 git HEAD=`0df8370`（为本地祖先）→ `core.quotepath=false` diff 出 160 个代码文件 tar+scp（**排除 content/data/public/uploads 三项服务器资产**；git 中文路径引号坑已踩）；删除文件 `app/favicon.ico`、`components/weather/weather-bar.tsx` 服务器侧手删。
