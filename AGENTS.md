@@ -49,14 +49,16 @@
 
 ## 当前状态（2026-10-06）
 
-- 最新改动（**仅本地，未提交未部署**）：日期时间展示精确到分钟 + 整站统一——
+- 最新改动（**已推送 GitHub `0a3eb16` 并部署服务器 2026-10-06，线上验证通过**）：日期时间展示精确到分钟 + 整站统一——
   1. 新增 `lib/format-date.ts`：固定 `Asia/Shanghai`、显式 options、输出恒定 `2026-08-18 18:18`（en-CA 的逗号手工去掉）。**替换掉全站 20+ 处 `toLocaleDateString`/`toLocaleString` 时间显示**（`PostDates`、`app/page.tsx` FEATURED、`app/blog/[slug]` 元信息条+sr-only、首页时间线与 stats/data widget、`/updates`、`/docs`、留言卡、资源卡、文库与资源管理页、`/admin/{posts,docs,updates,users,danmaku,resources}`、`/messages`、资源评论、快报、收藏弹层）。
   2. `shouldShowUpdatedAt`：**同一分钟**或**更新早于发布**（文件 mtime 回退造成的脏数据）时不显示"更新"；`hasTimePart`：`date: '2026-08-27'` 这类只有日期的内容只显示到日，不再显示无意义的 `08:00`。
   3. 根因修复：`lib/mdx.ts` / `lib/docs.ts` 的 `data.updatedAt ?? 文件 mtime` 改为**只在 mtime 比发布时间晚 1 小时以上才采纳**——否则每次部署 scp 刷新 mtime 都会让文章凭空多出更新时间（`spring-学习笔记02` 曾出现"更新早于发布 647ms"）。
   4. 内容补全（用户选定）：`formula-test.mdx`（`2026-08-29T08:52:58.000Z`）、`java面试八股.mdx`（`2026-09-23T20:39:42+08:00`）补上时间；`typescript-tutorial.mdx` 的 `date` 是原文（CSDN）发布日期 2025-04-27，时间取 **12:00（占位，需用户确认）**。这三个文件同时补写显式 `updatedAt`（取编辑前的真实 mtime），抵消"改 frontmatter 刷新 mtime"带来的假更新时间。
   - 验收：typecheck ✓ / build ✓（52/52）；真实页面（Chrome CDP）抓取验证——`/blog` 10 篇卡片、详情页元信息条（`2026-08-18 18:18 更新于 2026-08-24 20:20`）、首页、`/updates` 全部输出 `YYYY-MM-DD HH:mm`；`spring-学习笔记02`/`tarjan` 的假"更新"已消失；毫秒级差异被抑制。
   - 坑：`DateTimeFormat("en-CA")` 的官方输出是 `2026-08-18, 18:18`（**带逗号**），需 `.replace(",", "")`；`toLocaleDateString` 依赖运行环境 locale，做 UI 输出会有 SSR/CSR 不一致（水合报错）风险，故全部改用显式 options。
-  - 与内容相关：本次改动的 `content/` 文件若部署，会覆盖服务器上较新的同名文件（`spring-学习笔记03` 有用户凌晨的 `updatedAt` 改动、服务器另有「大肥鱼」新文）——**部署前需先与服务器对齐内容**。
+  - **线上部署（2026-10-06）**：代码 25 文件走 tar+scp（`deploy-datefmt.tar.gz`），3 个内容文件**单独 scp**（规避 Windows tar 处理中文文件名的隐患）→ 解压后 sha256 逐一比对与本地一致、`lib/format-date.ts` 确认落地(4723B)、20 个文件引用它；服务器 `next build` ✓、`pm2 restart` ✓（重启后无新错误日志）；本地 9 条 + 公网 5 条路由全 200；`/blog` HTML 抽查时间串全为 `YYYY-MM-DD HH:mm` 且**无逗号残留**；构建产物命中 `Asia/Shanghai` 36 处。
+  - **内容对齐决策（本次）**：服务器独有的「大肥鱼之躯…DeepSeekHarness」（10-06 03:32）与「各位中秋国庆快乐」动态**未受影响**（未部署 content 目录整体，仅 scp 3 个指定文件）；`formula-test.mdx` **故意不部署**（服务器上本无此文件，它是我调试用的测试文章，不该推上线）；`java面试八股.mdx` 的 `updatedAt` 按服务器真实值改为 `2026-09-28T20:57:20+08:00`（本地原写 09-25 会把线上更新时间倒退 3 天）。→ **教训：内容文件改动部署前必须先与服务器逐个比对 frontmatter**。
+  - 内容现状：服务器 `content/posts` 11 篇（含本地没有的「大肥鱼」）、`updates` 16 份（含本地没有的「中秋国庆快乐」）；本地仍有 `formula-test.mdx`（未上线）与「大肥鱼」缺失——**两个方向都还没完全对齐，待用户决定是否从服务器拉回**。
 - 此前（**已推送 GitHub `c599370` 并部署服务器 2026-10-06，线上验证通过**）：博客/文库简介支持内联 Markdown——
   1. 新增 `lib/mdx-inline.ts` + `components/ui/mdx-inline.tsx`：单遍扫描解析（优先级 行内代码 > 链接/图片 > 粗体 > 斜体 > 删除线），渲染成 React 元素而非 HTML 字符串 → 坏语法按字面显示、无 XSS 面；**未用 `react-markdown`**（它会给资源页塞 110KB/305KB 客户端 chunk），本组件是纯函数、服务端与客户端通吃。
   2. 接入 7 处：`app/page.tsx`（FEATURED + 经典列表）、`app/blog/page.tsx`（探索 + 经典）、`app/blog/[slug]/page.tsx`、`app/docs/page.tsx`、`app/docs/[slug]/page.tsx`；两个详情页的 `generateMetadata` 与 `app/feed.xml/route.ts` 改用 `stripMarkdown()` 降级纯文本。
