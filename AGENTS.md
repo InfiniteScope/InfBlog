@@ -47,12 +47,17 @@
 
 ## 当前状态（2026-10-06）
 
-- 最新改动（**仅本地，未部署**）：博客/文库简介支持内联 Markdown——
+- 最新改动（**已推送 GitHub `c599370` 并部署服务器 2026-10-06，线上验证通过**）：博客/文库简介支持内联 Markdown——
   1. 新增 `lib/mdx-inline.ts` + `components/ui/mdx-inline.tsx`：单遍扫描解析（优先级 行内代码 > 链接/图片 > 粗体 > 斜体 > 删除线），渲染成 React 元素而非 HTML 字符串 → 坏语法按字面显示、无 XSS 面；**未用 `react-markdown`**（它会给资源页塞 110KB/305KB 客户端 chunk），本组件是纯函数、服务端与客户端通吃。
   2. 接入 7 处：`app/page.tsx`（FEATURED + 经典列表）、`app/blog/page.tsx`（探索 + 经典）、`app/blog/[slug]/page.tsx`、`app/docs/page.tsx`、`app/docs/[slug]/page.tsx`；两个详情页的 `generateMetadata` 与 `app/feed.xml/route.ts` 改用 `stripMarkdown()` 降级纯文本。
   3. `components/admin/mdx-editor.tsx` 的「描述」输入框加语法提示 + 实时预览（命中标记时标注「已识别 Markdown 标记」）。简介 zod 上限保持 500 字不变。
-  - 验收：`lib/mdx-inline.ts` **24 项断言全过**（含未闭合标记按字面、`javascript:`/`data:` 协议拦截、原始 HTML 剥除、真实语料回归）；预览页 Chrome 截图确认粗体/代码/删除线/链接/换行/坏语法/XSS 样例渲染正确，`/blog` 列表截图无回归；typecheck ✓ / build ✓（52/52，删 `.next` 全量重建亦过）；`content/` 未改动。
+  4. `.gitignore` 的 `.vscode/*.local` 改为 `.vscode/`（VS Code 的 Comment Translate 扩展会自动写 `.vscode/settings.json`，属编辑器本地配置不该入库）。
+  - 验收：`lib/mdx-inline.ts` **24 项断言全过**（含未闭合标记按字面、`javascript:`/`data:` 协议拦截、原始 HTML 剥除、真实语料回归）；Chrome 截图确认粗体/代码/删除线/链接/换行/坏语法/XSS 样例渲染正确；typecheck ✓ / build ✓（52/52，删 `.next` 全量重建亦过）。
+  - **线上部署**：11 文件 tar+scp（本次首次把 `.gitignore` 纳入部署清单）→ 解压后逐个 sha256 与本地一致、**新文件 `lib/mdx-inline.ts` / `components/ui/mdx-inline.tsx` 确认落地非空**、`grep` 确认 `stripMarkdown` 已接入 `feed.xml`；服务器 build ✓、`pm2 restart` ✓（重启后无新错误日志）；本地 10 条 + 公网 4 条路由全 200；构建产物命中 `stripMarkdown` 12 处、`已识别 Markdown 标记` 3 处；`/feed.xml` 抽查 5 条 `<description>` 均为纯文本、无标记残渣。
+  - **部署前核对发现的坑**：服务器 `.gitignore` 与 `app/feed.xml/route.ts` 的 blob **不在 main 历史中**，一度看起来像"前向未知版本"。查明真相：`feed.xml` 等于本地 `dc92f41` 版本（它本来就不在上次部署的 12 文件清单里，本次的 `stripMarkdown` 是新增改动），`.gitignore` 是首次提交之前的遗留版本（服务器不需要它）。→ **核对时不能只比对"当前提交或上一次提交"，还要检查该文件是否本来就不在部署清单内**；`AGENTS.md` 则因每次部署都会被单独改写而天然对不上提交。
   - 坑：删掉临时预览路由后 `.next/types/validator.ts` 仍引用旧路径 → typecheck 报 `TS2307 Cannot find module '../../app/preview-desc/page.js'`，删 `.next` 重建即可（与 Turbopack 缓存损坏同类）。
+  - 坑：commit message 里含**反引号**（`` ` ``）时，PowerShell here-string 会做转义解析并把消息拆坏（git 会把片段当 pathspec 报 `did not match any file(s)`）→ 用单引号 here-string `@'…'@` 并 `$msg | git commit -F -`。
+  - **内容不同步（待用户处理）**：服务器 `content/posts` 有 11 篇，本地 10 篇——服务器多出「大肥鱼之躯：从结构与流程解读 DeepSeekHarness」（2026-10-06 03:05 在服务器侧创建）；另有 `content/updates/20261003100253-各位中秋国庆快乐.mdx` 也只在服务器。而本地那篇 `spring-学习笔记03…mdx` 的 `updatedAt` 改动（用户 2026-10-06 凌晨在本地后台编辑）**未提交、也未部署**，服务器上该文仍是 10-02 的旧版本。→ 内容以服务器为准，若要统一需从服务器拉回（注意 Windows bsdtar 解不了 Linux UTF-8 中文名 tar，须用 Python tarfile）。
 
 ## 当前状态（2026-10-05）
 
