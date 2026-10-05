@@ -57,9 +57,9 @@ export default async function ProfilePage() {
 
       <AvatarSettingsCard />
 
-      <NicknameForm userId={user.id} currentNickname={user.nickname ?? ""} />
+      <NicknameForm currentNickname={user.nickname ?? ""} />
 
-      {user.role !== "OWNER" && <PasswordForm userId={user.id} />}
+      {user.role !== "OWNER" && <PasswordForm />}
     </div>
   )
 }

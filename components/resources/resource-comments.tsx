@@ -13,6 +13,34 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
+/** 评论冷却倒计时：由 action 返回的 retryAfterMs 本地计时，归零即恢复 */
+function useCooldown(state: ResourceCommentActionState) {
+  const [remainingMs, setRemainingMs] = useState(0)
+  const retryAfterMs =
+    state && state.success === false ? state.retryAfterMs ?? 0 : 0
+
+  useEffect(() => {
+    if (retryAfterMs <= 0) {
+      setRemainingMs((prev) => (prev === 0 ? prev : 0))
+      return
+    }
+    const expiresAt = Date.now() + retryAfterMs
+    setRemainingMs(retryAfterMs)
+    const timer = setInterval(() => {
+      const left = expiresAt - Date.now()
+      if (left <= 0) {
+        clearInterval(timer)
+        setRemainingMs(0)
+      } else {
+        setRemainingMs(left)
+      }
+    }, 250)
+    return () => clearInterval(timer)
+  }, [retryAfterMs])
+
+  return remainingMs
+}
+
 export interface ResourceCommentView {
   id: string
   content: string
@@ -41,6 +69,9 @@ export function ResourceComments({
     ResourceCommentActionState,
     FormData
   >(submitResourceComment.bind(null, resourceId), null)
+  const coolingMs = useCooldown(state)
+  const cooling = coolingMs > 0
+  const coolingSeconds = Math.ceil(coolingMs / 1000)
 
   useEffect(() => {
     if (state?.success) {
@@ -87,16 +118,27 @@ export function ResourceComments({
         <Button
           type="submit"
           className="h-9 shrink-0"
-          disabled={isPending || !content.trim()}
+          disabled={isPending || cooling || !content.trim()}
+          title={cooling ? `评论过于频繁，请 ${coolingSeconds} 秒后再试` : undefined}
         >
           {isPending ? (
             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
           ) : (
             <Send className="mr-1.5 h-4 w-4" />
           )}
-          发送
+          {cooling ? `${coolingSeconds}s` : "发送"}
         </Button>
       </form>
+
+      {cooling && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="mt-1.5 font-mono text-[10px] text-destructive"
+        >
+          评论过于频繁，请 {coolingSeconds} 秒后再试
+        </p>
+      )}
 
       <div className="mt-4 space-y-4">
         {comments.length === 0 ? (

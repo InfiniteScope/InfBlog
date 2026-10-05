@@ -16,16 +16,12 @@ import {
 } from "@/components/ui/card"
 
 interface NicknameFormProps {
-  userId: string
   currentNickname: string
 }
 
-export function NicknameForm({ userId, currentNickname }: NicknameFormProps) {
+export function NicknameForm({ currentNickname }: NicknameFormProps) {
   const { data: session, update } = useSession()
-  const [state, formAction, isPending] = useActionState(
-    updateNickname.bind(null, userId),
-    null
-  )
+  const [state, formAction, isPending] = useActionState(updateNickname, null)
   const syncedRef = useRef(false)
 
   // Reflect the session's latest nickname immediately after a successful

@@ -14,15 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-interface PasswordFormProps {
-  userId: string
-}
-
-export function PasswordForm({ userId }: PasswordFormProps) {
-  const [state, formAction, isPending] = useActionState(
-    changePassword.bind(null, userId),
-    null
-  )
+export function PasswordForm() {
+  const [state, formAction, isPending] = useActionState(changePassword, null)
 
   return (
     <Card>

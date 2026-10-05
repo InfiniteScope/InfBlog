@@ -42,10 +42,18 @@
 - **资源模块**：Tag/ResourceTag 关联（≤5 个/资源）、`?q=&tag=` 搜索筛选、评论（ResourceComment，强制登录）、`/resources/mine` 资源管理页、`POST /api/resources/meta` 抓官网图标+标题+简介、卡片名称右侧 Globe 官网按钮（span role=link 防 a 嵌套 a）。
 - **推荐徽标**：`isOwnerPost` 钉选 + `author.role` 决定文案（ADMIN→管理员推荐，OWNER→站长推荐）。
 - 推荐/编辑入口：评论表单等 server action 走 `useActionState`，带 resourceId 的签名需 `(resourceId, prevState, formData)` + `bind(null, resourceId)`。
+- **提交入口限流**：`lib/rate-limit.ts` 的 `createWaitLimiter`（等待式限流，返回 `retryAfterMs` 供 UI 倒计时；窗口内静默超时自动清零）与 `createRateLimiter`（次数式，新增 `retryAfterMs/clear`）。弹幕 `miniFree=3 / 3s / 5min`、留言墙 `2 / 15s / 5min`（均按 IP+UA 指纹 visitorKey）；资源评论 `3 / 10s / 5min`（按 userId，已有登录门禁）；注册 `3 次/10min`、登录 `6 次/1min`（按 IP，走 `clientIpFromHeaders(await headers())`，成功后 `clear` 清零）。限流态只由客户端倒计时负责显示，倒计时结束提示必须一起消失（不能回落到 `state.error`）。
 
-## 当前状态（2026-10-03）
+## 当前状态（2026-10-05）
 
-- 最新改动（**已推送 GitHub 并部署服务器 2026-10-03 验证 200**）：用户文案调整（`c4e0809`）——关于页「关于我」重写（平台定位 + AIGC 占比声明）、竖排诗行「向月之暗面致意→向遥不可及致意」、外观设置主题/背景描述微调；typecheck 过，3 文件 tar+scp 部署，build ✓，localhost 与 /about 均 200。
+- 最新改动（**仅本地，未部署**）：提交入口限流 + 鉴权加固（`updateUserRole` 等自证身份）——
+  0. **鉴权加固**：`updateUserRole` 原先函数内**无任何校验**，只靠 `/admin` 的 proxy 与 `/admin/users` 的 `notFound()` 保护"页面渲染"这条路——而 Server Action 编译后是可直接 POST 的入口，一旦 actionId 经 source map/日志/后续重构外泄就是一条请求提权。现改为函数内 `auth()` + `role === "OWNER"` + 角色枚举校验 + **禁止改自己** + 禁止改 OWNER 账号；`updateNickname`/`changePassword` 同批改为**只操作 `session.user.id`**，签名去掉客户端传入的 `userId`（组件 `bind` 已同步移除）。`user-role-form.tsx` 改为展示失败原因 + 成功后 `location.reload()`。
+  1. `lib/rate-limit.ts` 新增 `createWaitLimiter`（免费额度 + 最小间隔 + 静默窗口自动清零，返回 `retryAfterMs`）、`createRateLimiter.retryAfterMs/clear`、`clientIpFromHeaders`、`describeRetryAfter`。
+  2. 弹幕（`app/danmaku/actions.ts` + `components/danmaku/danmaku-form.tsx`）：**保持人人可发、不做角色校验**，仅防刷屏——前 3 条不限速，第 4 条起每条 ≥3 秒，5 分钟静默后从免费额度重新起算；输入框下方行内倒计时「发送过快，请 N 秒后再试」，冷却期间输入与按钮禁用，归零自动恢复（无需刷新）。
+  3. 留言墙 `2 条免费 / 15s`、资源评论 `3 条免费 / 10s`（按钮显示 `Ns` 倒计时 + 行内提示）、注册 `3 次/10min`、登录 `6 次/1min`（成功即清零，防撞库/批量注册）。
+  4. 坑：冷却结束必须让提示一起消失——初版在 `cooling=false` 时回落到 `state.error`，会留下已过期的「请 N 秒后再试」（E2E 抓出来的）；限流器是**进程内存态**，改代码触发热更新或重启进程即清零（E2E 连跑两次会互相污染，需换 UA 或重启）。
+  - 验收：typecheck ✓ / build ✓；Chrome CDP 真机 E2E——弹幕 1-3 放行、第 4 条限速且倒计时归零后自动恢复（连发 5 条全程通过）、留言墙第 3 条起限速 15s、登录第 7 次被限（前 6 次为密码错误）、资源评论第 4 条限速 10s 且 10.5s 后按钮恢复；393px 抽屉内提示不破版（wrap 197px / input 157px、无横向溢出）；鉴权侧——访客访问 `/admin/users` 被 proxy 挡回 `/`，站长在 `/admin/users` 点「升为管理员」成功（`currentRole` 由 VISITOR→ADMIN，落库复核同值），服务端拒绝分支因非站长无任何可达调用面而无法从 E2E 触达（**这本身即是"action 仅在 OWNER 页面注册"的额外防线**）。测试数据与夹具已从本地库清除。
+- 此前（**已推送 GitHub 并部署服务器 2026-10-03 验证 200**）：用户文案调整（`c4e0809`）——关于页「关于我」重写（平台定位 + AIGC 占比声明）、竖排诗行「向月之暗面致意→向遥不可及致意」、外观设置主题/背景描述微调；typecheck 过，3 文件 tar+scp 部署，build ✓，localhost 与 /about 均 200。
 - 此前：同日全量部署（`cb17b1b` → `c02d6fe` 响应式+探索主题全链，160 文件 tar+scp）。
   - 部署方式：服务器 git HEAD=`0df8370`（为本地祖先）→ `core.quotepath=false` diff 出 160 个代码文件 tar+scp（**排除 content/data/public/uploads 三项服务器资产**；git 中文路径引号坑已踩）；删除文件 `app/favicon.ico`、`components/weather/weather-bar.tsx` 服务器侧手删。
   - 服务器侧：`pnpm install --frozen-lockfile`（新依赖）、`prisma migrate deploy`（无待迁移）、build ✓、`pm2 restart infblog` ✓；localhost:3000/公网/探索主题参数/博客页均 200，页面已含 `v2-starfield-canvas`。

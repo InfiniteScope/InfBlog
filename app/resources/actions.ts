@@ -10,6 +10,7 @@ import {
   cacheResourceIcon,
   isExternalIconUrl,
 } from "@/lib/resource-icon-cache"
+import { createWaitLimiter, describeRetryAfter } from "@/lib/rate-limit"
 
 const resourceSchema = z.object({
   name: z.string().min(1, "名称不能为空").max(100, "名称过长"),
@@ -335,14 +336,31 @@ export async function reviewResource(
 export type ResourceCommentActionState = {
   success: boolean
   message: string
+  /** 被限速时剩余的冷却毫秒数（UI 可据此提示/倒计时） */
+  retryAfterMs?: number
 } | null
+
+/**
+ * 评论限速（已有登录门禁，这里只防连点刷屏）：
+ * 前 3 条不限速，第 4 条起两条间隔 ≥10 秒，5 分钟静默后刷新。
+ * 登录用户按 userId、未登录按指纹（实际未登录会被上面的校验挡掉）。
+ */
+const RESOURCE_COMMENT_MINI_FREE = 3
+const RESOURCE_COMMENT_MIN_INTERVAL_MS = 10_000
+const RESOURCE_COMMENT_WINDOW_MS = 5 * 60_000
+
+const resourceCommentLimiter = createWaitLimiter({
+  miniFree: RESOURCE_COMMENT_MINI_FREE,
+  minIntervalMs: RESOURCE_COMMENT_MIN_INTERVAL_MS,
+  windowMs: RESOURCE_COMMENT_WINDOW_MS,
+})
 
 /** 发表资源评论（强制登录） */
 export async function submitResourceComment(
   resourceId: string,
   _prevState: ResourceCommentActionState,
   formData: FormData
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string; retryAfterMs?: number }> {
   const session = await auth()
   if (!session?.user?.id) {
     return { success: false, message: "评论功能需要登录后使用" }
@@ -352,6 +370,15 @@ export async function submitResourceComment(
     formData.get("content")?.toString().trim() ?? ""
   if (!content) return { success: false, message: "请输入评论内容" }
   if (content.length > 500) return { success: false, message: "评论不能超过 500 字" }
+
+  const limit = resourceCommentLimiter.check(session.user.id)
+  if (!limit.allowed) {
+    return {
+      success: false,
+      message: `评论过于频繁，请 ${describeRetryAfter(limit.retryAfterMs)}后再试`,
+      retryAfterMs: limit.retryAfterMs,
+    }
+  }
 
   const resource = await prisma.resource.findUnique({
     where: { id: resourceId },
