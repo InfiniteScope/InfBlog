@@ -15,7 +15,12 @@
 1. **不主动部署服务器**：只有用户明确说"推服务器/部署"才执行部署流程；本地人工测试先行。
 2. **勿覆盖用户手改文件**：`components/admin/avatar-uploader.tsx` 等用户改过文案的文件，除非明确要求，不要覆盖。
 3. **schema 变更必须走 prisma migrate**（`migrate dev --create-only` 生成 → `migrate deploy` 应用），本地与服务器都要跑；`migrate deploy` 不会生成 client，需单独 `prisma generate`。
-4. **内容文章以服务器为准**：`content/posts/*.mdx` 走 git，但服务器上可能直接新增（如 Tarjan 文章），部署时留意单独 scp；SQLite 运行时数据（评论/点赞/收藏/通知）以线上为准。
+4. **内容文章以服务器为准（单向：云端 → 本地）**：**用户主要在服务器端写文章，本地 `content/` 永远落后于线上**。因此：
+   - **绝不要把本地 `content/` 往服务器推/覆盖**（会吃掉线上更新的版本，历史教训：`java面试八股` 的 `updatedAt` 差点被倒退 3 天）。
+   - 需要同步时方向是**从服务器拉回本地**（注意 Windows bsdtar 解不了 Linux 的 UTF-8 中文名 tar，须用 Python tarfile 解压）。
+   - 部署只需同步**代码**；`content/posts|updates|docs/*.mdx`、`data/blog.db`、`public/uploads` 一律不动。
+   - 唯二例外：**服务器上不存在的全新本地文件**（例如从未上线过的档案）可以单独 scp 上去；`formula-test.mdx` 这类本地调试用的测试文章**永远不部署**。
+   - **不要再为"要不要带上本地内容改动"问用户**——默认答案是"不带"。
 5. **MDX 安全写法**：表格/正文中的代码含 `< >`（如 `vector<int>`）必须用反引号包成行内代码，否则 MDX 当 JSX 解析 → 编译失败页面 500（浏览器显示 `ERROR <digest>`）。**尖括号自动链接 `<https://x>` 在 MDX 中不合法**（标准 Markdown 合法但 MDX 会报 "Unexpected character before local name"）——已加 `lib/mdx-normalize.ts` 渲染前归一化（尖括号链接→Markdown 链接、裸 `<br>`→`<br />`，跳过代码围栏/行内代码）；文章页与文库页均已接入。写文时仍建议直接用 `[url](url)` 或裸 URL。
 6. **pnpm 被 shim 劫持**：本机用 `C:\Users\admin\AppData\Roaming\npm\pnpm.cmd` 直连。PowerShell 引号层层坑：复杂命令写脚本文件（UTF-8 无 BOM）scp 到服务器执行；多文件部署统一 tar+scp。
 7. **typecheck/build 必过**：改完代码跑 `pnpm typecheck` 与 `pnpm build`（lint 脚本坏缺 eslint.config，忽略）。
