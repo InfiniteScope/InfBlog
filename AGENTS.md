@@ -46,6 +46,18 @@
 - **简介支持内联 Markdown**：`lib/mdx-inline.ts`（纯函数 `parseInline`/`stripMarkdown`/`hasInlineMarkdown`）+ `components/ui/mdx-inline.tsx`（`MdxInline`/`MdxInlineSpan`；无 `"use client"`、无 `dangerouslySetInnerHTML`）。支持 `**粗体**`、`*斜体*`、行内代码、`~~删除线~~`、`[链接](url)`、换行；块级语法不支持。接入 7 处渲染（首页 FEATURED/文章行、`/blog` 双主题、文章详情、`/docs` 列表、文库详情）；**meta description 与 `/feed.xml` 必须走 `stripMarkdown()`**（否则搜索结果/RSS 会露出 `**` 与 `()`）。编辑器「描述」框带语法提示 + 实时预览。**`MdxInline` 自身就是 `<p>`，不要再套 `<p>`**（非法嵌套）；链接协议白名单只放行 `http(s)/mailto/tel//#`，其余整段按字面显示。
 - **日期时间展示**：统一走 `lib/format-date.ts`（**不要再写 `toLocaleDateString`/`toLocaleString` 显示时间**）。固定 `Asia/Shanghai` + 显式 options + 手工去逗号 → 输出恒定 `2026-08-18 18:18`，服务端与客户端一致（避免水合不匹配），且对各地访客显示同一时刻。`formatDateTime`（有真实时间才到分钟，`date: '2026-08-27'` 这类只到日）、`formatDate`（强制到日）、`formatDateTimeStrict`（时间戳类强制到分钟）、`formatMonthDay`、`shouldShowUpdatedAt`（同一分钟或**更新早于发布**时不展示更新时间）、`hasTimePart`。判据：源串含 `T` 且时分秒非全零才算"有真实时间"——因为 `new Date('2026-08-27')` 会被解析成 UTC 午夜，照样格式化就会显示没有意义的 `08:00`。
 - **updatedAt 的 mtime 兜底**：`lib/mdx.ts` / `lib/docs.ts` 里 `data.updatedAt ?? 文件 mtime` 只在 mtime **比发布时间晚 1 小时以上**时采纳。否则每次 scp/复制文件（mtime 被刷新）都会让文章凭空多出"更新时间"，甚至出现"更新早于发布"。**注意：手工编辑 frontmatter 也会刷新 mtime**，所以改动内容时最好显式写上 `updatedAt`（或在后台编辑，action 会写好）。
+- **阅读量统计的作用域**：`post_stats` 有 `type` 列（`post` = 博客文章、`doc` = 文库档案），唯一键是 **`@@unique([type, slug])`**——不是 slug 单列，否则文章与档案同名会共用同一份计数。`lib/post-stats.ts` 的 `trackPostView/getPostStats/getPostStatsMap` 均带 `type` 参数（默认 `"post"`，文章侧调用点无需改）。详情页接口：文章 `/api/posts/[slug]/view`、档案 `/api/docs/[slug]/view`；两者各自持有 10s/IP 限流器且限流键分别带 `post:` / `doc:` 前缀（避免同一 IP 刚看完文章再看档案被误吞）。客户端 `PostViewTracker` 的 sessionStorage 去重键是 **`viewed:${type}:${slug}`**（早期只按 slug，同名会互相抑制计数）。档案只有阅读量，用 `ViewCountBadge`（不显示 ❤/🔖）。
+
+## 当前状态（2026-10-07）
+
+- 最新改动（**仅本地，未提交未部署**）：文库档案阅读量（复用文章的统计体系）——
+  1. **schema 变更**：`PostStats` 加 `type String @default("post")`，唯一键 `slug @unique` → **`@@unique([type, slug])`**；迁移 `20261007070046_add_stats_type`（Prisma 生成的 RedefineTables + `INSERT...SELECT` 回填，**不动历史计数**）。本地实测：10 行历史数据全保留、浏览总量 43 不变、`type` 全为 `post`；复合唯一键探针验证同名 post/doc 可共存、重复 doc 被拒。
+  2. `lib/post-stats.ts`：`trackPostView/getPostStats/getPostStatsMap` 增加 `type: StatsType = "post"` 参数（文章侧调用点零改动）；`likePost/toggleFavorite` 里的 6 处 `where: { slug }` 改为 `where: { type_slug: { type: "post", slug } }`（删掉 `slug @unique` 后必须改，否则 TS 报 `PostStatsWhereUniqueInput` 不可赋值）。
+  3. 新增 `app/api/docs/[slug]/view/route.ts`（GET/POST），限流键带 `doc:` 前缀；文章侧同步加 `post:` 前缀——**两者限流预算分开**，避免同一 IP 刚看完文章再看档案被误吞。
+  4. 客户端：`PostViewTracker`/`PostStatBadges` 加 `type`；**抽出新组件 `ViewCountBadge`**（只显示 👁 总/月，档案没有点赞收藏）；sessionStorage 去重键从 `post-viewed:${slug}` 改为 **`viewed:${type}:${slug}`**（原文案存在同名 slug 互相抑制计数的隐患）。
+  5. 接入：`/docs/[slug]` 头部徽标 + tracker、`/docs` 列表卡片阅读量、`/admin/docs` 列表阅读量。
+  - 验收：typecheck ✓ / build ✓（`/api/docs/[slug]/view` 已注册）；Chrome CDP 真机 E2E（夹具档案 `__e2e_阅读量测试__`，**中文 slug**）——首访 `0→1`、**同会话连刷 2 次仍为 1**（sessionStorage 去重生效）、清 sessionStorage 后过 10s 窗口再访 `1→2`、徽标只显示 👁 无 ❤/🔖、`/docs` 列表显示 `👁 2 / 2`；`/docs` 与中文 slug 详情页均 200。夹具与统计行已清理。
+  - 坑：`prisma generate` 在 Windows 报 `EPERM rename query_engine-windows.dll.node`（被运行中的 dev server 占用）→ 先停掉 dev 进程再生成（AGENTS 铁律 3 已有记录，本次再次踩到）。另：**Next 16 拒绝双实例**，若占位端口被占会自动顺延到 3001 并让新实例直接退出——发现"起不来"时先查是不是已有 dev 在跑（`.next/dev/logs/next-development.log` 有记）。
 
 ## 当前状态（2026-10-06）
 

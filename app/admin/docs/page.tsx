@@ -4,6 +4,7 @@ import { Calendar, Pencil, Plus } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getAllDocs } from "@/lib/docs"
+import { getPostStatsMap } from "@/lib/post-stats"
 import { formatDateTime } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
@@ -19,6 +20,7 @@ export default async function AdminDocsPage() {
   }
 
   const docs = await getAllDocs()
+  const statsMap = await getPostStatsMap(docs.map((d) => d.slug), "doc")
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4">
@@ -56,6 +58,11 @@ export default async function AdminDocsPage() {
                   </span>
                   <span className="truncate">/{doc.slug}</span>
                   <span>{(doc.wordCount ?? 0).toLocaleString("zh-CN")} 字</span>
+                  <span title="阅读量（总 / 本月）">
+                    👁 {(statsMap[doc.slug]?.totalViews ?? 0).toLocaleString("zh-CN")}
+                    {" / "}
+                    {(statsMap[doc.slug]?.monthViews ?? 0).toLocaleString("zh-CN")}
+                  </span>
                 </div>
               </div>
               <div className="ml-4 flex shrink-0 gap-2">

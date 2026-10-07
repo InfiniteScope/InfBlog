@@ -12,10 +12,13 @@ import { getDocBySlug, getDocSlugs } from "@/lib/docs"
 import { normalizeMdxSource } from "@/lib/mdx-normalize"
 import { stripMarkdown } from "@/lib/mdx-inline"
 import { extractHeadings } from "@/lib/headings"
+import { getPostStats } from "@/lib/post-stats"
 import { rehypeStyleObject } from "@/lib/rehype-style-object"
 import { mdxComponents } from "@/components/mdx-components"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { PostDates } from "@/components/blog/post-dates"
+import { ViewCountBadge } from "@/components/blog/post-stat-badges"
+import { PostViewTracker } from "@/components/blog/post-view-tracker"
 import { ReadingResume } from "@/components/blog/reading-resume"
 import { DocBookmarkFloat } from "@/components/blog/bookmark-float"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
@@ -61,6 +64,8 @@ export default async function DocDetailPage({ params }: PageProps) {
   const session = await auth()
   const isOwner = session?.user?.role === "OWNER"
   const headings = extractHeadings(doc.content)
+  // 阅读量：与文章同一套统计（post_stats.type = 'doc'）
+  const stats = await getPostStats(doc.slug, "doc")
 
   return (
     <div className="@container mx-auto flex w-full max-w-3xl flex-col gap-8 py-8 xl:max-w-none xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)]">
@@ -92,6 +97,7 @@ export default async function DocDetailPage({ params }: PageProps) {
           </p>
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <PostDates date={doc.date} updatedAt={doc.updatedAt} />
+            <ViewCountBadge slug={doc.slug} initial={stats} type="doc" />
             {doc.tags.length > 0 && (
               <span className="flex items-center gap-1">
                 <Tag className="h-3.5 w-3.5" />
@@ -154,6 +160,7 @@ export default async function DocDetailPage({ params }: PageProps) {
       </article>
 
       <ReadingResume />
+      <PostViewTracker slug={doc.slug} type="doc" />
       <DocBookmarkFloat slug={doc.slug} title={doc.title} />
 
       {headings.length >= 3 && (

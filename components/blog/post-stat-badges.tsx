@@ -12,18 +12,27 @@ export interface PostStatsPayload {
   favorites: number
 }
 
+function endpointFor(slug: string, type: "post" | "doc") {
+  return type === "doc"
+    ? `/api/docs/${encodeURIComponent(slug)}/view`
+    : `/api/posts/${encodeURIComponent(slug)}/view`
+}
+
 /**
- * 文章头部统计徽标（👁 总/月 · ❤ 点赞 · 🔖 收藏）。
+ * 内容头部统计徽标（👁 总/月 · ❤ 点赞 · 🔖 收藏）。
  * - 首帧用服务端传入的初始值（避免 SSR/客户端差异）
  * - 挂载后拉取一次 API；此后监听 POST_STATS_EVENT，
  *   浮动按钮点赞/收藏后同步更新，无需刷新页面
+ * - 文库档案只有阅读量，用 `ViewCountBadge`（见下）
  */
 export function PostStatBadges({
   slug,
   initial,
+  type = "post",
 }: {
   slug: string
   initial: PostStatsPayload
+  type?: "post" | "doc"
 }) {
   const [stats, setStats] = useState<PostStatsPayload>(initial)
   const [mounted, setMounted] = useState(false)
@@ -32,7 +41,7 @@ export function PostStatBadges({
     setMounted(true)
     let cancelled = false
 
-    fetch(`/api/posts/${encodeURIComponent(slug)}/view`)
+    fetch(endpointFor(slug, type))
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!cancelled && data && typeof data.likes === "number") {
@@ -50,7 +59,7 @@ export function PostStatBadges({
       cancelled = true
       window.removeEventListener(POST_STATS_EVENT, onUpdate)
     }
-  }, [slug])
+  }, [slug, type])
 
   if (!mounted) {
     return (
@@ -85,6 +94,65 @@ export function PostStatBadges({
         <Bookmark className="h-4 w-4" />
         {stats.favorites}
       </span>
+    </span>
+  )
+}
+
+/**
+ * 只显示阅读量的徽标（文库档案用：档案没有点赞/收藏）。
+ * 同样首帧用服务端初始值、挂载后拉一次、并监听同一事件同步。
+ */
+export function ViewCountBadge({
+  slug,
+  initial,
+  type = "doc",
+  className,
+}: {
+  slug: string
+  initial: { totalViews: number; monthViews: number }
+  type?: "post" | "doc"
+  className?: string
+}) {
+  const [stats, setStats] = useState(initial)
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetch(endpointFor(slug, type))
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data && typeof data.totalViews === "number") {
+          setStats({
+            totalViews: data.totalViews,
+            monthViews: data.monthViews ?? 0,
+          })
+        }
+      })
+      .catch(() => {})
+
+    const onUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<PostStatsPayload>).detail
+      if (detail && typeof detail.totalViews === "number") {
+        setStats({
+          totalViews: detail.totalViews,
+          monthViews: detail.monthViews ?? 0,
+        })
+      }
+    }
+    window.addEventListener(POST_STATS_EVENT, onUpdate)
+    return () => {
+      cancelled = true
+      window.removeEventListener(POST_STATS_EVENT, onUpdate)
+    }
+  }, [slug, type])
+
+  return (
+    <span
+      className={className ?? "flex items-center gap-1"}
+      title="总浏览量 / 本月浏览量"
+    >
+      <Eye className="h-3.5 w-3.5" />
+      {stats.totalViews} / {stats.monthViews}
     </span>
   )
 }

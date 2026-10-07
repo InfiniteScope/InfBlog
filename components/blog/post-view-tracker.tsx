@@ -4,17 +4,31 @@ import { useEffect } from "react"
 import { POST_STATS_EVENT } from "@/components/blog/post-stat-badges"
 
 /**
- * 文章详情页浏览计数：挂载后 POST 一次（服务端 60s/IP 限流防刷）。
+ * 内容详情页浏览计数：挂载后 POST 一次（服务端 10s/IP 限流防刷）。
  * 返回最新统计并通过事件广播给页面其他部分（如浮动操作组）。
+ *
+ * `type` 必须传对：sessionStorage 去重键与接口路径都按它区分。
+ * （早期只按 slug 去重——若文章与档案同名，会互相抑制计数。）
  */
-export function PostViewTracker({ slug }: { slug: string }) {
+export function PostViewTracker({
+  slug,
+  type = "post",
+}: {
+  slug: string
+  type?: "post" | "doc"
+}) {
   useEffect(() => {
-    const key = `post-viewed:${slug}`
+    const key = `viewed:${type}:${slug}`
     // sessionStorage 去重：同一标签页会话内只计一次
     if (sessionStorage.getItem(key)) return
     sessionStorage.setItem(key, "1")
 
-    fetch(`/api/posts/${encodeURIComponent(slug)}/view`, { method: "POST" })
+    const endpoint =
+      type === "doc"
+        ? `/api/docs/${encodeURIComponent(slug)}/view`
+        : `/api/posts/${encodeURIComponent(slug)}/view`
+
+    fetch(endpoint, { method: "POST" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && typeof data.totalViews === "number") {
@@ -31,7 +45,7 @@ export function PostViewTracker({ slug }: { slug: string }) {
         }
       })
       .catch(() => {})
-  }, [slug])
+  }, [slug, type])
 
   return null
 }

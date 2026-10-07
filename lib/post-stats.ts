@@ -9,6 +9,12 @@ export interface PostViewStats {
   favorites: number
 }
 
+/**
+ * 内容计数的作用域：`post` = 博客文章，`doc` = 文库档案。
+ * 与 `Prisma PostStats.type` 对应；文章侧调用点全部沿用默认值，无需改动。
+ */
+export type StatsType = "post" | "doc"
+
 function currentMonthKey(): string {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
@@ -27,11 +33,14 @@ export function visitorKeyFrom(request: Request): string {
 }
 
 /** 浏览 +1（跨月自动清零月计数），返回最新统计 */
-export async function trackPostView(slug: string): Promise<PostViewStats> {
+export async function trackPostView(
+  slug: string,
+  type: StatsType = "post"
+): Promise<PostViewStats> {
   const monthKey = currentMonthKey()
   const stats = await prisma.postStats.upsert({
-    where: { slug },
-    create: { slug, totalViews: 1, monthKey, monthViews: 1 },
+    where: { type_slug: { type, slug } },
+    create: { type, slug, totalViews: 1, monthKey, monthViews: 1 },
     update: {
       totalViews: { increment: 1 },
       monthViews: { increment: 1 },
@@ -41,7 +50,7 @@ export async function trackPostView(slug: string): Promise<PostViewStats> {
   // 跨月：清零月计数（upsert 无法原子处理，读改写一次）
   if (stats.monthKey !== monthKey) {
     const fixed = await prisma.postStats.update({
-      where: { slug },
+      where: { type_slug: { type, slug } },
       data: { monthKey, monthViews: 1 },
     })
     return pick(fixed)
@@ -51,18 +60,26 @@ export async function trackPostView(slug: string): Promise<PostViewStats> {
 }
 
 /** 只读统计（不计数） */
-export async function getPostStats(slug: string): Promise<PostViewStats> {
-  const stats = await prisma.postStats.findUnique({ where: { slug } })
+export async function getPostStats(
+  slug: string,
+  type: StatsType = "post"
+): Promise<PostViewStats> {
+  const stats = await prisma.postStats.findUnique({
+    where: { type_slug: { type, slug } },
+  })
   return stats ? pick(stats) : { totalViews: 0, monthViews: 0, likes: 0, favorites: 0 }
 }
 
 /** 批量统计（列表页用），返回 slug -> stats */
 export async function getPostStatsMap(
-  slugs: string[]
+  slugs: string[],
+  type: StatsType = "post"
 ): Promise<Record<string, PostViewStats>> {
   const empty = { totalViews: 0, monthViews: 0, likes: 0, favorites: 0 }
   if (slugs.length === 0) return {}
-  const rows = await prisma.postStats.findMany({ where: { slug: { in: slugs } } })
+  const rows = await prisma.postStats.findMany({
+    where: { type, slug: { in: slugs } },
+  })
   const map: Record<string, PostViewStats> = {}
   for (const row of rows) map[row.slug] = pick(row)
   for (const slug of slugs) if (!map[slug]) map[slug] = empty
@@ -88,7 +105,7 @@ export async function likePost(
       await prisma.$transaction([
         prisma.postLike.delete({ where: { id: mine.id } }),
         prisma.postStats.update({
-          where: { slug },
+          where: { type_slug: { type: "post", slug } },
           data: { likes: { decrement: 1 } },
         }),
       ])
@@ -112,8 +129,8 @@ export async function likePost(
     await prisma.$transaction([
       prisma.postLike.create({ data: { slug, visitorKey, userId } }),
       prisma.postStats.upsert({
-        where: { slug },
-        create: { slug, likes: 1 },
+        where: { type_slug: { type: "post", slug } },
+        create: { type: "post", slug, likes: 1 },
         update: { likes: { increment: 1 } },
       }),
     ])
@@ -130,7 +147,7 @@ export async function likePost(
     await prisma.$transaction([
       prisma.postLike.delete({ where: { id: existing.id } }),
       prisma.postStats.update({
-        where: { slug },
+        where: { type_slug: { type: "post", slug } },
         data: { likes: { decrement: 1 } },
       }),
     ])
@@ -141,8 +158,8 @@ export async function likePost(
   await prisma.$transaction([
     prisma.postLike.create({ data: { slug, visitorKey } }),
     prisma.postStats.upsert({
-      where: { slug },
-      create: { slug, likes: 1 },
+      where: { type_slug: { type: "post", slug } },
+      create: { type: "post", slug, likes: 1 },
       update: { likes: { increment: 1 } },
     }),
   ])
@@ -182,7 +199,7 @@ export async function toggleFavorite(
     await prisma.$transaction([
       prisma.postFavorite.delete({ where: { id: existing.id } }),
       prisma.postStats.update({
-        where: { slug },
+        where: { type_slug: { type: "post", slug } },
         data: { favorites: { decrement: 1 } },
       }),
     ])
@@ -192,8 +209,8 @@ export async function toggleFavorite(
   await prisma.$transaction([
     prisma.postFavorite.create({ data: { slug, userId } }),
     prisma.postStats.upsert({
-      where: { slug },
-      create: { slug, favorites: 1 },
+      where: { type_slug: { type: "post", slug } },
+      create: { type: "post", slug, favorites: 1 },
       update: { favorites: { increment: 1 } },
     }),
   ])

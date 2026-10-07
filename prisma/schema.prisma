@@ -223,16 +223,22 @@ model UserCollectible {
   @@map("user_collectibles")
 }
 
-/** 每篇 MDX 文章的计数（文章本体是文件，DB 只存统计） */
+/**
+ * 内容计数（文章本体是文件，DB 只存统计）。
+ * `type` 区分内容类别：`post` = 博客文章，`doc` = 文库档案。
+ * 唯一键是 (type, slug) 而不是 slug —— 否则文章与档案一旦同名会共用同一份计数。
+ */
 model PostStats {
   id         Int    @id @default(autoincrement())
-  slug       String @unique
+  type       String @default("post")
+  slug       String
   totalViews Int    @default(0)
   monthKey   String @default("") // "YYYY-MM"，跨月自动清零 monthViews
   monthViews Int    @default(0)
   likes      Int    @default(0)
   favorites  Int    @default(0)
 
+  @@unique([type, slug])
   @@map("post_stats")
 }
 

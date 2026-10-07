@@ -3,6 +3,7 @@ import { BookMarked, Plus } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getAllDocs } from "@/lib/docs"
+import { getPostStatsMap } from "@/lib/post-stats"
 import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/reveal"
 import { PostDates } from "@/components/blog/post-dates"
@@ -22,6 +23,8 @@ export default async function DocsPage() {
 
   const totalWords = docs.reduce((sum, doc) => sum + (doc.wordCount ?? 0), 0)
   const totalImages = docs.reduce((sum, doc) => sum + (doc.imageCount ?? 0), 0)
+  // 阅读量（post_stats.type = 'doc'，与文章计数互不干扰）
+  const statsMap = await getPostStatsMap(docs.map((d) => d.slug), "doc")
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 py-8">
@@ -111,12 +114,18 @@ export default async function DocsPage() {
                       text={doc.description}
                       className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-2"
                     />
-                    <div className="font-mono text-[10px] tracking-wide text-muted-foreground/70">
-                      {(doc.wordCount ?? 0).toLocaleString("zh-CN")} 字
-                      {" / "}
-                      {doc.imageCount ?? 0} 图
-                      {" / "}
-                      {doc.readingTime ?? "1 分钟"}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] tracking-wide text-muted-foreground/70">
+                      <span title="阅读量（总 / 本月）">
+                        👁 {(statsMap[doc.slug]?.totalViews ?? 0).toLocaleString("zh-CN")}
+                        {" / "}
+                        {(statsMap[doc.slug]?.monthViews ?? 0).toLocaleString("zh-CN")}
+                      </span>
+                      <span aria-hidden>/</span>
+                      <span>{(doc.wordCount ?? 0).toLocaleString("zh-CN")} 字</span>
+                      <span aria-hidden>/</span>
+                      <span>{doc.imageCount ?? 0} 图</span>
+                      <span aria-hidden>/</span>
+                      <span>{doc.readingTime ?? "1 分钟"}</span>
                     </div>
                   </div>
                 </article>

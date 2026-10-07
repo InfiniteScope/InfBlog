@@ -8,8 +8,11 @@ function jsonResponse(data: unknown, status = 200) {
   })
 }
 
-// 每 IP 每篇 10s 一次有效浏览计数（防连点刷量，且显著降低共享IP/快速切换误伤）
-// 限流键带 `post:` 前缀，与文库档案的计数预算分开
+/**
+ * 文库档案阅读量。与文章共用同一套统计与限流预算（`statsType = "doc"`，
+ * 即 `post_stats.type = 'doc'`），但**限流键与文章分开计数**，
+ * 避免同一 IP 刚看完文章再看档案时被误吞。
+ */
 const viewLimiter = createRateLimiter({ windowMs: 10_000, max: 1 })
 
 export async function GET(
@@ -18,7 +21,7 @@ export async function GET(
 ) {
   const { slug } = await params
   const decoded = decodeURIComponent(slug)
-  const stats = await getPostStats(decoded)
+  const stats = await getPostStats(decoded, "doc")
   return jsonResponse(stats)
 }
 
@@ -30,12 +33,12 @@ export async function POST(
   const decoded = decodeURIComponent(slug)
   const ip = clientIp(request)
 
-  // 每 IP 每篇 10s 一次（防刷）——IP+slug 组合，避免同 IP 访问不同文章时被误吞
-  if (viewLimiter.limited(`post:${ip}:${decoded}`)) {
-    const stats = await getPostStats(decoded)
+  // 每 IP 每档案 10s 一次（防刷）——IP+slug 组合，避免同 IP 访问不同档案被误吞
+  if (viewLimiter.limited(`doc:${ip}:${decoded}`)) {
+    const stats = await getPostStats(decoded, "doc")
     return jsonResponse(stats, 202)
   }
 
-  const stats = await trackPostView(decoded)
+  const stats = await trackPostView(decoded, "doc")
   return jsonResponse(stats)
 }
