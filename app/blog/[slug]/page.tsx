@@ -198,7 +198,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       </div>
 
       <ReadingTracker />
-      <ReadingResume />
+      <ReadingResume slug={post.slug} type="post" />
       <PostViewTracker slug={post.slug} />
       <PostActionsFloat
         slug={post.slug}

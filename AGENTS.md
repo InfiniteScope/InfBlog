@@ -54,9 +54,17 @@
 - **日期时间展示**：统一走 `lib/format-date.ts`（**不要再写 `toLocaleDateString`/`toLocaleString` 显示时间**）。固定 `Asia/Shanghai` + 显式 options + 手工去逗号 → 输出恒定 `2026-08-18 18:18`，服务端与客户端一致（避免水合不匹配），且对各地访客显示同一时刻。`formatDateTime`（有真实时间才到分钟，`date: '2026-08-27'` 这类只到日）、`formatDate`（强制到日）、`formatDateTimeStrict`（时间戳类强制到分钟）、`formatMonthDay`、`shouldShowUpdatedAt`（同一分钟或**更新早于发布**时不展示更新时间）、`hasTimePart`。判据：源串含 `T` 且时分秒非全零才算"有真实时间"——因为 `new Date('2026-08-27')` 会被解析成 UTC 午夜，照样格式化就会显示没有意义的 `08:00`。
 - **updatedAt 的 mtime 兜底**：`lib/mdx.ts` / `lib/docs.ts` 里 `data.updatedAt ?? 文件 mtime` 只在 mtime **比发布时间晚 1 小时以上**时采纳。否则每次 scp/复制文件（mtime 被刷新）都会让文章凭空多出"更新时间"，甚至出现"更新早于发布"。**注意：手工编辑 frontmatter 也会刷新 mtime**，所以改动内容时最好显式写上 `updatedAt`（或在后台编辑，action 会写好）。
 - **阅读量统计的作用域**：`post_stats` 有 `type` 列（`post` = 博客文章、`doc` = 文库档案），唯一键是 **`@@unique([type, slug])`**——不是 slug 单列，否则文章与档案同名会共用同一份计数。`lib/post-stats.ts` 的 `trackPostView/getPostStats/getPostStatsMap` 均带 `type` 参数（默认 `"post"`，文章侧调用点无需改）。详情页接口：文章 `/api/posts/[slug]/view`、档案 `/api/docs/[slug]/view`；两者各自持有 10s/IP 限流器且限流键分别带 `post:` / `doc:` 前缀（避免同一 IP 刚看完文章再看档案被误吞）。客户端 `PostViewTracker` 的 sessionStorage 去重键是 **`viewed:${type}:${slug}`**（早期只按 slug，同名会互相抑制计数）。档案只有阅读量，用 `ViewCountBadge`（不显示 ❤/🔖）。
+- **书签续读提示**：`components/blog/reading-resume.tsx` 是**必须传 props** 的组件：`<ReadingResume slug={…} type="post|doc" />`（两个详情页都要传，漏传会编译报错）。两条路径：**(1) 显式深链** `#bm-<锚点id>` / `#bm-<0~1百分比>`（从「书签&收藏」弹层点进来）→ 直接跳转 + 提示「已回到书签位置」；**(2) 直接打开页面** → 客户端查 `/api/bookmarks?type=&slug=`，若已登录且该篇有书签，弹询问「上次读到 X% · 要跳回上次的位置吗？」+ 按钮「跳转到书签」/「从头看」，**跳不跳由用户点**（不自动抢滚动位置）。抑制规则：URL 带 `#bm-`（走路径 1）、同标签页会话已问过（`bm-prompted:${type}:${slug}`）、位置相差 <6%、进度 <8% —— 任一命中都不弹。**书签状态只能在客户端查**：文章/文库详情是 ISR 缓存的公开页，服务端读 session 会把它们变成动态渲染。深链依赖原生 `hashchange`，所以弹层里书签链接必须是原生 `<a>`（Next `Link` 的 pushState 不触发）。
 
 ## 当前状态（2026-10-07）
 
+- 最新改动（**仅本地，未提交未部署**）：书签续读提示——直接打开文章/档案时主动问「是否跳回上次位置」。
+  1. `components/blog/reading-resume.tsx` 改为**必须传 `slug` + `type`**，两条路径并存：显式深链 `#bm-*`（原有行为，直接跳 + 提示「已回到书签位置」）与**直接打开时的询问**（新功能，弹「上次读到 X% · 要跳回上次的位置吗？」+「跳转到书签」/「从头看」，**由用户点，不自动抢滚动位置**）。`app/blog/[slug]/page.tsx` 与 `app/docs/[slug]/page.tsx` 已同步传参。
+  2. 抑制打扰：URL 带 `#bm-`（交给深链路径）、同标签页会话已问过（`bm-prompted:${type}:${slug}`）、当前与书签位置相差 <6%、书签进度 <8% —— 任一命中都不弹。toast 用 `duration: 12000`（默认 4s 对需要决策的提示太短）。
+  3. 书签状态**只能客户端查**（`GET /api/bookmarks?type=&slug=`）：文章/文库详情是 ISR 缓存的公开页，服务端读 session 会把它们变成动态渲染。
+  - 验收：typecheck ✓ / build ✓；Chrome CDP 真机 E2E（临时用户 `__e2e_bm_user__` + 一条 60% 书签，已清理）——① 打开文章弹出询问 ✓ ② 点「跳转到书签」→ **实测 pct=0.600**（8233/13721px）✓ ③ 同标签页刷新不再询问 ✓ ④ 深链 `#bm-0.6` 直接跳到 0.6 且不弹询问 ✓。
+  - 坑（选题教训）：第一次用 `hello-world` 当测试文章，`article` 高度只有 296px、`max=0`，跳转断言假失败——**挑测试文章要看内容长度**（≥14KB 的 `typescript-tutorial` 才有 13721px 可滚动高度）。
+  - 坑：用 PowerShell 的 `Get-Content -Raw` + `Set-Content` 改含中文的 UTF-8 脚本会把中文读成 ANSI 再写回，**整个文件乱码**（`CDP 未就绪` → `CDP 鏈氨缁`）。改本地脚本用编辑工具，别用 PS 文本 cmdlet 做替换。
 - 运维（**服务器侧，无代码变更**）：
   1. **用户报告"点按钮很久才响应"的排查结论**：应用本身不慢——localhost 直连 `/` 101ms、`/blog` 94ms、`/docs` **44ms**，静态资源 1–3ms；经 nginx 走公网却是 1.0–1.5s。根因两条：**(a) nginx 只压缩 HTML，JS/CSS 完全不压缩**（全站 2.6MB JS + 491KB CSS 走明文，每次访问多传约 2.2MB）；**(b) 页面本身胖 + 链路 RTT 高**（首页 HTML 662KB，其中**内联 script 359KB 占 68.9%**（RSC flight 数据）、class 属性 84KB；且首页同时渲染了两套主题树 `ui-classic-only` + `ui-explore-only`）。换页 TTFB 实测 0.31–1.12s（服务器累计 TCP 重传 99 万次）。→ 体积的根因（双主题同帧渲染 + 内联 RSC 数据）属架构级改动，**尚未处理**。
   2. **已做：给 nginx 开 gzip_types**（见上「服务器 Runbook」）。实测 JS -71.7%、CSS -83.4%、`/docs` 264KB→81KB、`/` 678KB→173KB。改前备份 `/root/nginx.conf.bak-20261007-172910`，`nginx -t` 通过后才 reload。

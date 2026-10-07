@@ -159,7 +159,7 @@ export default async function DocDetailPage({ params }: PageProps) {
         </div>
       </article>
 
-      <ReadingResume />
+      <ReadingResume slug={doc.slug} type="doc" />
       <PostViewTracker slug={doc.slug} type="doc" />
       <DocBookmarkFloat slug={doc.slug} title={doc.title} />
 
