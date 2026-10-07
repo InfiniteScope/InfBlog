@@ -63,7 +63,7 @@
 
 ## 当前状态（2026-10-07）
 
-- 最新改动（**已推送 GitHub `3e4fdec` 并部署服务器 2026-10-07，线上验证通过**）：书签续读提示的生命周期修复 + 书签按钮选项框。
+- 最新改动（**已推送 GitHub `e185057` 并部署服务器 2026-10-07，线上验证通过**）：书签续读提示的生命周期修复 + 书签按钮选项框。
   1. **提示生命周期**（按用户反馈重做）：**只弹一个**（模块级 `promptedKey` 守卫，key = `pathname#type:slug`，跨实例也拦得住）、**10 秒自动消失**（`PROMPT_DURATION_MS` + `.bookmark-prompt-toast` 倒计时进度条，见 globals.css）、**切换页面立即 `toast.dismiss(toastId)`**（之前会残留/叠加到别的界面）。深链 `#bm-*` 仍直接跳转、不弹询问。
   2. **书签按钮**：抽了 `lib/bookmark-scroll.ts`（`captureBookmarkPosition` / `saveBookmark` / `scrollToBookmarkPercent` / `isPositionResumable` / `computeScrollPercent`）供两处复用；**没有书签 → 点击直接创建**（原逻辑）；**已有书签 → 点击弹出 Radix `DropdownMenu`**（`side="top" align="end"`，贴浮标向上展开）：「更新书签」/「跳转到书签所在位置」/「取消」。
   3. 修掉两个连带 bug：① 从选项框跳转后，续读提示还会再弹一次——把位置判据放在**请求解析后**（提示真正显示前），能识别用户已经跳过去了；② **客户端路由回到同一篇时不提示**——模块级守卫 `promptedKey` 没在 effect cleanup 里释放，而客户端路由不重载模块，所以第二次进入同一篇就再也不弹（这是用户报的"不是每次点进文章都有书签提示"的真因）。
@@ -82,6 +82,9 @@
     - **线上真机 E2E**（临时用户在服务器库建、跑完删除）：登录 `→ /`、续读提示文案 `上次读到「第三章」· 读到 60% · 要跳回上次的位置吗？`、选项框三项齐全、**菜单跳转 0.25→0.6**、提示自带跳转 `→ 0.6`、**打开菜单时 `bodyOverflow`/`bodyMarginRight`/`clientWidth` 全无变化**、跳转后不再重复提示。生产库书签数测试前后都是 4（用户自己的）。
     - **本次最大的坑（务必记住）**：**部署清单只写了"我改过的组件"，漏了因接口变更而必须同步的调用方**——`ReadingResume` 新增必填 prop 后，`app/blog/[slug]/page.tsx` 与 `app/docs/[slug]/page.tsx` 也必须一起部署；漏掉导致服务器构建直接 `TS2739: Type '{}' is missing the following properties from type 'ReadingResumeProps'` 而失败（好在旧构建仍在跑，站点没断）。→ **改组件 props/签名时，先把所有调用点找出来（`grep` 组件名）并纳入部署清单**；服务器构建失败不影响线上运行（`.next` 里还是旧构建），但要立刻补齐文件重建。
     - 另：`grep -rl 'pattern' dir1 dir2` 在服务器上**多目录参数形式没生效**（先报命中 0，改用 `find ... -exec`/逐文件 grep 才正确）——产物核对要用逐文件方式，别被假 0 命中误导。
+  - **线上部署（2026-10-07 第二轮，提交 `2581bfd` + `e185057`）**：`app/layout.tsx` + `app/globals.css` + `reading-resume.tsx` + 新增 `bookmark-prompt.tsx` 共 4 文件 tar+scp → sha256 逐一一致 → `rm -rf .next` 全量重建（`BUILD_ID: Esh4zL8HIW8B77FG1tF6z`）→ `pm2 restart`；本地 10 条 + 公网 3 条路由全 200，**无新增错误**（错误行数 85→85），产物逐文件 grep 命中 2 个文件。
+    - **线上真机 E2E**（临时用户建在服务器库、跑完删除，生产库书签数 5→4 复原）：`liW=430` / 描述 **1 行** / 进度条 2px 动画 10s；**hover 前后条到卡片底缘恒为 1px**、卡片高度 74→74、衔接桥背景透明；**鼠标一直压着 6.2s 后消失**（= 出现满 10s）；点「跳转到书签位置」→ pct **0.6**、提示消失、注入的 `<style>` **零残留**；点「取消」→ 提示消失且滚动位置不变。
+    - 核对插曲：`globals.css` 在服务器上与我部署时不一致，**查明是 `e58d10b` 的历史版本**（blob `3cbfa82`，与本地 HEAD 的差异**只有本次新增的书签提示样式**），确认无用户手改后才覆盖。→ 又一次印证：**blob 对不上时先查"它到底是哪个历史版本、差异是什么"，别急着判为未知版本**；我的 blob 溯源脚本本身也有 bug（PowerShell 里 `${($p[1])}` 是无效语法，会把所有 blob 打印成同一个值，得出"不在 main 历史"的假结论）——**溯源要用 `git rev-parse "<commit>:<path>"` 逐提交比对，并留意命令本身是否报错**。
 - 运维（**服务器侧，无代码变更**）：
   1. **用户报告"点按钮很久才响应"的排查结论**：应用本身不慢——localhost 直连 `/` 101ms、`/blog` 94ms、`/docs` **44ms**，静态资源 1–3ms；经 nginx 走公网却是 1.0–1.5s。根因两条：**(a) nginx 只压缩 HTML，JS/CSS 完全不压缩**（全站 2.6MB JS + 491KB CSS 走明文，每次访问多传约 2.2MB）；**(b) 页面本身胖 + 链路 RTT 高**（首页 HTML 662KB，其中**内联 script 359KB 占 68.9%**（RSC flight 数据）、class 属性 84KB；且首页同时渲染了两套主题树 `ui-classic-only` + `ui-explore-only`）。换页 TTFB 实测 0.31–1.12s（服务器累计 TCP 重传 99 万次）。→ 体积的根因（双主题同帧渲染 + 内联 RSC 数据）属架构级改动，**尚未处理**。
   2. **已做：给 nginx 开 gzip_types**（见上「服务器 Runbook」）。实测 JS -71.7%、CSS -83.4%、`/docs` 264KB→81KB、`/` 678KB→173KB。改前备份 `/root/nginx.conf.bak-20261007-172910`，`nginx -t` 通过后才 reload。
