@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Calendar, Pencil, Plus } from "lucide-react"
+import { Calendar, Eye, Pencil, Plus } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getAllDocs } from "@/lib/docs"
@@ -58,8 +58,12 @@ export default async function AdminDocsPage() {
                   </span>
                   <span className="truncate">/{doc.slug}</span>
                   <span>{(doc.wordCount ?? 0).toLocaleString("zh-CN")} 字</span>
-                  <span title="阅读量（总 / 本月）">
-                    👁 {(statsMap[doc.slug]?.totalViews ?? 0).toLocaleString("zh-CN")}
+                  <span
+                    className="flex items-center gap-1"
+                    title="阅读量（总 / 本月）"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    {(statsMap[doc.slug]?.totalViews ?? 0).toLocaleString("zh-CN")}
                     {" / "}
                     {(statsMap[doc.slug]?.monthViews ?? 0).toLocaleString("zh-CN")}
                   </span>

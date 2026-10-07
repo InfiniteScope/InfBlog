@@ -19,7 +19,7 @@ function endpointFor(slug: string, type: "post" | "doc") {
 }
 
 /**
- * 内容头部统计徽标（👁 总/月 · ❤ 点赞 · 🔖 收藏）。
+ * 内容头部统计徽标（Eye 总/月 · Heart 点赞 · Bookmark 收藏）。
  * - 首帧用服务端传入的初始值（避免 SSR/客户端差异）
  * - 挂载后拉取一次 API；此后监听 POST_STATS_EVENT，
  *   浮动按钮点赞/收藏后同步更新，无需刷新页面

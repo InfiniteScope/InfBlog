@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BookMarked, Plus } from "lucide-react"
+import { BookMarked, Eye, Plus } from "lucide-react"
 
 import { auth } from "@/auth"
 import { getAllDocs } from "@/lib/docs"
@@ -114,9 +114,13 @@ export default async function DocsPage() {
                       text={doc.description}
                       className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-2"
                     />
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] tracking-wide text-muted-foreground/70">
-                      <span title="阅读量（总 / 本月）">
-                        👁 {(statsMap[doc.slug]?.totalViews ?? 0).toLocaleString("zh-CN")}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] tracking-wide text-muted-foreground">
+                      <span
+                        className="flex items-center gap-1"
+                        title="阅读量（总 / 本月）"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        {(statsMap[doc.slug]?.totalViews ?? 0).toLocaleString("zh-CN")}
                         {" / "}
                         {(statsMap[doc.slug]?.monthViews ?? 0).toLocaleString("zh-CN")}
                       </span>
