@@ -155,54 +155,60 @@ export function BookmarkButton({ type, slug, title }: BookmarkButtonProps) {
   if (!bookmarked) return triggerButton
 
   // 已有书签 → 点击弹出小选项框，贴着按钮向上展开
+  // modal={false}：小选项框不需要锁 body 滚动。默认的 modal 会让 Radix 加
+  // overflow:hidden + 滚动条占位补偿，导致视口宽度变化、右下角浮标等贴右边固定
+  // 的元素整体横移一下（用户反馈的"其他 UI 跟着动"就是这个）。
   return (
-    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
       <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
       <DropdownMenuContent
         side="top"
         align="end"
         sideOffset={8}
-        className="w-52 rounded-xl border-border/70 bg-popover/95 p-1.5 shadow-xl backdrop-blur-md"
+        collisionPadding={12}
+        // 宽度按内容自适应（不再写死 w-52）：太长时最多到 min(22rem, 视口-2rem)
+        className="w-max min-w-[11rem] max-w-[min(22rem,calc(100vw-2rem))] rounded-xl border-border/70 bg-popover/95 p-1.5 shadow-xl backdrop-blur-md"
       >
-        <DropdownMenuLabel className="flex items-center justify-between px-2 py-1.5 font-mono text-[10px] tracking-widest text-muted-foreground">
-          <span>书签</span>
+        <DropdownMenuLabel className="flex items-center justify-between gap-3 px-2 py-1.5 font-mono text-[10px] tracking-widest text-muted-foreground">
+          <span className="shrink-0">书签</span>
           <span className="text-accent">
             读到 {Math.round(bookmark.percent * 100)}%
           </span>
         </DropdownMenuLabel>
         {bookmark.label && (
-          <p className="px-2 pb-1.5 text-[11px] leading-snug text-muted-foreground/80">
+          <p className="line-clamp-2 px-2 pb-1.5 text-[11px] leading-snug text-muted-foreground/80">
             {bookmark.label}
           </p>
         )}
         <DropdownMenuSeparator />
+        {/* 两个菜单项都保持单行、不换行；说明文字用 shrink + 省略号，避免挤压主标签 */}
         <DropdownMenuItem
           onSelect={() => {
             void handleUpdate()
           }}
           disabled={busy}
-          className="gap-2 rounded-lg text-[13px]"
+          className="gap-2 whitespace-nowrap rounded-lg text-[13px]"
         >
           <RotateCcw className="h-3.5 w-3.5 shrink-0" />
-          更新书签
-          <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+          <span className="shrink-0">更新书签</span>
+          <span className="ml-auto truncate font-mono text-[10px] text-muted-foreground">
             记录到当前位置
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={handleJump}
-          className="gap-2 rounded-lg text-[13px]"
+          className="gap-2 whitespace-nowrap rounded-lg text-[13px]"
         >
           <LocateFixed className="h-3.5 w-3.5 shrink-0" />
-          跳转到书签所在位置
+          <span className="shrink-0">跳转到书签所在位置</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => setMenuOpen(false)}
-          className="gap-2 rounded-lg text-[13px] text-muted-foreground"
+          className="gap-2 whitespace-nowrap rounded-lg text-[13px] text-muted-foreground"
         >
           <X className="h-3.5 w-3.5 shrink-0" />
-          取消
+          <span>取消</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
