@@ -1018,5 +1018,39 @@ html.dark:not(.ui-classic):not(.flow) .v2-starfield-canvas {
   display: block;
 }
 
+/* ==========================================================================
+   书签续读提示：10 秒自动消失的倒计时进度条
+   LivingBot 的提示是"过期自动消失"的，用一条细进度条让用户看清还剩多久。
+   duration 由调用方通过内联 --bookmark-prompt-ms 传入（见 reading-resume.tsx）。
+   ========================================================================== */
+[data-sonner-toast].bookmark-prompt-toast::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: linear-gradient(
+    to right,
+    hsl(var(--accent) / 0.85),
+    hsl(var(--accent) / 0.4)
+  );
+  transform-origin: left center;
+  animation: bookmark-prompt-countdown
+    var(--bookmark-prompt-ms, 10000ms) linear forwards;
+  pointer-events: none;
+}
+
+@keyframes bookmark-prompt-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+
 
 

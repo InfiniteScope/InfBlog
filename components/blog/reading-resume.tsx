@@ -1,8 +1,14 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
+import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 
+import {
+  computeScrollPercent,
+  isPositionResumable,
+  scrollToBookmarkPercent,
+} from "@/lib/bookmark-scroll"
 import type { BookmarkType } from "@/lib/bookmarks"
 
 interface ReadingResumeProps {
@@ -10,61 +16,50 @@ interface ReadingResumeProps {
   type: BookmarkType
 }
 
-/** 当前位置与书签位置相差不足这个比例时，视为「已经读到这里」，不再打扰 */
-const SAME_POSITION_TOLERANCE = 0.06
+/** 提示存活时长：用户不操作就自动消失，并伴随倒计时进度条 */
+const PROMPT_DURATION_MS = 10_000
 /** 位置太靠前（基本等于还没读）的书签没有跳转价值，不提示 */
 const MIN_MEANINGFUL_PERCENT = 0.08
 
-function computePercent(): number {
-  const doc = document.documentElement
-  const max = doc.scrollHeight - window.innerHeight
-  return max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
-}
+/**
+ * 模块级守卫：记录"已提示过的 (路径, 内容)"。
+ * 同一 slug 即使组件被意外挂载两次，也只会弹出一个提示
+ * （组件内的 ref 是每个实例独立的，拦不住另一个实例）。
+ * 路径变化 → key 不同 → 允许在新的"一次进入"里重新提示。
+ */
+let promptedKey: string | null = null
 
 /**
  * 阅读位置恢复与书签续读提示。
  *
  * 两条路径：
- * 1. **显式深链**（`#bm-<锚点id>` 或 `#bm-<0~1百分比>`）：从「书签&收藏」弹层点进来时，
- *    直接跳转并提示「已回到书签位置」。
- * 2. **直接打开页面**：已登录且这篇存过书签时，**每次进入都会**弹一条询问
- *    「上次读到 X%，要跳回上次的位置吗？」——跳不跳由用户点（「跳转到书签位置」/「取消」），
- *    不自动抢走滚动位置。
+ * 1. **显式深链**（`#bm-<百分比>`，从「书签&收藏」点进来）：直接跳转
+ *    （0 / 0.8s / 2s 三次校正，抵消懒加载图片造成的布局漂移），不弹询问。
+ * 2. **直接打开页面**：已登录且这篇存过书签时，**每次进入都会**弹一条底部提示
+ *    「上次读到 X%」+ 按钮「跳转到书签位置」/「取消」。
  *
- * 不提示的仅有两种情况（都是"提示了也没意义"）：
- * - URL 已带 `#bm-`（走路径 1，已经跳过了）
- * - 当前位置与书签位置相差不足 6%（用户已经在那里了，跳过去也不动）
- *
- * 懒加载图片会推高页面 → 跳转后按 0 / 0.8s / 2s 校正三次，抵消布局漂移。
- * 去重守卫：dev StrictMode 双 effect / hashchange 连发时，2s 内同 payload 只执行一次。
+ * 提示行为：只弹一次 / 10 秒自动消失（带倒计时进度条）/ 切换页面立即消失（淡出）。
  */
 export function ReadingResume({ slug, type }: ReadingResumeProps) {
+  const pathname = usePathname()
   const lastRunRef = useRef<{ payload: string; at: number } | null>(null)
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([])
-  // 深链路径已经处理过 → 不再弹询问
+  // 深链已经处理过 → 不再弹询问（每个实例各自判断）
   const suppressedRef = useRef(false)
-  const [resumable, setResumable] = useState<{
-    percent: number
-    anchor: string | null
-    label: string | null
-  } | null>(null)
 
-  /** 跳转到指定锚点 / 百分比位置，并做两次延迟校正 */
-  const jumpTo = (anchor: string | null, percent: number) => {
-    const jump = () => {
-      const anchorEl = anchor ? document.getElementById(anchor) : null
-      if (anchorEl) {
-        anchorEl.scrollIntoView({ block: "start", behavior: "instant" })
-        return
-      }
-      const doc = document.documentElement
-      const max = doc.scrollHeight - window.innerHeight
-      window.scrollTo({ top: Math.max(0, percent * max), behavior: "instant" })
-    }
-    jump()
-    timeoutsRef.current.push(setTimeout(jump, 800))
-    timeoutsRef.current.push(setTimeout(jump, 2000))
-  }
+  const clearTimers = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout)
+    timeoutsRef.current = []
+  }, [])
+
+  /** 按百分比跳转 + 延迟校正 */
+  const jumpTo = useCallback(
+    (percent: number) => {
+      clearTimers()
+      timeoutsRef.current = scrollToBookmarkPercent(percent)
+    },
+    [clearTimers]
+  )
 
   /* ---------- 路径 1：显式深链 #bm-* ---------- */
   useEffect(() => {
@@ -81,57 +76,83 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
         return
       }
       lastRunRef.current = { payload, at: now }
-      // 深链优先：不再弹「是否跳转」的询问
+      // 深链优先：不弹询问
       suppressedRef.current = true
 
-      const decoded = decodeURIComponent(payload)
-      const percent = parseFloat(decoded)
-      jumpTo(document.getElementById(decoded) ? decoded : null, percent)
+      const percent = parseFloat(decodeURIComponent(payload))
+      if (Number.isNaN(percent)) return
+      jumpTo(percent)
       toast.info("已回到书签位置", { toasterId: "bottom-toaster" })
     }
 
     tryResume()
-
     const onHashChange = () => tryResume()
     window.addEventListener("hashchange", onHashChange)
     return () => {
       window.removeEventListener("hashchange", onHashChange)
-      timeoutsRef.current.forEach(clearTimeout)
-      timeoutsRef.current = []
+      clearTimers()
     }
-    // jumpTo 只读 ref 与 window，无需进依赖
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [jumpTo, clearTimers])
 
   /* ---------- 路径 2：直接打开页面 → 查书签并询问 ---------- */
   useEffect(() => {
     if (typeof window === "undefined") return
-    // URL 带 #bm- → 交给路径 1，避免两套逻辑打架
+    // URL 带 #bm- → 交给路径 1
     if (window.location.hash.startsWith("#bm-")) return
+    // 本次进入已经提示过同一篇（防重复挂载），不再弹
+    const key = `${pathname}#${type}:${slug}`
+    if (promptedKey === key) return
 
     const controller = new AbortController()
-    let cancelled = false
+    let toastId: string | number | undefined
 
     fetch(`/api/bookmarks?type=${type}&slug=${encodeURIComponent(slug)}`, {
       signal: controller.signal,
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (cancelled || suppressedRef.current) return
+        if (controller.signal.aborted) return
         const bm = data?.bookmark as
           | { percent: number; anchor: string | null; label: string | null }
           | null
           | undefined
         if (!bm || typeof bm.percent !== "number") return
         if (bm.percent < MIN_MEANINGFUL_PERCENT) return
-        // 已经读到这里了，跳过去也不会动，就不问了
-        if (Math.abs(computePercent() - bm.percent) < SAME_POSITION_TOLERANCE) {
-          return
-        }
-        setResumable({
-          percent: bm.percent,
-          anchor: bm.anchor ?? null,
-          label: bm.label ?? null,
+        // 已经读到这里了，跳过去也不会动，就不问了。
+        // 判据放在"提示真正显示前"（fetch 解析后），这样用户在请求往返期间
+        // 用右下角书签按钮跳到书签位置的情况也能被识别。
+        if (!isPositionResumable(computeScrollPercent(), bm.percent)) return
+
+        // 占位标记（同步），确保任何重复挂载都不会再弹
+        promptedKey = key
+
+        const percentText = `读到 ${Math.round(bm.percent * 100)}%`
+        toastId = toast.info(
+          bm.label ? `上次读到「${bm.label}」` : `上次${percentText}`,
+          {
+            toasterId: "bottom-toaster",
+            duration: PROMPT_DURATION_MS,
+            description: bm.label
+              ? `${percentText} · 要跳回上次的位置吗？`
+              : "要跳回上次的位置吗？",
+            className: "bookmark-prompt-toast",
+            action: {
+              label: "跳转到书签位置",
+              onClick: () => {
+                jumpTo(bm.percent)
+              },
+            },
+            // 「取消」= 什么都不做，留在当前位置（sonner 的 Action.onClick 是必填）
+            cancel: { label: "取消", onClick: () => {} },
+          }
+        )
+
+        // 倒计时进度条的时长与 duration 保持同源
+        requestAnimationFrame(() => {
+          const el = document.querySelector<HTMLElement>(
+            `[data-sonner-toast][data-id="${toastId}"]`
+          )
+          el?.style.setProperty("--bookmark-prompt-ms", `${PROMPT_DURATION_MS}ms`)
         })
       })
       .catch(() => {
@@ -139,39 +160,12 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
       })
 
     return () => {
-      cancelled = true
       controller.abort()
+      // 切换页面/离开：立即撤掉提示，不让它残留到别的界面（sonner 自带淡出过渡）
+      if (toastId !== undefined) toast.dismiss(toastId)
+      clearTimers()
     }
-  }, [slug, type])
-
-  /* ---------- 弹出询问（每次进入都弹） ---------- */
-  useEffect(() => {
-    if (!resumable || suppressedRef.current) return
-    suppressedRef.current = true
-
-    const { percent, anchor, label } = resumable
-    const percentText = `读到 ${Math.round(percent * 100)}%`
-    toast.info(`上次${label ? `读到「${label}」` : percentText}`, {
-      toasterId: "bottom-toaster",
-      // 需要用户决策，默认 4s 太短
-      duration: 12000,
-      description: label ? `${percentText} · 要跳回上次的位置吗？` : "要跳回上次的位置吗？",
-      action: {
-        label: "跳转到书签位置",
-        onClick: () => {
-          jumpTo(anchor, percent)
-          toast.success(`已回到 ${percentText} 的位置`, {
-            toasterId: "bottom-toaster",
-          })
-        },
-      },
-      // 「取消」= 什么都不做（留在当前位置）。sonner 的 Action.onClick 是必填的，
-      // 点击本身就会关掉 toast，这里给个显式空实现表明语义。
-      cancel: { label: "取消", onClick: () => {} },
-    })
-    // resumable 只在拿到书签后从 null 变为对象，jumpTo 只读 ref
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resumable, slug, type])
+  }, [slug, type, pathname, jumpTo, clearTimers])
 
   return null
 }
