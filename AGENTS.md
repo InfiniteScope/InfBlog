@@ -37,6 +37,8 @@
   6. `pm2 restart infblog` → curl `localhost:3000` 与公网验证（服务器侧 `curl https://infinitescope.site/...`，本机直连公网可能不通）
 - nginx（`/etc/nginx/sites-available/infblog`）：80 拒 IP+域名 301；443 ssl http2 → 127.0.0.1:3000；`/uploads/ /music/ /environment/` alias 直服（30d 缓存），上传新文件无需重启。
 - 监控/运维：ufw(22/80/443) + fail2ban + netdata(19999 本机) + pm2-logrotate + GoAccess(`/var/www/infblog-goaccess.html` cron 每小时) + 每日备份 `/root/backup-infblog.sh`（03:30 SQLite×14，周日 04:00 music tar×14，备份后 music 只含 mp3）。
+- **nginx 压缩（2026-10-07 已开，别再退回）**：`/etc/nginx/nginx.conf` 原样只压缩 `text/html`（`gzip_types` 整行被注释），导致 **JS/CSS 完全不压缩**（全站 2.6MB JS + 491KB CSS 走明文）。现已改为：`gzip on; gzip_vary on; gzip_proxied any; gzip_comp_level 5; gzip_min_length 1024;` + `gzip_types` 覆盖 `text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss image/svg+xml application/wasm font/woff2 application/manifest+json`。**`gzip_proxied any` 是关键**——Next 在 nginx 后面，不设它代理响应不会被压缩。实测 JS -71.7%、CSS -83.4%、`/docs` HTML 264KB→81KB。备份在 `/root/nginx.conf.bak-*`。
+- **本机还存在的其他服务（不要误当成博客的一部分）**：bizbot 全家桶已于 2026-10-07 关停（见下）；**宝塔面板（BT Panel）装在 `/www/server/`**，`bt.service` 与 `php-fpm-82` 是 inactive dead，但它的 MySQL（`/www/server/mysql`，`mysqld.service`，**开机自启**）仍在跑，占 ~160MB 内存 + ~152MB swap，监听 `*:3306`（ufw 未放行 → 外网被拦）。这个不属于博客，**未经用户确认不要停**。另有 netdata(19999, ~160MB)、YDService/barad_agent（腾讯云镜/监控代理）、pure-ftpd(21)、dockerd/containerd。
 - 音乐已全部转码 320kbps mp3（原 FLAC 归档 `/var/www/music-flac-archive/`，1.9G）——勿再把大体积无损放回 `public/music/`（带宽瓶颈：播放时会吃满上行导致整站响应慢）。
 - 资源图标自动本地缓存：`lib/resource-icon-cache.ts`（sharp ≤400×400 webp，ICO 原样），提交/更新/审核通过时自动执行；兜底脚本 `pnpm tsx scripts/cache-resource-icons.ts`。SSRF 防护已支持 IPv6 判定（`lib/favicon.ts`）。
 
@@ -55,14 +57,24 @@
 
 ## 当前状态（2026-10-07）
 
-- 最新改动（**仅本地，未提交未部署**）：文库档案阅读量（复用文章的统计体系）——
+- 运维（**服务器侧，无代码变更**）：
+  1. **用户报告"点按钮很久才响应"的排查结论**：应用本身不慢——localhost 直连 `/` 101ms、`/blog` 94ms、`/docs` **44ms**，静态资源 1–3ms；经 nginx 走公网却是 1.0–1.5s。根因两条：**(a) nginx 只压缩 HTML，JS/CSS 完全不压缩**（全站 2.6MB JS + 491KB CSS 走明文，每次访问多传约 2.2MB）；**(b) 页面本身胖 + 链路 RTT 高**（首页 HTML 662KB，其中**内联 script 359KB 占 68.9%**（RSC flight 数据）、class 属性 84KB；且首页同时渲染了两套主题树 `ui-classic-only` + `ui-explore-only`）。换页 TTFB 实测 0.31–1.12s（服务器累计 TCP 重传 99 万次）。→ 体积的根因（双主题同帧渲染 + 内联 RSC 数据）属架构级改动，**尚未处理**。
+  2. **已做：给 nginx 开 gzip_types**（见上「服务器 Runbook」）。实测 JS -71.7%、CSS -83.4%、`/docs` 264KB→81KB、`/` 678KB→173KB。改前备份 `/root/nginx.conf.bak-20261007-172910`，`nginx -t` 通过后才 reload。
+  3. **已做：关停 bizbot 全家桶**（用户要求）。`bizbot-agent.service`（root 常驻）与 `bizbot-updater.service`（**具备按验签清单替换宿主机任意文件的能力**）已 `stop` + `disable`；4 个容器（bizbot / bizbot-nginx / bizbot-mysql / bizbot-embedding）已 `stop`（**Exited，数据与镜像均保留**）；`/mnt/bizbot/docker-compose` 已移到备份目录防止误启动。备份与恢复步骤在 `/root/bizbot-shutdown-20261007-172742/`（含 `RESTORE.md`、compose 文件、两个 unit 文件、containers-inspect.json）。**注意 `bizbot-embedding` 在独立 compose 文件里，`docker compose stop` 不会停它，需单独 `docker stop`。** 关停后 swap 占用 1.54GB → 0.87GB。
+  4. **发现但未动（等用户决定）**：宿主机还跑着**宝塔面板的 MySQL**（`/www/server/mysql`，`mysqld.service`，**开机自启**，占 ~160MB 内存 + ~152MB swap，监听 `*:3306` 但 ufw 未放行 → 外网被拦）；宝塔面板本体（`bt.service`）与 `php-fpm-82` 都是 inactive dead，属遗留。另有 netdata(~160MB)、YDService/barad_agent（腾讯云镜等代理）、pure-ftpd(21)、dockerd/containerd（容器已空，仍占 ~94MB CPU 时间最多）。
+- 最新改动（**已推送 GitHub `8f4322f` 并部署服务器 2026-10-07，服务端验证通过**）：文库档案阅读量（复用文章的统计体系）——
   1. **schema 变更**：`PostStats` 加 `type String @default("post")`，唯一键 `slug @unique` → **`@@unique([type, slug])`**；迁移 `20261007070046_add_stats_type`（Prisma 生成的 RedefineTables + `INSERT...SELECT` 回填，**不动历史计数**）。本地实测：10 行历史数据全保留、浏览总量 43 不变、`type` 全为 `post`；复合唯一键探针验证同名 post/doc 可共存、重复 doc 被拒。
   2. `lib/post-stats.ts`：`trackPostView/getPostStats/getPostStatsMap` 增加 `type: StatsType = "post"` 参数（文章侧调用点零改动）；`likePost/toggleFavorite` 里的 6 处 `where: { slug }` 改为 `where: { type_slug: { type: "post", slug } }`（删掉 `slug @unique` 后必须改，否则 TS 报 `PostStatsWhereUniqueInput` 不可赋值）。
   3. 新增 `app/api/docs/[slug]/view/route.ts`（GET/POST），限流键带 `doc:` 前缀；文章侧同步加 `post:` 前缀——**两者限流预算分开**，避免同一 IP 刚看完文章再看档案被误吞。
   4. 客户端：`PostViewTracker`/`PostStatBadges` 加 `type`；**抽出新组件 `ViewCountBadge`**（只显示 👁 总/月，档案没有点赞收藏）；sessionStorage 去重键从 `post-viewed:${slug}` 改为 **`viewed:${type}:${slug}`**（原文案存在同名 slug 互相抑制计数的隐患）。
   5. 接入：`/docs/[slug]` 头部徽标 + tracker、`/docs` 列表卡片阅读量、`/admin/docs` 列表阅读量。
-  - 验收：typecheck ✓ / build ✓（`/api/docs/[slug]/view` 已注册）；Chrome CDP 真机 E2E（夹具档案 `__e2e_阅读量测试__`，**中文 slug**）——首访 `0→1`、**同会话连刷 2 次仍为 1**（sessionStorage 去重生效）、清 sessionStorage 后过 10s 窗口再访 `1→2`、徽标只显示 👁 无 ❤/🔖、`/docs` 列表显示 `👁 2 / 2`；`/docs` 与中文 slug 详情页均 200。夹具与统计行已清理。
-  - 坑：`prisma generate` 在 Windows 报 `EPERM rename query_engine-windows.dll.node`（被运行中的 dev server 占用）→ 先停掉 dev 进程再生成（AGENTS 铁律 3 已有记录，本次再次踩到）。另：**Next 16 拒绝双实例**，若占位端口被占会自动顺延到 3001 并让新实例直接退出——发现"起不来"时先查是不是已有 dev 在跑（`.next/dev/logs/next-development.log` 有记）。
+  - 验收：typecheck ✓ / build ✓（`/api/docs/[slug]/view` 已注册）；Chrome CDP 真机 E2E（夹具档案 `__e2e_阅读量测试__`，**中文 slug**）——首访 `0→1`、**同会话连刷 2 次仍为 1**（sessionStorage 去重生效）、清 sessionStorage 后过 10s 窗口再访 `1→2`、徽标无 ❤/🔖、`/docs` 列表数字正确；`/docs` 与中文 slug 详情页均 200。夹具与统计行已清理。
+  - **线上部署（2026-10-07，提交 `ed8cc78` 功能 + `cc24171` 图标）**：11 文件 tar+scp（**零 content 文件**，遵守单向内容规则；服务器上已有的 `计算机网络期末总复习.mdx` 未被触碰）→ 覆盖前用 blob 遍历确认 8 个待覆盖文件全部来自 main 历史 ✓；**先手动备份** `data/blog.db` 到 `/root/backup-manual-20261007-162246-docstats.db`，再 `prisma migrate deploy` + `generate`；服务器 `next build` ✓、`pm2 restart` ✓（重启后无新错误日志）。
+    - **迁移前后对比（线上真实数据，零损失）**：行数 12→12、浏览总量 **189→189**、点赞 **21→21**、收藏 **10→10**、`type` 列已加且历史行全为 `post`。
+    - **服务端确定性验证**：`GET /api/docs/java面试八股/view` → `0`（只读不计数）；`POST` → **`1`**；10s 窗口内再 `POST` → **HTTP 202 且计数保持 1**（限流生效）；库内出现 `type=doc` 行；文章侧 `/api/posts/hello-world/view` 正常 +1、post 行总数与浏览总量不变。
+    - 坑：部署时 `pnpm exec next build` 的输出没被我的后台任务捕获（进程正常结束、`BUILD_ID` 已更新），**判断构建成败要看 `.next/BUILD_ID` 时间戳而不是只看捕获到的输出**。
+  - **教训（无头浏览器诊断不可信）**：本次为验证客户端 tracker，我连续写了 8 个 CDP 诊断脚本，得到"脚本 0 响应 / bodyText=0 / 未水合"等**全是假象**的结论——真相是无头环境里页面长时间停在 `readyState=loading`，**探针读得太早**；对照实验（已知正常的文章详情页）同样"没有发出任何 /api 请求"，才证明是**探针问题而非站点问题**。→ 以后验证客户端行为：**先用一个已知正常的页面做对照**，并且**以服务端数据（DB/接口）为最终判据**，不要采信无头环境的时序观测。
+  - **待用户确认的遗留项**：服务器错误日志里有 `ReferenceError: 网络号 is not defined`（digest 1839713524）——来源是 `content/docs/计算机网络期末总复习.mdx:261` 的裸花括号表达式 `` `IP 地址 = {网络号, 主机号}` ``（MDX 会把它当 JS 求值）。该文件属服务器侧内容，**按单向规则我没有改动它**，已提醒用户转义。
 
 ## 当前状态（2026-10-06）
 
