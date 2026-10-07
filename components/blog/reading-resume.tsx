@@ -22,10 +22,12 @@ const PROMPT_DURATION_MS = 10_000
 const MIN_MEANINGFUL_PERCENT = 0.08
 
 /**
- * 模块级守卫：记录"已提示过的 (路径, 内容)"。
+ * 模块级守卫：记录"正在提示哪一篇"。
  * 同一 slug 即使组件被意外挂载两次，也只会弹出一个提示
  * （组件内的 ref 是每个实例独立的，拦不住另一个实例）。
- * 路径变化 → key 不同 → 允许在新的"一次进入"里重新提示。
+ *
+ * **必须在卸载时清空**：用户的诉求是"每次点进去都要提示"，而客户端路由
+ * （点列表卡片回文章）不会重载模块——不清空的话第二次进入同一篇就再也不弹了。
  */
 let promptedKey: string | null = null
 
@@ -164,6 +166,8 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
       // 切换页面/离开：立即撤掉提示，不让它残留到别的界面（sonner 自带淡出过渡）
       if (toastId !== undefined) toast.dismiss(toastId)
       clearTimers()
+      // 释放守卫，让"下次再进入这篇"能重新提示
+      if (promptedKey === key) promptedKey = null
     }
   }, [slug, type, pathname, jumpTo, clearTimers])
 
