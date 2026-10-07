@@ -1019,24 +1019,37 @@ html.dark:not(.ui-classic):not(.flow) .v2-starfield-canvas {
 }
 
 /* ==========================================================================
-   书签续读提示：10 秒自动消失的倒计时进度条
-   LivingBot 的提示是"过期自动消失"的，用一条细进度条让用户看清还剩多久。
-   duration 由调用方通过内联 --bookmark-prompt-ms 传入（见 reading-resume.tsx）。
+   书签续读提示：固定 10 秒的倒计时进度条
+   提示是"过期自动消失"的，用一条细进度条让用户看清还剩多久。
+   时长由调用方注入 `.<scope>{--bookmark-prompt-ms:10000ms}`（见 bookmark-prompt.tsx）。
    ========================================================================== */
-[data-sonner-toast].bookmark-prompt-toast::after {
-  content: "";
+
+/* 提示卡宽度在 app/layout.tsx 的 <Toaster width={430}> 上设置：
+   sonner 用**行内样式**写 `--width`（默认 356px），外部 CSS 覆盖不了——
+   356px 减去图标与两个按钮后文本区只剩 147px，描述会折成
+   「…要跳回上次的 / 位置吗？」这种难看的断行。 */
+
+[data-sonner-toast].bookmark-prompt-toast [data-description] {
+  text-wrap: pretty;
+}
+
+/* 进度条必须用独立元素，**不能用 ::after**：
+   sonner 用 [data-sonner-toast][data-expanded=true]::after 做"悬停展开时卡片之间
+   的衔接桥"（bottom:100% + height:calc(var(--gap)+1px)），特异性更高会把我们的
+   条形顶到卡片上方（实测 hover 时 bottom 由 0px 跳到 89.875px、height 变成 15px）。 */
+[data-sonner-toast].bookmark-prompt-toast [data-bm-countdown] {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   height: 2px;
-  border-radius: 0 0 var(--radius) var(--radius);
+  border-radius: 0 0 var(--border-radius, 8px) var(--border-radius, 8px);
+  transform-origin: left center;
   background: linear-gradient(
     to right,
     hsl(var(--accent) / 0.85),
     hsl(var(--accent) / 0.4)
   );
-  transform-origin: left center;
   animation: bookmark-prompt-countdown
     var(--bookmark-prompt-ms, 10000ms) linear forwards;
   pointer-events: none;
@@ -1049,6 +1062,15 @@ html.dark:not(.ui-classic):not(.flow) .v2-starfield-canvas {
   to {
     transform: scaleX(0);
   }
+}
+
+/* 悬停展开时不要 sonner 那条衔接桥：它用 bottom:100% 把伪元素顶到卡片上方，
+   看起来就像"倒计时条突然上移"。
+   sonner 的样式是运行时注入到文档更后面的，同级特异性比不过，必须 !important。
+   用透明而不是 display:none——那条桥本身还占着布局（`height:calc(var(--gap)+1px)`），
+   直接去掉会让卡片在展开/收起时的占位变化，容易与相邻 toast 叠在一起。 */
+[data-sonner-toast].bookmark-prompt-toast[data-expanded="true"]::after {
+  background: transparent !important;
 }
 
 

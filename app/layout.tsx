@@ -59,8 +59,17 @@ export default function RootLayout({
           <ThemeProvider>
             <UiThemeTransitionProvider>
               <Toaster theme="system" position="top-center" richColors />
-        {/* 书签等底部提示专用（全局 toasts 保持顶部居中不变） */}
-        <Toaster id="bottom-toaster" theme="system" position="bottom-center" richColors />
+        {/* 书签等底部提示专用（全局 toasts 保持顶部居中不变）。
+            宽度用 style 传 --width：sonner 没有 width prop（TOAST_WIDTH 硬编码 356），
+            而它是通过**行内样式**写 var(--width) 的，外部 CSS 覆盖不了；
+            356px 减去图标与两个按钮后文本区只剩 147px，描述会折行。 */}
+        <Toaster
+          id="bottom-toaster"
+          theme="system"
+          position="bottom-center"
+          richColors
+          style={{ "--width": "430px" } as React.CSSProperties}
+        />
             <CollectibleReveal />
             <LoginReturnTracker />
             <ViewsTracker />

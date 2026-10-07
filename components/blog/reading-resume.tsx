@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 
+import { showBookmarkPrompt } from "@/components/blog/bookmark-prompt"
 import {
   computeScrollPercent,
   isPositionResumable,
@@ -16,8 +17,6 @@ interface ReadingResumeProps {
   type: BookmarkType
 }
 
-/** 提示存活时长：用户不操作就自动消失，并伴随倒计时进度条 */
-const PROMPT_DURATION_MS = 10_000
 /** 位置太靠前（基本等于还没读）的书签没有跳转价值，不提示 */
 const MIN_MEANINGFUL_PERCENT = 0.08
 
@@ -106,7 +105,8 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
     if (promptedKey === key) return
 
     const controller = new AbortController()
-    let toastId: string | number | undefined
+    // 提示的关闭函数（由 showBookmarkPrompt 返回）：卸载/换页时调用，撤掉提示
+    let dismissPromptRef: (() => void) | undefined
 
     fetch(`/api/bookmarks?type=${type}&slug=${encodeURIComponent(slug)}`, {
       signal: controller.signal,
@@ -128,33 +128,11 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
         // 占位标记（同步），确保任何重复挂载都不会再弹
         promptedKey = key
 
-        const percentText = `读到 ${Math.round(bm.percent * 100)}%`
-        toastId = toast.info(
-          bm.label ? `上次读到「${bm.label}」` : `上次${percentText}`,
-          {
-            toasterId: "bottom-toaster",
-            duration: PROMPT_DURATION_MS,
-            description: bm.label
-              ? `${percentText} · 要跳回上次的位置吗？`
-              : "要跳回上次的位置吗？",
-            className: "bookmark-prompt-toast",
-            action: {
-              label: "跳转到书签位置",
-              onClick: () => {
-                jumpTo(bm.percent)
-              },
-            },
-            // 「取消」= 什么都不做，留在当前位置（sonner 的 Action.onClick 是必填）
-            cancel: { label: "取消", onClick: () => {} },
-          }
-        )
-
-        // 倒计时进度条的时长与 duration 保持同源
-        requestAnimationFrame(() => {
-          const el = document.querySelector<HTMLElement>(
-            `[data-sonner-toast][data-id="${toastId}"]`
-          )
-          el?.style.setProperty("--bookmark-prompt-ms", `${PROMPT_DURATION_MS}ms`)
+        // 弹出提示（内含倒计时进度条）。自动关闭由 showBookmarkPrompt 内部的
+        // 显式定时器负责——sonner 悬停时会暂停自己的计时器，不能依赖它。
+        dismissPromptRef = showBookmarkPrompt({
+          bookmark: bm,
+          onJump: jumpTo,
         })
       })
       .catch(() => {
@@ -164,7 +142,7 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
     return () => {
       controller.abort()
       // 切换页面/离开：立即撤掉提示，不让它残留到别的界面（sonner 自带淡出过渡）
-      if (toastId !== undefined) toast.dismiss(toastId)
+      dismissPromptRef?.()
       clearTimers()
       // 释放守卫，让"下次再进入这篇"能重新提示
       if (promptedKey === key) promptedKey = null
