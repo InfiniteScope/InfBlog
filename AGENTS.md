@@ -35,6 +35,7 @@
   4. 新依赖 → `pnpm install`；schema 变更 → `pnpm exec prisma migrate deploy && pnpm exec prisma generate`
   5. `NODE_OPTIONS=--max-old-space-size=1536 pnpm exec next build`
   6. `pm2 restart infblog` → curl `localhost:3000` 与公网验证（服务器侧 `curl https://infinitescope.site/...`，本机直连公网可能不通）
+- **别把 SSH 断连当成命令失败**：服务器侧的长命令（尤其 `next build`）常出现 `client_loop: send disconnect: Connection reset`，此时本地 ssh 进程会以**退出码 1** 结束、输出也可能截断——**这是会话层问题，不代表远端失败**。判断真实结果必须**另开一条连接**去看状态：`cat .next/BUILD_ID`（及它的 mtime）、`pm2 list | grep infblog`、路由 curl。我因此误判过一次（以为构建没跑完，实际早就成功了）。
 - nginx（`/etc/nginx/sites-available/infblog`）：80 拒 IP+域名 301；443 ssl http2 → 127.0.0.1:3000；`/uploads/ /music/ /environment/` alias 直服（30d 缓存），上传新文件无需重启。
 - 监控/运维：ufw(22/80/443) + fail2ban + netdata(19999 本机) + pm2-logrotate + GoAccess(`/var/www/infblog-goaccess.html` cron 每小时) + 每日备份 `/root/backup-infblog.sh`（03:30 SQLite×14，周日 04:00 music tar×14，备份后 music 只含 mp3）。
 - **nginx 压缩（2026-10-07 已开，别再退回）**：`/etc/nginx/nginx.conf` 原样只压缩 `text/html`（`gzip_types` 整行被注释），导致 **JS/CSS 完全不压缩**（全站 2.6MB JS + 491KB CSS 走明文）。现已改为：`gzip on; gzip_vary on; gzip_proxied any; gzip_comp_level 5; gzip_min_length 1024;` + `gzip_types` 覆盖 `text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss image/svg+xml application/wasm font/woff2 application/manifest+json`。**`gzip_proxied any` 是关键**——Next 在 nginx 后面，不设它代理响应不会被压缩。实测 JS -71.7%、CSS -83.4%、`/docs` HTML 264KB→81KB。备份在 `/root/nginx.conf.bak-*`。
