@@ -27,19 +27,21 @@ function computePercent(): number {
  * 两条路径：
  * 1. **显式深链**（`#bm-<锚点id>` 或 `#bm-<0~1百分比>`）：从「书签&收藏」弹层点进来时，
  *    直接跳转并提示「已回到书签位置」。
- * 2. **直接打开页面**：已登录且这篇存过书签时，主动弹一条询问
- *    「读到 X%，是否跳转？」——**跳不跳由用户点**，不自动抢走滚动位置。
+ * 2. **直接打开页面**：已登录且这篇存过书签时，**每次进入都会**弹一条询问
+ *    「上次读到 X%，要跳回上次的位置吗？」——跳不跳由用户点（「跳转到书签位置」/「取消」），
+ *    不自动抢走滚动位置。
  *
- * 抑制策略（避免打扰）：URL 已带 `#bm-`（走路径 1）、同标签页本会话已问过一次、
- * 位置相差不足 6%、书签进度不足 8% —— 任一命中都不提示。
+ * 不提示的仅有两种情况（都是"提示了也没意义"）：
+ * - URL 已带 `#bm-`（走路径 1，已经跳过了）
+ * - 当前位置与书签位置相差不足 6%（用户已经在那里了，跳过去也不动）
  *
  * 懒加载图片会推高页面 → 跳转后按 0 / 0.8s / 2s 校正三次，抵消布局漂移。
- * 去重守卫：dev 的 StrictMode 双 effect / hashchange 连发时，2s 内同 payload 只执行一次。
+ * 去重守卫：dev StrictMode 双 effect / hashchange 连发时，2s 内同 payload 只执行一次。
  */
 export function ReadingResume({ slug, type }: ReadingResumeProps) {
   const lastRunRef = useRef<{ payload: string; at: number } | null>(null)
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([])
-  // 用户点过「不用了」/ 已经问过一次 → 本组件生命周期内不再弹
+  // 深链路径已经处理过 → 不再弹询问
   const suppressedRef = useRef(false)
   const [resumable, setResumable] = useState<{
     percent: number
@@ -106,13 +108,6 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
     if (typeof window === "undefined") return
     // URL 带 #bm- → 交给路径 1，避免两套逻辑打架
     if (window.location.hash.startsWith("#bm-")) return
-    // 同一标签页会话内已经问过这篇，不再重复打扰
-    const seenKey = `bm-prompted:${type}:${slug}`
-    try {
-      if (sessionStorage.getItem(seenKey)) return
-    } catch {
-      // 隐私模式下 sessionStorage 可能不可用，忽略
-    }
 
     const controller = new AbortController()
     let cancelled = false
@@ -129,7 +124,7 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
           | undefined
         if (!bm || typeof bm.percent !== "number") return
         if (bm.percent < MIN_MEANINGFUL_PERCENT) return
-        // 已经读到这里了，不用问
+        // 已经读到这里了，跳过去也不会动，就不问了
         if (Math.abs(computePercent() - bm.percent) < SAME_POSITION_TOLERANCE) {
           return
         }
@@ -149,15 +144,10 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
     }
   }, [slug, type])
 
-  /* ---------- 弹出询问 ---------- */
+  /* ---------- 弹出询问（每次进入都弹） ---------- */
   useEffect(() => {
     if (!resumable || suppressedRef.current) return
     suppressedRef.current = true
-    try {
-      sessionStorage.setItem(`bm-prompted:${type}:${slug}`, "1")
-    } catch {
-      // 忽略
-    }
 
     const { percent, anchor, label } = resumable
     const percentText = `读到 ${Math.round(percent * 100)}%`
@@ -167,7 +157,7 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
       duration: 12000,
       description: label ? `${percentText} · 要跳回上次的位置吗？` : "要跳回上次的位置吗？",
       action: {
-        label: "跳转到书签",
+        label: "跳转到书签位置",
         onClick: () => {
           jumpTo(anchor, percent)
           toast.success(`已回到 ${percentText} 的位置`, {
@@ -175,12 +165,9 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
           })
         },
       },
-      cancel: {
-        label: "从头看",
-        onClick: () => {
-          window.scrollTo({ top: 0, behavior: "smooth" })
-        },
-      },
+      // 「取消」= 什么都不做（留在当前位置）。sonner 的 Action.onClick 是必填的，
+      // 点击本身就会关掉 toast，这里给个显式空实现表明语义。
+      cancel: { label: "取消", onClick: () => {} },
     })
     // resumable 只在拿到书签后从 null 变为对象，jumpTo 只读 ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
