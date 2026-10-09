@@ -16,7 +16,6 @@ import {
 } from "@/components/theme/ui-theme"
 import { playExploreTransition } from "@/components/theme/transition-explore"
 import { playClassicTransition } from "@/components/theme/transition-classic"
-import { ExploreDarkSync } from "@/components/theme/explore-dark-sync"
 
 interface UiThemeTransitionValue {
   start: (theme: UiTheme) => void
@@ -34,7 +33,8 @@ export function useUiThemeTransition() {
  * UI 主题转场编排：经典 ⇄ 探索各有一段全屏覆盖层动画
  * （探索 = WebGL 月升；经典 = 碎形涟漪），满幕瞬间完成换肤。
  * 覆盖层 fixed inset-0 z-100，盖住导航栏/侧边栏/全部界面——转场是全局的。
- * 「探索」强制深色由 ExploreDarkSync 随换肤生效/还原。
+ * 「探索」强制深色由 ThemeProvider 的 forcedTheme 承担（见 theme-provider.tsx），
+ * 不在这里处理；本组件只负责换肤与转场动画。
  * reduced-motion 直接切换无动画。
  */
 export function UiThemeTransitionProvider({
@@ -67,7 +67,6 @@ export function UiThemeTransitionProvider({
 
   return (
     <UiThemeTransitionContext.Provider value={{ start }}>
-      <ExploreDarkSync />
       {children}
       {active && <TransitionOverlay theme={active} onDone={handleDone} />}
     </UiThemeTransitionContext.Provider>

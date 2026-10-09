@@ -47,16 +47,20 @@ export default function RootLayout({
           本地代码无 SSR/CSR 差异，避免误报警告 */}
       <body className="font-sans antialiased" suppressHydrationWarning>
         {/* UI 主题：渲染前应用经典标记，避免新旧界面闪烁。默认经典；
-            「探索」= 无 ui-classic 类 + 强制深色（记住用户原偏好到
-            infblog-prev-theme，切回经典时由 ExploreDarkSync 还原）。
+            「探索」= 无 ui-classic 类 + 强制深色；切回经典时还原用户偏好。
             支持 ?ui=explore / ?ui=classic 覆盖并记忆。
 
-            ⚠️ 只有"真的带了 ?ui= 参数"才允许写共享状态。
-            曾经这里把"没有参数"也当成"切经典"，于是中键在新标签打开任何
-            导航链接（href 不带参数）都会删掉 localStorage 的 infblog-ui
-            ——而 localStorage 跨标签共享，原标签的探索主题因此被改；
-            又因为 getUiTheme() 把"key 缺失"解读为探索、本脚本解读为经典，
-            两边还会来回互相"纠正"。默认主题保持"什么都不写"。 */}
+            ⚠️ 两条纪律，都是踩过的坑：
+            1. 只有"真的带了 ?ui= 参数"才写 infblog-ui。曾经把"没有参数"也当成
+               "切经典"，于是中键在新标签打开任何导航链接（href 不带参数）都会
+               删掉这个**跨标签共享**的 key，原标签的探索主题被改掉。
+            2. **本脚本绝不写 `theme` / `infblog-prev-theme`**。唯一写 theme 的
+               地方是用户自己点深浅色开关。next-themes 的 setTheme 写的是共享
+               localStorage("theme")，而它自己也监听 storage 事件——任何一次
+               多余写入都会广播给所有标签页，表现就是"另一个界面被切换"
+               （用户报告的中键切主题现象）。
+               探索的"强制深色"改为由 ThemeProvider 的 forcedTheme 承担（只在
+               内存里覆盖、不落盘），用户偏好因此永不被污染。 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `try{
@@ -67,8 +71,6 @@ if(p){
 }
 if(localStorage.getItem("infblog-ui")==="explore"){
   document.documentElement.classList.remove("ui-classic");
-  var th=localStorage.getItem("theme");
-  if(th!=="dark"){localStorage.setItem("infblog-prev-theme",th||"system");localStorage.setItem("theme","dark")}
   document.documentElement.classList.add("dark")
 }else{
   document.documentElement.classList.add("ui-classic")
