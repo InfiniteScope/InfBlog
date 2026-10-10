@@ -73,7 +73,7 @@
 
 ## 当前状态（2026-10-07）
 
-- **最新改动（已推送 GitHub `c192c33`，未部署）**：跨标签主题污染根治 + /guestbook hydration 修复。
+- **最新改动（已部署服务器 2026-10-10，`BUILD_ID: 8BkbZ1g60QqRtG6ySUKDr`，线上验收全绿）**：跨标签主题污染根治 + /guestbook hydration 修复。
   1. **中键点导航链接导致主题被切换（用户报告，查了两轮才找到真因）**：上一轮我只堵了 `infblog-ui` 的写入，现象仍在——真凶是**共享的 `theme` 键**。完整链条：导航 href 不带参数 → 中键在新标签打开 → 新标签的预绘制脚本为"探索强制深色"写 `theme=dark` → next-themes 监听 storage → 广播到所有标签 → **原标签 class 在 dark/light 间抖动 25 次**甚至停在深色。两个放大器：`ExploreDarkSync` 把 `setTheme` 放进了 effect 依赖（next-themes 的 setTheme 是依赖 theme 的 useCallback → 每 ~50ms 一次自激循环），以及它用 MutationObserver 无差别监听 class。→ 改用 next-themes 原生 **`forcedTheme`**（只内存覆盖、不落盘），预绘制脚本**完全不写 theme**，删除 `explore-dark-sync.tsx`。实测：中键后原标签 class 变化 **0 次**、theme 保持 light；探索显示深色、切回经典还原、偏好不被污染。
   2. **/guestbook 的 hydration 失败 + `<script>` 告警（用户截图报告）**：根因是 `guestbook-form.tsx` 用 `typeof document !== "undefined"` 决定是否渲染 portal（服务端 false / 客户端 true 的分支），实测纯 SSR HTML 里确实没有该 div。改用 `useEffect` 置位的 `mounted` 状态；`<script>` 告警是它的**连带现象**（树在客户端重新生成时又渲染了一遍 layout 的预绘制脚本），修好 1 后一并消失（实测错误数 0）。两个问题的引入提交都不是近期改动（`2da192d` / `a38e378`），是排查时才暴露的既有问题。
   - **本轮最大教训（已写进「领域要点」）**：① 共享 localStorage 键（`theme`）绝不能在导航/加载时写；② 绝不要用 `typeof document/window` 分支决定渲染 DOM，要用 mounted 状态；③ **行为与源码不符时先核对产物里跑的是哪份代码**——我连续几轮都在跑未重新编译的旧代码却不自知。
@@ -82,6 +82,10 @@
   - 坑（E2E 方法论）：判元素可见性要用 `offsetParent !== null`，**不能用 `getBoundingClientRect().width > 0`**（`/blog` 与首页把 `ui-classic-only` / `ui-explore-only` 两棵树同时渲染进 DOM，隐藏那棵的尺寸是 0）；`Page.navigate` 会重置模块状态，验证"客户端路由"必须用真实客户端跳转（`a.click()`）。
   - 坑：**别用模块级状态做"刚发生过某事"的抑制**（`msSinceBookmarkJump` 会跨文章泄漏）——改用纯函数位置判据。
   - 坑（选题）：测试文章要有足够高度（`hello-world` 只有 296px，`typescript-tutorial` 有 13721px）。
+  - **线上部署（2026-10-10，提交 `ea967d7` + `c192c33` + `ca9abbe`）**：4 文件 tar+scp（`app/layout.tsx` + `app/guestbook/guestbook-form.tsx` + `components/theme-provider.tsx` + `components/theme/ui-theme-transition.tsx`）+ **服务器删除 `components/theme/explore-dark-sync.tsx`**（备份 `/tmp/explore-dark-sync.tsx.removed`）。覆盖前用 `git hash-object` 逐个核对：服务器上 5 个文件全部等于 main 历史版本（`layout.tsx`=`e185057` 的 `1703c3e7`、其余 3 个长期未变、待删文件 `c0c6aec4`）✓ 无未知改动。sha256 落地核对与本地逐一一致 → `rm -rf .next` 全量重建（`BUILD_ID: 8BkbZ1g60QqRtG6ySUKDr`、`BUILD_EXIT=0`）→ `pm2 restart infblog`。
+    - **线上验收（CDP 真机跑公网站点，全绿）**：**中键点「留言墙」后原标签 class 变化 0 次、`theme` 保持 light、自身对共享键零写入**（这正是用户报的 bug）；探索显示深色且 `theme` 不被污染；刷新探索页仍深色；切回经典还原浅色；`/guestbook` 控制台错误 **0** 且底部输入栏正常渲染。本地 5 条 + 公网 3 条路由全 200；错误日志增量 **0**（60→60）；产物中 `setItem("theme","dark")` 命中 0、`explore-dark-sync` 命中 0、`forcedTheme` 命中 4 个文件。
+    - **本机到 GitHub 的 push 也失败了**（`schannel: failed to receive handshake, SSL/TLS connection failed`）——与服务器 git pull 不通同源，属网络问题；部署走 tar+scp 不受影响，但**本地提交尚未同步到 origin，需网络恢复后补 push**。
+    - 坑：核对脚本里 `grep -rl X | head -1 >/dev/null && grep -rl Y | head -3` 这种写法**会假报 BAD**（前段有输出时 `head` 返回 0，与 `&&` 组合即触发分支）。判断"产物是否残留某符号"要单独跑一次 grep 并把命中数打出来（`grep -rl Y .next | wc -l`），别把多个 grep 塞进一个条件表达式。
 
   - **线上部署（2026-10-07，提交 `e58d10b` + `df3d7c2` + `3e4fdec`）**：`lib/bookmark-scroll.ts`（新文件）+ `reading-resume.tsx` + `bookmark-button.tsx` + `app/globals.css` + **两个详情页** tar+scp → sha256 逐一与本地一致 → `rm -rf .next` 全量重建（`BUILD_ID` 更新）→ `pm2 restart infblog`；本地 8 条 + 公网 3 条路由全 200，中文 slug 详情页 200，重启后**无新增错误日志**（用"记录行数 → 打一轮页面 → 再比对行数"的方法证明，之前那几条 `Server Reference ID` 报错是历史残留，日志 mtime 早于构建时间）；构建产物确认含新逻辑（客户端 chunk 2 个、服务端 2 个）。
     - **线上真机 E2E**（临时用户在服务器库建、跑完删除）：登录 `→ /`、续读提示文案 `上次读到「第三章」· 读到 60% · 要跳回上次的位置吗？`、选项框三项齐全、**菜单跳转 0.25→0.6**、提示自带跳转 `→ 0.6`、**打开菜单时 `bodyOverflow`/`bodyMarginRight`/`clientWidth` 全无变化**、跳转后不再重复提示。生产库书签数测试前后都是 4（用户自己的）。
