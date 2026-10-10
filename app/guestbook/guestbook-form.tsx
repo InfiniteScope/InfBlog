@@ -37,6 +37,17 @@ export function GuestbookForm() {
 
   const [content, setContent] = useState("")
   const [open, setOpen] = useState(false)
+  /* 只有客户端挂载后才渲染 portal。
+     以前这里写的是 `typeof document !== "undefined"` —— 那是 SSR 与客户端
+     结果不同的分支（服务端 false / 客户端 true），会直接触发 React 的
+     "Hydration failed because the server rendered HTML didn't match the client"，
+     整棵树被迫在客户端重新生成。用 useEffect 置位的状态才是正确写法：
+     首帧两边都不渲染，挂载后再补上底部输入栏。 */
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Restore draft after coming back from login.
   useEffect(() => {
@@ -71,7 +82,7 @@ export function GuestbookForm() {
       {/* Fixed bottom input bar.
           注意：用 createPortal 渲染到 body——页面切换动画（PageTransition）
           的 transform/filter 会让 fixed 元素退化为 absolute，必须脱离转场层 */}
-      {typeof document !== "undefined" &&
+      {mounted &&
         createPortal(
           <div
             className={cn(
