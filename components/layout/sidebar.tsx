@@ -10,6 +10,7 @@ import {
   AtSign,
   Rss,
   Newspaper,
+  TrainFront,
 } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
@@ -38,6 +39,20 @@ function BilibiliIcon({ className }: { className?: string }) {
     />
   )
 }
+
+/**
+ * 开往（Travellings）友链接力入口。
+ *
+ * 加入条件明确要求把外链放在「打开网站就能看到的地方」（顶栏/侧栏），
+ * 所以这个按钮**不放进折叠的 // LINKS 面板**，而是紧跟社交按钮组，
+ * 且侧栏收起成图标态时依然保留（移动端也走同一个侧栏），确保任何
+ * 断点下访客都找得到。
+ *
+ * 图标用 Lucide 的火车（官方首选语义是「火车/地铁」，次选「火箭/飞船」；
+ * 唯一明确不推荐的是纸飞机，易与 Telegram 混淆）。线性单色图标与
+ * 本站按钮风格统一，比彩色 emoji 更协调。
+ */
+const TRAVELLINGS_URL = "https://www.travellings.cn/go.html"
 
 interface SidebarProps {
   className?: string
@@ -206,6 +221,30 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
             <Newspaper className="h-4 w-4 shrink-0" />
             {!collapsed && "快报"}
           </Link>
+        </Button>
+
+        {/* 开往（友链接力）：必须放在折叠面板之外，保证「开站即可见」。
+            放在这个 grid 内部（而非 aside 的 flex 子项），才能和上面的社交
+            按钮共用 gap-2 的间距——否则会吃到 aside 的 gap-6，显得比别的
+            按钮松一截。展开时跨两列，与「GitHub 主页」同宽。 */}
+        <Button
+          variant="outline"
+          className={cn(
+            "gap-2",
+            collapsed && "h-9 w-11 gap-0 px-0",
+            !collapsed && "col-span-2 justify-center"
+          )}
+          asChild
+        >
+          <a
+            href={TRAVELLINGS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="本博客已加入 开往 Travelling 个人博客互助项目；点击后可随机抵达下一个个人博客"
+          >
+            <TrainFront className="h-4 w-4 shrink-0" />
+            {!collapsed && "开往下一站 Travelling"}
+          </a>
         </Button>
       </div>
 
