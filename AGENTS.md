@@ -83,6 +83,14 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-10-14）
+
+- 最新改动（**其他 session 的近期批次，均已部署服务器并线上验证**；细节见「领域要点」）：
+  1. **「开往」友链接力入口**（2026-10-13，提交 `87712c0`，`BUILD_ID: l-5iJPDKxKIO5aQq3NgR-`）：侧栏社交按钮组新增整行「开往下一站 Travelling」按钮 → `https://www.travellings.cn/go.html`，为申请加入 Travellings 做准备。只改 `components/layout/sidebar.tsx` 一个文件；线上验收文案/`target`/`rel` 正确、221×36、控制台 0 错误。**申请规则与移动端可达性观察见「领域要点 → Travellings」。**
+  2. **BlogsClub 站点所有权认证**（2026-10-14，提交 `56e6b3b`）：`public/840310795b51404ab0ef6b6dcd2cd566.txt`。踩到的坑：**`public/` 新文件在本项目不会即时生效**，必须 `pm2 restart infblog`（Next 在进程启动时固定 public 清单）——详见「领域要点」。
+  3. **HSTS 上线**（2026-10-10）：nginx 4 处 `Strict-Transport-Security`（443 server 级 + `/uploads/ /music/ /environment/` 三个 alias location），原因与"为什么必须 4 处"见「领域要点」。
+- **历史遗留项已解决**：服务器日志里的 `ReferenceError: 网络号 is not defined` —— 根因是 `content/docs/计算机网络期末总复习.mdx` 正文的**裸花括号** `{网络号, 主机号}`（MDX 当 JS 表达式求值）。处理：① 该档案随后被 Kimi 会话大幅扩充（新增「资料整理自」出处段 + internet/Internet 辨析、BER、PON、代理服务器等内容），我把**服务器版（权威）**拉回本地只做修复——花括号改 **HTML 实体** `&#123; … &#125;`、修掉出处段第 4 条链接尾部多余的 `"`；② 提交 `8659a38`，本地/服务器 sha256 一致、公网 200；③ 同时新增 `lib/mdx-normalize.ts`（渲染前归一化尖括号链接与裸 `<br>`，已接入文章页与文库页，见「铁律 5」）。**注意花括号无法自动归一化**（文章里合法的 JSX `style={{…}}` 也用花括号）→ 写文规则：正文里描述性的 `{}` 要用行内代码包起来，或写成 HTML 实体。
+
 ## 当前状态（2026-10-07）
 
 - **最新改动（已部署服务器 2026-10-10，`BUILD_ID: 8BkbZ1g60QqRtG6ySUKDr`，线上验收全绿）**：跨标签主题污染根治 + /guestbook hydration 修复。
@@ -123,7 +131,7 @@
     - **服务端确定性验证**：`GET /api/docs/java面试八股/view` → `0`（只读不计数）；`POST` → **`1`**；10s 窗口内再 `POST` → **HTTP 202 且计数保持 1**（限流生效）；库内出现 `type=doc` 行；文章侧 `/api/posts/hello-world/view` 正常 +1、post 行总数与浏览总量不变。
     - 坑：部署时 `pnpm exec next build` 的输出没被我的后台任务捕获（进程正常结束、`BUILD_ID` 已更新），**判断构建成败要看 `.next/BUILD_ID` 时间戳而不是只看捕获到的输出**。
   - **教训（无头浏览器诊断不可信）**：本次为验证客户端 tracker，我连续写了 8 个 CDP 诊断脚本，得到"脚本 0 响应 / bodyText=0 / 未水合"等**全是假象**的结论——真相是无头环境里页面长时间停在 `readyState=loading`，**探针读得太早**；对照实验（已知正常的文章详情页）同样"没有发出任何 /api 请求"，才证明是**探针问题而非站点问题**。→ 以后验证客户端行为：**先用一个已知正常的页面做对照**，并且**以服务端数据（DB/接口）为最终判据**，不要采信无头环境的时序观测。
-  - **待用户确认的遗留项**：服务器错误日志里有 `ReferenceError: 网络号 is not defined`（digest 1839713524）——来源是 `content/docs/计算机网络期末总复习.mdx:261` 的裸花括号表达式 `` `IP 地址 = {网络号, 主机号}` ``（MDX 会把它当 JS 求值）。该文件属服务器侧内容，**按单向规则我没有改动它**，已提醒用户转义。
+  - **待用户确认的遗留项**：服务器错误日志里有 `ReferenceError: 网络号 is not defined`（digest 1839713524）——来源是 `content/docs/计算机网络期末总复习.mdx:261` 的裸花括号表达式 `` `IP 地址 = {网络号, 主机号}` ``（MDX 会把它当 JS 求值）。该文件属服务器侧内容，**按单向规则我没有改动它**，已提醒用户转义。→ **已于 2026-10-14 修复**（拉回服务器权威版并改用 HTML 实体转义花括号，详见上一条「当前状态（2026-10-14）」）。
 
 ## 当前状态（2026-10-06）
 
