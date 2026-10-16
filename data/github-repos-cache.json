@@ -13,7 +13,7 @@
     "full_name": "InfiniteScope/InfBlog",
     "description": "开源个人博客。部分组件可需要者供参考。",
     "language": "TypeScript",
-    "stargazers_count": 5,
+    "stargazers_count": 6,
     "html_url": "https://github.com/InfiniteScope/InfBlog",
     "fork": false
   },
@@ -22,7 +22,7 @@
     "full_name": "Soren-ABT/dsh-knowledge",
     "description": "Knowledge base & RAG plugin for DeepSeek Harness (DSH): chunking, local embeddings, hybrid search, management panel",
     "language": "TypeScript",
-    "stargazers_count": 39,
+    "stargazers_count": 73,
     "html_url": "https://github.com/Soren-ABT/dsh-knowledge",
     "fork": false
   }
