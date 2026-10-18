@@ -4,9 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { animate, useInView, useReducedMotion } from "motion/react"
 
 import { LoadingDots } from "@/components/ui/loading-dots"
-import { formatDateTime } from "@/lib/format-date"
 import type { Post } from "@/lib/mdx"
-import type { Update } from "@/lib/updates"
 
 interface ViewStats {
   total: number
@@ -47,7 +45,14 @@ function NumberTicker({ value }: { value: number }) {
  * 站点数据仪表带：合并原 SITE_VIEWS（/api/views 客户端拉取）
  * 与 STATS（静态汇总）为一条全宽发丝线数据带。
  */
-export function DataStrip({ posts, updates }: { posts: Post[]; updates: Update[] }) {
+export function DataStrip({
+  posts,
+  lastUpdate,
+}: {
+  posts: Post[]
+  /** 站点最后更新时间（已格式化）：动态 / 博客 / 文库三者取最新 */
+  lastUpdate: string
+}) {
   const [views, setViews] = useState<ViewStats | null>(null)
 
   useEffect(() => {
@@ -71,7 +76,6 @@ export function DataStrip({ posts, updates }: { posts: Post[]; updates: Update[]
 
   const totalWords = posts.reduce((sum, p) => sum + (p.wordCount || 0), 0)
   const totalImages = posts.reduce((sum, p) => sum + (p.imageCount || 0), 0)
-  const lastUpdate = updates[0]?.date ? formatDateTime(updates[0].date) : "—"
 
   const numbers: { label: string; value: number | undefined }[] = [
     { label: "总浏览量", value: views?.total },

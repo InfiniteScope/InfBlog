@@ -11,6 +11,9 @@ import {
 import { siteConfig } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { getAllPosts } from "@/lib/mdx"
+import { getAllDocs } from "@/lib/docs"
+import { getLatestContentDate } from "@/lib/last-update"
+import { formatDateTime } from "@/lib/format-date"
 import { getPostStatsMap } from "@/lib/post-stats"
 import { getUpdates } from "@/lib/updates"
 import { getLatestDigest } from "@/lib/digest"
@@ -61,17 +64,30 @@ const TECH_STACK = [
 const ROW_INDENTS = ["lg:pl-0", "lg:pl-20", "lg:pl-8", "lg:pl-28", "lg:pl-12"]
 
 /**
+ * 文章 / 动态 / 文库都是运行时写入 content/ 的文件，首页必须定期重建：
+ * 否则首页列表与「最后更新」时间会一直停在构建那一刻（与 /blog 保持一致 60s）。
+ */
+export const revalidate = 60
+
+/**
  * 首页双主题双结构：
  * - 探索（默认无 ui-classic）：「月之暗面」线性信息流
  * - 经典（html.ui-classic）：完整回到 098bc72 服务器版布局
  * 两棵 DOM 树并存，由 ui-explore-only / ui-classic-only 按主题显隐。
  */
 export default async function HomePage() {
-  const [posts, updates, digest] = await Promise.all([
+  const [posts, updates, digest, docs] = await Promise.all([
     getAllPosts(),
     getUpdates(),
     getLatestDigest(),
+    getAllDocs(),
   ])
+
+  /* 站点最后更新：动态 / 博客 / 文库 三者中最新的时间（而不是只看动态） */
+  const latestContentDate = getLatestContentDate({ posts, docs, updates })
+  const lastUpdateLabel = latestContentDate
+    ? formatDateTime(latestContentDate)
+    : "—"
 
   /* 首页展示顺序：按「发布时间」从新到旧
      （getAllPosts 默认按更新时间排序，此处仅首页展示用数组重排，
@@ -325,7 +341,7 @@ export default async function HomePage() {
             </div>
           </Reveal>
           <Reveal variant="wipe">
-            <DataStrip posts={posts} updates={updates} />
+            <DataStrip posts={posts} lastUpdate={lastUpdateLabel} />
           </Reveal>
         </section>
 
@@ -493,7 +509,7 @@ export default async function HomePage() {
               <ViewsCard />
               <TimelineWidget updates={latestUpdates} digest={digest} />
               <TagsWidget posts={posts} />
-              <StatsWidget posts={posts} updates={updates} />
+              <StatsWidget posts={posts} lastUpdate={lastUpdateLabel} />
             </div>
           </div>
         </div>

@@ -2,19 +2,17 @@
 
 import { FileText, Image, Type, Clock } from "lucide-react"
 
-import type { Update } from "@/lib/updates"
 import type { Post } from "@/lib/mdx"
-import { formatDateTime } from "@/lib/format-date"
 
 interface StatsWidgetProps {
   posts: Post[]
-  updates: Update[]
+  /** 站点最后更新时间（已格式化）：动态 / 博客 / 文库三者取最新 */
+  lastUpdate: string
 }
 
-export function StatsWidget({ posts, updates }: StatsWidgetProps) {
+export function StatsWidget({ posts, lastUpdate }: StatsWidgetProps) {
   const totalWords = posts.reduce((sum, p) => sum + (p.wordCount || 0), 0)
   const totalImages = posts.reduce((sum, p) => sum + (p.imageCount || 0), 0)
-  const lastUpdate = updates[0]?.date ? formatDateTime(updates[0].date) : "—"
 
   const items = [
     { icon: FileText, label: "文章数", value: posts.length },
