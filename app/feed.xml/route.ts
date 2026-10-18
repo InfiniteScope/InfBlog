@@ -9,7 +9,12 @@ import { toHtml } from "hast-util-to-html"
 import { getAllPosts } from "@/lib/mdx"
 import { stripMarkdown } from "@/lib/mdx-inline"
 
-export const dynamic = "force-static"
+/**
+ * 博客 RSS：**必须动态生成**——文章是运行时通过后台写入 content/posts 的，
+ * 若用 static/ISR，新文章要等下一次构建才会进 feed（踩过：新发文在列表页可见但 feed 里没有）。
+ * 每次请求读取 ~十几篇 mdx 构建 XML，成本可忽略。
+ */
+export const dynamic = "force-dynamic"
 
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://infinitescope.site"
@@ -87,7 +92,7 @@ ${items}
   return new Response(xml, {
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "public, max-age=60",
     },
   })
 }
