@@ -85,6 +85,7 @@
 
 ## 当前状态（2026-10-18）
 
+- **首页「最后更新」改为取动态/博客/文库三者最新**（提交 `24c81a5`，已部署）——原先只看 `updates[0].date`（动态），刚发的文章/档案不会推动这个时间。现新增 `lib/last-update.ts` 的 `getLatestContentDate({ posts, docs, updates })`：取动态 `date`、博客 `date/updatedAt`、文库 `date/updatedAt` 的**最大值**；`app/page.tsx` 里算好并格式化成字符串，以 `lastUpdate` 传给 `DataStrip` / `StatsWidget`（**别把 docs 数组塞进客户端组件**，会白白撑大 RSC payload）。**首页原先没有 `revalidate`，等于构建时静态化**——新文章、新档案与这个时间都只在重建后才变；已补 `export const revalidate = 60`（与 `/blog` 一致），线上实测两套主题（探索 DataStrip / 经典 StatsWidget）显示同一时间。
 - **修复：博客 RSS 不含后台新发的文章**（提交 `0cf9df0`，已部署）——根因 `app/feed.xml/route.ts` 用了 `dynamic = "force-static"`，feed 在**构建时固化**，而文章是运行时通过后台写入 `content/posts` 的 → 新文章只在列表页/详情页可见（那两处 revalidate=60），feed 里永远没有。改为 **`force-dynamic`**（每次请求读十几篇 mdx 重建 XML，成本可忽略）+ `Cache-Control` 3600s→**60s**。本地做了动态性实证（临时加文件→立即出现→删除→立即消失）；线上复验 items 12→**13**、新文章在 feed 中、公网 200。
 - **动图格式结论（给后续 session）**：优先**动画 WebP**（`scripts/cache-external-images.ts` 的 `sharp(..., { animated: true }).webp()` 已能把 GIF 转成动画 WebP，体积约为 GIF 的 25%~50%）；大动效（演示录屏）用 **MP4/WebM + `<video autoplay loop muted playsinline>`**；GIF 仅在必须兼容老客户端时用。正文图片已有 `loading="lazy"`。
 
