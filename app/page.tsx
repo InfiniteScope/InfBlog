@@ -64,12 +64,6 @@ const TECH_STACK = [
 const ROW_INDENTS = ["lg:pl-0", "lg:pl-20", "lg:pl-8", "lg:pl-28", "lg:pl-12"]
 
 /**
- * 文章 / 动态 / 文库都是运行时写入 content/ 的文件，首页必须定期重建：
- * 否则首页列表与「最后更新」时间会一直停在构建那一刻（与 /blog 保持一致 60s）。
- */
-export const revalidate = 60
-
-/**
  * 首页双主题双结构：
  * - 探索（默认无 ui-classic）：「月之暗面」线性信息流
  * - 经典（html.ui-classic）：完整回到 098bc72 服务器版布局

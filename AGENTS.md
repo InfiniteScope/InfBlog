@@ -85,8 +85,13 @@
 
 ## 当前状态（2026-10-18）
 
-- **首页「最后更新」改为取动态/博客/文库三者最新**（提交 `24c81a5`，已部署）——原先只看 `updates[0].date`（动态），刚发的文章/档案不会推动这个时间。现新增 `lib/last-update.ts` 的 `getLatestContentDate({ posts, docs, updates })`：取动态 `date`、博客 `date/updatedAt`、文库 `date/updatedAt` 的**最大值**；`app/page.tsx` 里算好并格式化成字符串，以 `lastUpdate` 传给 `DataStrip` / `StatsWidget`（**别把 docs 数组塞进客户端组件**，会白白撑大 RSC payload）。**首页原先没有 `revalidate`，等于构建时静态化**——新文章、新档案与这个时间都只在重建后才变；已补 `export const revalidate = 60`（与 `/blog` 一致），线上实测两套主题（探索 DataStrip / 经典 StatsWidget）显示同一时间。
-- **修复：博客 RSS 不含后台新发的文章**（提交 `0cf9df0`，已部署）——根因 `app/feed.xml/route.ts` 用了 `dynamic = "force-static"`，feed 在**构建时固化**，而文章是运行时通过后台写入 `content/posts` 的 → 新文章只在列表页/详情页可见（那两处 revalidate=60），feed 里永远没有。改为 **`force-dynamic`**（每次请求读十几篇 mdx 重建 XML，成本可忽略）+ `Cache-Control` 3600s→**60s**。本地做了动态性实证（临时加文件→立即出现→删除→立即消失）；线上复验 items 12→**13**、新文章在 feed 中、公网 200。
+- **首页「最后更新」改为取动态/博客/文库三者最新**（提交 `24c81a5`，已部署）——原先只看 `updates[0].date`（动态），刚发的文章/档案不会推动这个时间。现新增 `lib/last-update.ts` 的 `getLatestContentDate({ posts, docs, updates })`：取动态 `date`、博客 `date/updatedAt`、文库 `date/updatedAt` 的**最大值**；`app/page.tsx` 里算好并格式化成字符串，以 `lastUpdate` 传给 `DataStrip` / `StatsWidget`（**别把 docs 数组塞进客户端组件**，会白白撑大 RSC payload）。线上实测两套主题（探索 DataStrip / 经典 StatsWidget）显示同一时间。
+- **缓存/时效性审计（2026-10-18，结论重要）**：本项目**所有页面都是运行时渲染**（`next build` 表里全是 `ƒ`），根因是根布局里的 `Shell` 是 async server component，内部 `getUnreadCount()` 会 `await auth()` 读 cookies（`getDanmakuList()` 只是查库、不触发动态），**每个页面**都因此变成动态渲染。由此：
+  - **页面上写 `export const revalidate = N` 实际不生效**（`/blog`、`/docs`、`/digest` 的 60/300 都是历史遗留，留着无害；首页那次补的 60 已删掉）。实测：同一个最简页面，不加配置 → `ƒ` 且不进 `prerender-manifest.json`；加 `dynamic = "force-static"` → `○` 并产出 HTML。→ **要"新鲜"就保持动态，只有 `force-static` 才会把内容烤死在构建里**，别再用 revalidate 兜底。
+  - 全站唯一带静态缓存的路由是 `/digest/feed.xml`（`revalidate = 300` → ISR + `Cache-Control: max-age=300`），日报每天两更，5 分钟滞后可接受。
+  - 其它缓存层：`lib/digest.ts` fetch `revalidate: 300`；`/api/github/repos` fetch 600s + `max-age=600`；`/api/views`、天气接口 `no-store`；音乐列表每请求扫盘（不缓存）。
+  - **真正会让访客看到旧内容的两处**：① nginx `/uploads/ /music/ /environment/` 是 `Cache-Control: public, max-age=2592000`（**30 天**）——**同名替换图片/音频后，老访客一个月内都看不到新的**（文库图现在是固定名如 `co-hierarchy.svg`）；更新这类资源要**换新文件名**（带 hash/版本号），或调小该 location 的 max-age。② `public/` 根下新增文件必须 `pm2 restart infblog` 才生效（旧坑）。
+- **修复：博客 RSS 不含后台新发的文章**（提交 `0cf9df0`，已部署）——根因 `app/feed.xml/route.ts` 用了 `dynamic = "force-static"`，feed 在**构建时固化**，而文章是运行时通过后台写入 `content/posts` 的 → 新文章在列表页/详情页立即可见（那两处本来就是动态渲染），feed 里却永远没有。改为 **`force-dynamic`**（每次请求读十几篇 mdx 重建 XML，成本可忽略）+ `Cache-Control` 3600s→**60s**。本地做了动态性实证（临时加文件→立即出现→删除→立即消失）；线上复验 items 12→**13**、新文章在 feed 中、公网 200。
 - **动图格式结论（给后续 session）**：优先**动画 WebP**（`scripts/cache-external-images.ts` 的 `sharp(..., { animated: true }).webp()` 已能把 GIF 转成动画 WebP，体积约为 GIF 的 25%~50%）；大动效（演示录屏）用 **MP4/WebM + `<video autoplay loop muted playsinline>`**；GIF 仅在必须兼容老客户端时用。正文图片已有 `loading="lazy"`。
 
 ## 当前状态（2026-10-14）
