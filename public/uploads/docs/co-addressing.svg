@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 460" width="820" height="460" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect x="0.5" y="0.5" width="819" height="459" rx="12" fill="#fbfcfe" stroke="#e2e8f0"/>
+  <text x="410" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">常见寻址方式与有效地址 EA 的形成</text>
+
+  <g font-size="12.5" fill="#64748b">
+    <text x="40" y="66">指令一般形式：</text>
+  </g>
+  <rect x="160" y="52" width="110" height="30" rx="4" fill="#ede9fe" stroke="#8b5cf6"/>
+  <rect x="270" y="52" width="150" height="30" rx="4" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="215" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="#5b21b6">操作码 OP</text>
+  <text x="345" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">形式地址 A</text>
+
+  <g font-size="13">
+    <rect x="40" y="100" width="740" height="34" fill="#f1f5f9"/>
+  </g>
+  <g font-size="13" font-weight="700" fill="#334155">
+    <text x="55" y="122">寻址方式</text>
+    <text x="230" y="122">有效地址 / 操作数</text>
+    <text x="620" y="122">访存次数</text>
+  </g>
+
+  <g font-size="13" fill="#1e293b">
+    <text x="55" y="160">立即寻址</text><text x="230" y="160">操作数 = A（直接写在指令中）</text><text x="620" y="160">0</text>
+    <text x="55" y="196">直接寻址</text><text x="230" y="196">EA = A</text><text x="620" y="196">1</text>
+    <text x="55" y="232">间接寻址</text><text x="230" y="232">EA = (A)，需二次访存</text><text x="620" y="232">2+</text>
+    <text x="55" y="268">寄存器寻址</text><text x="230" y="268">操作数 = (Ri)，在寄存器中</text><text x="620" y="268">0</text>
+    <text x="55" y="304">寄存器间接</text><text x="230" y="304">EA = (Ri)</text><text x="620" y="304">1</text>
+    <text x="55" y="340">相对寻址</text><text x="230" y="340">EA = (PC) + A（常用于转移）</text><text x="620" y="340">1</text>
+    <text x="55" y="376">基址寻址</text><text x="230" y="376">EA = (基址寄存器) + A（面向系统，程序浮动）</text><text x="620" y="376">1</text>
+    <text x="55" y="412">变址寻址</text><text x="230" y="412">EA = (变址寄存器) + A（面向用户，数组遍历）</text><text x="620" y="412">1</text>
+  </g>
+  <g stroke="#e2e8f0">
+    <line x1="40" y1="170" x2="780" y2="170"/>
+    <line x1="40" y1="206" x2="780" y2="206"/>
+    <line x1="40" y1="242" x2="780" y2="242"/>
+    <line x1="40" y1="278" x2="780" y2="278"/>
+    <line x1="40" y1="314" x2="780" y2="314"/>
+    <line x1="40" y1="350" x2="780" y2="350"/>
+    <line x1="40" y1="386" x2="780" y2="386"/>
+  </g>
+
+  <text x="55" y="448" font-size="12.5" fill="#475569">记忆要点：基址面向"系统"（多道程序重定位），变址面向"用户"（循环/数组）；相对寻址相对的是取指后的 PC</text>
+</svg>

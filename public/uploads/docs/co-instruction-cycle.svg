@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 430" width="820" height="430" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect x="0.5" y="0.5" width="819" height="429" rx="12" fill="#fbfcfe" stroke="#e2e8f0"/>
+  <text x="410" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">指令周期、机器周期与时钟周期的关系</text>
+
+  <rect x="40" y="62" width="740" height="250" rx="12" fill="#eef4ff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="60" y="88" font-size="15" font-weight="700" fill="#1d4ed8">指令周期（一条指令从取指到执行完毕）</text>
+
+  <g stroke="#3b82f6" stroke-width="1.1" fill="#dbeafe">
+    <rect x="60" y="102" width="165" height="190" rx="8"/>
+    <rect x="240" y="102" width="165" height="190" rx="8"/>
+    <rect x="420" y="102" width="180" height="190" rx="8"/>
+    <rect x="615" y="102" width="150" height="190" rx="8"/>
+  </g>
+  <g font-size="14" font-weight="700" fill="#1e3a8a" text-anchor="middle">
+    <text x="142" y="130">取指周期</text>
+    <text x="322" y="130">间址周期</text>
+    <text x="510" y="130">执行周期</text>
+    <text x="690" y="130">中断周期</text>
+  </g>
+  <g font-size="11.5" fill="#475569" text-anchor="middle">
+    <text x="142" y="158">PC→MAR，取指</text>
+    <text x="142" y="176">→IR，PC+1</text>
+    <text x="322" y="158">间接寻址时</text>
+    <text x="322" y="176">取有效地址</text>
+    <text x="510" y="158">取操作数、运算</text>
+    <text x="510" y="176">存结果</text>
+    <text x="690" y="158">响应中断、</text>
+    <text x="690" y="176">保存断点</text>
+  </g>
+
+  <text x="510" y="222" font-size="12" fill="#64748b" text-anchor="middle">一个机器周期 = 若干时钟周期</text>
+  <g stroke="#f59e0b" stroke-width="1.1" fill="#fef3c7">
+    <rect x="432" y="236" width="42" height="42" rx="5"/>
+    <rect x="482" y="236" width="42" height="42" rx="5"/>
+    <rect x="532" y="236" width="42" height="42" rx="5"/>
+  </g>
+  <text x="575" y="262" font-size="11" fill="#92400e">时钟周期</text>
+
+  <text x="60" y="290" font-size="12.5" fill="#475569">各部分含义：指令周期 ⊃ 机器周期（CPU 周期）⊃ 时钟周期（节拍）</text>
+
+  <rect x="40" y="330" width="740" height="80" rx="10" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="60" y="357" font-size="13.5" font-weight="700" fill="#0f172a">两种取指—执行方案</text>
+  <text x="60" y="381" font-size="13" fill="#475569">定长时序：所有指令的机器周期数相同（简单、规整，但有浪费）</text>
+  <text x="60" y="401" font-size="13" fill="#475569">不定长时序：不同指令机器周期数可不同（高效，但控制复杂）—— MIPS 单周期 / 多周期设计即两种典型取舍</text>
+</svg>

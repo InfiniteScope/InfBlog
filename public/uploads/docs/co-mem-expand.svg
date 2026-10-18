@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 480" width="820" height="480" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect x="0.5" y="0.5" width="819" height="479" rx="12" fill="#fbfcfe" stroke="#e2e8f0"/>
+  <text x="410" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">存储器容量的位扩展与字扩展</text>
+
+  <!-- 位扩展 -->
+  <text x="40" y="76" font-size="15" font-weight="700" fill="#1d4ed8">位扩展：8K×1 芯片 → 8K×8（地址、片选共用，数据位拼接）</text>
+  <g stroke="#3b82f6" stroke-width="1.1" fill="#dbeafe">
+    <rect x="60" y="92" width="62" height="64" rx="6"/>
+    <rect x="132" y="92" width="62" height="64" rx="6"/>
+    <rect x="204" y="92" width="62" height="64" rx="6"/>
+    <rect x="276" y="92" width="62" height="64" rx="6"/>
+    <rect x="348" y="92" width="62" height="64" rx="6"/>
+    <rect x="420" y="92" width="62" height="64" rx="6"/>
+    <rect x="492" y="92" width="62" height="64" rx="6"/>
+    <rect x="564" y="92" width="62" height="64" rx="6"/>
+  </g>
+  <g font-size="11" fill="#1e3a8a" text-anchor="middle">
+    <text x="91" y="128">8K×1</text>
+    <text x="163" y="128">8K×1</text>
+    <text x="235" y="128">8K×1</text>
+    <text x="307" y="128">8K×1</text>
+    <text x="379" y="128">8K×1</text>
+    <text x="451" y="128">8K×1</text>
+    <text x="523" y="128">8K×1</text>
+    <text x="595" y="128">8K×1</text>
+  </g>
+  <line x1="60" y1="176" x2="626" y2="176" stroke="#475569" stroke-width="1.6"/>
+  <g font-size="11" fill="#475569" text-anchor="middle">
+    <text x="91" y="192">D0</text>
+    <text x="163" y="192">D1</text>
+    <text x="235" y="192">D2</text>
+    <text x="307" y="192">D3</text>
+    <text x="379" y="192">D4</text>
+    <text x="451" y="192">D5</text>
+    <text x="523" y="192">D6</text>
+    <text x="595" y="192">D7</text>
+  </g>
+  <text x="680" y="128" font-size="12" fill="#475569">A0~A12 与片选</text>
+  <text x="680" y="146" font-size="12" fill="#475569">全部并联</text>
+
+  <line x1="40" y1="215" x2="780" y2="215" stroke="#e2e8f0"/>
+
+  <!-- 字扩展 -->
+  <text x="40" y="250" font-size="15" font-weight="700" fill="#166534">字扩展：8K×8 芯片 → 32K×8（数据线共用，高位地址译码选片）</text>
+  <g stroke="#22c55e" stroke-width="1.1" fill="#dcfce7">
+    <rect x="230" y="266" width="230" height="40" rx="6"/>
+    <rect x="230" y="312" width="230" height="40" rx="6"/>
+    <rect x="230" y="358" width="230" height="40" rx="6"/>
+    <rect x="230" y="404" width="230" height="40" rx="6"/>
+  </g>
+  <g font-size="12" fill="#166534" text-anchor="middle">
+    <text x="345" y="291">8K×8　片 0（A13A14=00）</text>
+    <text x="345" y="337">8K×8　片 1（A13A14=01）</text>
+    <text x="345" y="383">8K×8　片 2（A13A14=10）</text>
+    <text x="345" y="429">8K×8　片 3（A13A14=11）</text>
+  </g>
+  <rect x="80" y="316" width="120" height="80" rx="8" fill="#ede9fe" stroke="#8b5cf6"/>
+  <text x="140" y="348" text-anchor="middle" font-size="13" font-weight="700" fill="#5b21b6">2-4 译码器</text>
+  <text x="140" y="372" text-anchor="middle" font-size="12" fill="#5b21b6">A13 A14</text>
+  <g stroke="#8b5cf6" stroke-width="1.1">
+    <line x1="200" y1="286" x2="230" y2="286"/>
+    <line x1="200" y1="332" x2="230" y2="332"/>
+    <line x1="200" y1="378" x2="230" y2="378"/>
+    <line x1="200" y1="424" x2="230" y2="424"/>
+  </g>
+  <text x="80" y="452" font-size="12" fill="#475569">低位地址 A0~A12 各片并联，数据线共用总线</text>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" width="820" height="440" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <marker id="cw" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+  <rect x="0.5" y="0.5" width="819" height="439" rx="12" fill="#fbfcfe" stroke="#e2e8f0"/>
+  <text x="410" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">补码的"钟表"比喻：减法化为加法（模运算）</text>
+
+  <circle cx="230" cy="235" r="135" fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="230" cy="235" r="92" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+
+  <g font-size="14" font-weight="700" fill="#334155" text-anchor="middle">
+    <text x="230" y="96">12</text>
+    <text x="298" y="119">1</text>
+    <text x="347" y="168">2</text>
+    <text x="365" y="240">3</text>
+    <text x="347" y="302">4</text>
+    <text x="298" y="351">5</text>
+    <text x="230" y="373">6</text>
+    <text x="162" y="351">7</text>
+    <text x="113" y="302">8</text>
+    <text x="95" y="240">9</text>
+    <text x="113" y="168">10</text>
+    <text x="162" y="119">11</text>
+  </g>
+
+  <circle cx="230" cy="96" r="4" fill="#3b82f6"/>
+  <circle cx="298" cy="351" r="13" fill="none" stroke="#059669" stroke-width="2.5"/>
+
+  <path d="M254,105 A135,135 0 0 1 304,340" fill="none" stroke="#3b82f6" stroke-width="2.6" marker-end="url(#cw)"/>
+  <text x="352" y="212" font-size="13" fill="#1d4ed8">向前 5 格</text>
+
+  <text x="500" y="120" font-size="15" font-weight="700" fill="#0f172a">在 12 小时制的表盘上：</text>
+  <text x="500" y="150" font-size="14" fill="#475569">从 12 往后退 7 小时 = 从 12 往前 5 小时</text>
+  <text x="500" y="176" font-size="14" fill="#475569">即　12 − 7 ≡ 5　(mod 12)</text>
+
+  <rect x="484" y="200" width="316" height="152" rx="10" fill="#eef4ff" stroke="#3b82f6"/>
+  <text x="504" y="228" font-size="14" font-weight="700" fill="#1d4ed8">推广到 n 位机器（模 2ⁿ）</text>
+  <text x="504" y="256" font-size="13.5" fill="#1e293b">−7 的补码 = 2⁸ − 7 = 256 − 7 = 249</text>
+  <text x="504" y="282" font-size="13.5" fill="#1e293b">249 = 1111 1001（8 位）</text>
+  <text x="504" y="312" font-size="13" fill="#475569">于是 [X−Y]补 = [X]补 + [−Y]补，</text>
+  <text x="504" y="334" font-size="13" fill="#475569">只需加法器，无需减法器。</text>
+
+  <text x="410" y="425" text-anchor="middle" font-size="13" fill="#475569">关键：把减法统一成加法，正是补码（以及计算机只用加法器的原因）</text>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 420" width="820" height="420" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect x="0.5" y="0.5" width="819" height="419" rx="12" fill="#fbfcfe" stroke="#e2e8f0"/>
+  <text x="410" y="40" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">计算机系统的层次结构</text>
+
+  <g font-size="14" font-weight="700">
+    <rect x="60" y="62" width="430" height="50" rx="8" fill="#ede9fe" stroke="#8b5cf6"/>
+    <text x="275" y="93" text-anchor="middle" fill="#5b21b6">应用语言机器 M5（应用层 / 用户程序）</text>
+
+    <rect x="60" y="120" width="430" height="50" rx="8" fill="#ede9fe" stroke="#8b5cf6"/>
+    <text x="275" y="151" text-anchor="middle" fill="#5b21b6">高级语言机器 M4（编译程序翻译）</text>
+
+    <rect x="60" y="178" width="430" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
+    <text x="275" y="209" text-anchor="middle" fill="#1e3a8a">汇编语言机器 M3（汇编程序翻译）</text>
+
+    <rect x="60" y="236" width="430" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
+    <text x="275" y="267" text-anchor="middle" fill="#1e3a8a">操作系统机器 M2（系统调用 / 资源管理）</text>
+
+    <rect x="60" y="294" width="430" height="50" rx="8" fill="#dcfce7" stroke="#22c55e"/>
+    <text x="275" y="325" text-anchor="middle" fill="#166534">机器语言机器 M1（实际机器，指令直接执行）</text>
+
+    <rect x="60" y="352" width="430" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b"/>
+    <text x="275" y="383" text-anchor="middle" fill="#92400e">微程序机器 M0（硬件层，微指令解释执行）</text>
+  </g>
+
+  <g stroke="#94a3b8" stroke-width="1.5" fill="none">
+    <line x1="490" y1="87" x2="524" y2="87"/>
+    <line x1="490" y1="145" x2="524" y2="145"/>
+    <line x1="490" y1="203" x2="524" y2="203"/>
+    <line x1="490" y1="261" x2="524" y2="261"/>
+    <line x1="490" y1="319" x2="524" y2="319"/>
+  </g>
+  <g stroke="#94a3b8" stroke-width="1.5">
+    <line x1="524" y1="87" x2="524" y2="319"/>
+  </g>
+
+  <g font-size="12" fill="#475569">
+    <text x="534" y="82">翻译</text>
+    <text x="534" y="140">翻译</text>
+    <text x="534" y="198">翻译</text>
+    <text x="534" y="256">翻译</text>
+    <text x="534" y="314">解释</text>
+  </g>
+  <text x="700" y="210" text-anchor="middle" font-size="12" fill="#64748b" transform="rotate(90 700 210)">逐级向下翻译，向上屏蔽细节</text>
+
+  <text x="410" y="260" text-anchor="middle" font-size="0" fill="none">spacer</text>
+</svg>

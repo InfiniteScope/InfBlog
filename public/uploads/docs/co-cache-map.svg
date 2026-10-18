@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 480" width="820" height="480" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect x="0.5" y="0.5" width="819" height="479" rx="12" fill="#fbfcfe" stroke="#e2e8f0"/>
+  <text x="410" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Cache 的三种地址映射方式</text>
+
+  <!-- 直接映射 -->
+  <text x="50" y="80" font-size="15" font-weight="700" fill="#1d4ed8">直接映射</text>
+  <g stroke="#475569" stroke-width="1.1">
+    <rect x="50" y="92" width="230" height="42" fill="#dbeafe"/>
+    <rect x="280" y="92" width="160" height="42" fill="#dcfce7"/>
+    <rect x="440" y="92" width="130" height="42" fill="#fef3c7"/>
+  </g>
+  <text x="165" y="119" text-anchor="middle" font-size="13" fill="#1e3a8a">标记 Tag</text>
+  <text x="360" y="119" text-anchor="middle" font-size="13" fill="#166534">行号</text>
+  <text x="505" y="119" text-anchor="middle" font-size="13" fill="#92400e">块内地址</text>
+  <text x="600" y="112" font-size="12.5" fill="#475569">主存块 → 固定行：</text>
+  <text x="600" y="132" font-size="12.5" fill="#475569">行号 = 块号 mod 行数</text>
+
+  <line x1="50" y1="160" x2="770" y2="160" stroke="#e2e8f0"/>
+
+  <!-- 全相联 -->
+  <text x="50" y="192" font-size="15" font-weight="700" fill="#166534">全相联映射</text>
+  <g stroke="#475569" stroke-width="1.1">
+    <rect x="50" y="204" width="300" height="42" fill="#dbeafe"/>
+    <rect x="350" y="204" width="130" height="42" fill="#fef3c7"/>
+  </g>
+  <text x="200" y="231" text-anchor="middle" font-size="13" fill="#1e3a8a">标记 Tag</text>
+  <text x="415" y="231" text-anchor="middle" font-size="13" fill="#92400e">块内地址</text>
+  <text x="600" y="224" font-size="12.5" fill="#475569">任意主存块 → 任意 Cache 行</text>
+  <text x="600" y="244" font-size="12.5" fill="#475569">需全表比较，命中速度慢</text>
+
+  <line x1="50" y1="272" x2="770" y2="272" stroke="#e2e8f0"/>
+
+  <!-- 组相联 -->
+  <text x="50" y="304" font-size="15" font-weight="700" fill="#5b21b6">组相联映射</text>
+  <g stroke="#475569" stroke-width="1.1">
+    <rect x="50" y="316" width="230" height="42" fill="#dbeafe"/>
+    <rect x="280" y="316" width="140" height="42" fill="#ede9fe"/>
+    <rect x="420" y="316" width="130" height="42" fill="#fef3c7"/>
+  </g>
+  <text x="165" y="343" text-anchor="middle" font-size="13" fill="#1e3a8a">标记 Tag</text>
+  <text x="350" y="343" text-anchor="middle" font-size="13" fill="#5b21b6">组号</text>
+  <text x="485" y="343" text-anchor="middle" font-size="13" fill="#92400e">块内地址</text>
+  <text x="600" y="336" font-size="12.5" fill="#475569">块 → 组内任意行（n 路组相联）</text>
+  <text x="600" y="356" font-size="12.5" fill="#475569">折中方案，兼顾速度与成本</text>
+
+  <rect x="50" y="388" width="720" height="72" rx="10" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="70" y="414" font-size="13.5" font-weight="700" fill="#0f172a">块内地址位数 = log₂(块大小)；Cache 总容量 = 行数 × 块大小</text>
+  <text x="70" y="438" font-size="13" fill="#475569">比较器数量：直接/组相联只需比较组内若干行，全相联需比较所有行——这是三者代价差异的根源</text>
+</svg>
