@@ -83,6 +83,11 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-10-18）
+
+- **修复：博客 RSS 不含后台新发的文章**（提交 `0cf9df0`，已部署）——根因 `app/feed.xml/route.ts` 用了 `dynamic = "force-static"`，feed 在**构建时固化**，而文章是运行时通过后台写入 `content/posts` 的 → 新文章只在列表页/详情页可见（那两处 revalidate=60），feed 里永远没有。改为 **`force-dynamic`**（每次请求读十几篇 mdx 重建 XML，成本可忽略）+ `Cache-Control` 3600s→**60s**。本地做了动态性实证（临时加文件→立即出现→删除→立即消失）；线上复验 items 12→**13**、新文章在 feed 中、公网 200。
+- **动图格式结论（给后续 session）**：优先**动画 WebP**（`scripts/cache-external-images.ts` 的 `sharp(..., { animated: true }).webp()` 已能把 GIF 转成动画 WebP，体积约为 GIF 的 25%~50%）；大动效（演示录屏）用 **MP4/WebM + `<video autoplay loop muted playsinline>`**；GIF 仅在必须兼容老客户端时用。正文图片已有 `loading="lazy"`。
+
 ## 当前状态（2026-10-14）
 
 - 最新改动（**其他 session 的近期批次，均已部署服务器并线上验证**；细节见「领域要点」）：
