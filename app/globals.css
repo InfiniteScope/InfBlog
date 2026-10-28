@@ -239,7 +239,9 @@
 
   --font-sans: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   --font-display: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Cascadia Code", "JetBrains Mono", monospace;
+  --font-mono: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  /* 代码块专用真等宽（不影响 font-mono 的 UI 标签，保持旧观感） */
+  --font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, "Cascadia Code", "JetBrains Mono", monospace;
 }
 
 * {

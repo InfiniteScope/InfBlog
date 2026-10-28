@@ -59,7 +59,7 @@ export function CodeBlock({ language, preProps }: CodeBlockProps) {
       <pre
         {...rest}
         className={cn(
-          "overflow-x-auto p-4 font-mono text-sm [tab-size:2] [&_code]:rounded-none [&_code]:bg-transparent [&_code]:p-0",
+          "overflow-x-auto p-4 font-code text-sm [tab-size:2] [&_code]:rounded-none [&_code]:bg-transparent [&_code]:p-0",
           className
         )}
       >
