@@ -104,6 +104,9 @@
   7. **`experimental.staleTimes = { dynamic: 30, static: 180 }`**：30 秒内来回切换不再发 RSC（实测 30s 内二次进入 `/blog`：RSC 请求 **0**、URL 17ms）。
   - 实测：文章页 CSS 从 6 个文件（约 147KB 传输）降到 **2 个 / 27KB**；全站字体请求 0。
   - 仍待办（效益低/风险高，暂不做）：首页双主题同帧渲染（HTML 196KB→~100KB）、文章页去 `auth()/headers()` 恢复 ISR、非封面正文图批量转 webp。
+- **线上部署（2026-10-28，P0 + P1 一起，`BUILD_ID: NfHWL3ro2y0UcriV2K-k5`）**：37 文件 tar+scp（含 8 个 `.webp`）→ 覆盖前用 `git hash-object` 逐个核对，只有 `globals.css` / `next.config.ts` / `lib/config.ts` 不在历史里，下载后 diff 确认差异**只有本次改动**才覆盖 → 服务器 `pnpm install --frozen-lockfile`（删掉 5 个字体依赖）→ **在服务器跑 `pnpm tsx scripts/optimize-covers.ts --write`**（服务器内容更新，多出 4 张封面：`mujwuga2` 286→78KB、`muvmdhll` 417→41KB、`mv6ixujn` 414→37KB、`mvcio9h7` 44→14KB，合计 3143.8→524.9KB）→ build（0）→ `pm2 restart`。
+  - **公网复测**：首页冷启动 **4.65 MB → 1.01 MB**、文章页 **2.71 MB → 0.29 MB**（同上下文二次测量）；点击导航 **1317/2387ms → 18–19ms**（两次）；16 张图 0 破图、11 张封面全 `.webp`、控制台 0 错误、无 4xx；`/images/avatar.webp` 11030B、`/icon.png` 2087B；错误日志 mtime 早于重启（无新增错误，日志里的 `Server Reference ID` 仍是扫描器噪声）。
+  - ⚠️ 服务器上由脚本生成的 4 张 `.webp` **不在本地仓库**（内容以服务器为准）；下次全新部署要记得重跑 `optimize-covers.ts`，否则 `image-variants` 找不到变体会回落到原 PNG（不会 404，只是变大）。
 
 ## 当前状态（2026-10-18）
 
