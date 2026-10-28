@@ -111,6 +111,10 @@
   - `--font-mono` 改回系统栈（= 修改前的实际观感，UI 标签不变）
   - 新增 `--font-code`（在 `@theme inline` 里，生成 `font-code` 工具类）供 `components/blog/code-block.tsx` 的 `<pre>` 和 `components/mdx-components.tsx` 的行内 `<code>` 使用 → **只有代码是真等宽**
   - 实测：`.font-mono` 计算值为系统栈、`pre`/`pre code` 为 `ui-monospace…Consolas`，控制台 0 错误
+- **运维修复：nginx 日志轮转后不重开日志**（服务器侧，无代码变更）：`/etc/logrotate.d/nginx` 的 postrotate 用 `invoke-rc.d nginx rotate`，该命令在本机返回 **exit 1**（init 脚本失败）→ 每天 00:00 轮转后 nginx 仍写旧 inode，`access.log` 恒为 0 字节、GoAccess 当天报告为空（只在 `access.log.1` 里能看到流量）。
+  - 修复：postrotate 改为 `systemctl reload nginx >/dev/null 2>&1 || kill -USR1 "$(cat /run/nginx.pid)" 2>/dev/null`（配置备份 `/root/nginx-logrotate.bak-20261028-222630`）。
+  - 手动 `kill -USR1 $(cat /run/nginx.pid)` 后验证新请求正常写入 `access.log`；并把当天历史 `grep '28/Oct/2026' access.log.1 >> access.log`（6921 行）回填、重跑 GoAccess（报告 877KB）。
+  - **不要再把 postrotate 改回 `invoke-rc.d nginx rotate`**（这台机器上不可用）；`systemctl reload nginx` 已实测可用且是 graceful reload，不中断服务。
 
 ## 当前状态（2026-10-18）
 
