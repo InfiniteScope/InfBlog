@@ -20,6 +20,10 @@ import {
   saveBookmark,
   scrollToBookmarkPercent,
 } from "@/lib/bookmark-scroll"
+import {
+  getBookmarkState,
+  invalidateBookmarkState,
+} from "@/lib/bookmark-query"
 import { cn } from "@/lib/utils"
 import type { BookmarkType } from "@/lib/bookmarks"
 
@@ -53,12 +57,10 @@ export function BookmarkButton({ type, slug, title }: BookmarkButtonProps) {
   useEffect(() => {
     if (status !== "authenticated") return
     let cancelled = false
-    fetch(`/api/bookmarks?type=${type}&slug=${encodeURIComponent(slug)}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data?.bookmark) setBookmark(data.bookmark)
-      })
-      .catch(() => {})
+    // 与 ReadingResume 共用同一个请求（lib/bookmark-query 做了 in-flight 去重）
+    getBookmarkState(type, slug).then((bm) => {
+      if (!cancelled && bm) setBookmark(bm)
+    })
     return () => {
       cancelled = true
     }
@@ -82,6 +84,7 @@ export function BookmarkButton({ type, slug, title }: BookmarkButtonProps) {
       const result = await saveBookmark({ type, slug, title, ...position })
       if (result.ok) {
         setBookmark(result.position)
+        invalidateBookmarkState(type, slug)
         return true
       }
       if (result.status === 401) {

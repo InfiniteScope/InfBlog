@@ -30,9 +30,11 @@ export function PageTransition({ children, className }: PageTransitionProps) {
         key={pathname}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -14 }}
+        /* 退场只留 0.12s：mode="wait" 会等旧页退完才挂新页，
+           0.3s 的退场在慢网络下等于又叠了一层等待 */
+        exit={{ opacity: 0, y: -10, transition: { duration: 0.12, ease: "easeOut" } }}
         transition={{
-          duration: 0.3,
+          duration: 0.22,
           ease: [0.22, 1, 0.36, 1],
         }}
         id="page-transition-root"

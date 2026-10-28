@@ -1,17 +1,15 @@
 import type { Metadata } from "next"
 
-import "@fontsource/inter/400.css"
-import "@fontsource/inter/500.css"
-import "@fontsource/inter/700.css"
-import "@fontsource/noto-sans-sc/400.css"
-import "@fontsource/noto-sans-sc/500.css"
-import "@fontsource/noto-sans-sc/700.css"
-import "@fontsource/jetbrains-mono/400.css"
-import "@fontsource/jetbrains-mono/500.css"
-import "@chinese-fonts/dyh/dist/SmileySans-Oblique/result.css"
-import "@fontsource/orbitron/500.css"
-import "@fontsource/orbitron/700.css"
-import "katex/dist/katex.min.css"
+/**
+ * 字体说明（2026-10-28 性能清理）：
+ * 之前这里 import 了 Inter / Noto Sans SC / JetBrains Mono / Orbitron / SmileySans
+ * 共 12 份 @fontsource CSS，但 globals.css 里的 `--font-*` 变量从未被定义
+ * （没有 next/font 注入），整条 font-family 声明无效 → 实测全站实际用的是系统字体，
+ * `document.fonts` 加载 0 个 webfont，379 条 @font-face 全是死代码。
+ * 因此这里改为只用系统字体栈（详见 globals.css 的 --font-* 定义）。
+ * 若以后要接真正的自定义字体，请用 next/font/local 注入变量，并先评估 CJK 字体的体积。
+ * KaTeX 的 CSS 已移到文章/文库详情页，避免全站加载。
+ */
 import "./globals.css"
 import { Toaster } from "sonner"
 

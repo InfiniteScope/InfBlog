@@ -94,7 +94,16 @@
      - **不改 frontmatter**：新增 `lib/image-variants.ts`，在渲染层把 `/uploads/x.png|jpg` 映射到**同名** `.webp`（文件存在才替换），首页/博客/文库的封面与正文 `<img>` 都已接入。这样 `content/` 仍以服务器为准，不需要动文章。
      - 目录清单在进程内缓存 → **新增 .webp 后要重启进程**（部署本来就会重启）。
   - 注意：`/uploads` 仍有 30 天缓存，**同名覆盖**老访客看不到；本次是新文件名 `.webp`，不受影响。以后更新图片请换名。
-  - P1 待办：非封面的正文图批量转 webp、去掉 4 个冗余 API（`view`×2 / `like` / `favorite` / `bookmarks`×2）、删除未生效的字体 CSS（`--font-*` 未定义，379 条 @font-face 全是死代码）、`experimental.staleTimes`、首页双主题同帧渲染。
+- **性能优化 P1 + 导航时延修复（同批，已本地验证）**：
+  1. **去掉 4 个冗余 API**：`PostStatBadges` / `ViewCountBadge` / `PostActionsFloat` 不再在挂载后重复拉 `view`/`like`/`favorite`（SSR 的 `initial*` 就是最新值，页面本身是动态渲染），只保留事件同步；文章页网络请求里 `/api/` 从 6 个降到 2 个（`bookmarks` + `view` POST）。
+  2. **书签查询合并**：新增 `lib/bookmark-query.ts`（in-flight 去重 + 15s 短缓存），`BookmarkButton` 与 `ReadingResume` 共用一次 `/api/bookmarks?type=&slug=`；保存/删除后必须 `invalidateBookmarkState` / `invalidateAllBookmarkStates`（已接）。
+  3. **字体清理**：`globals.css` 里的 `--font-inter` / `--font-noto-sans-sc` / `--font-jetbrains-mono` **从未定义**，整条 `font-family` 无效 → 全站一直在用系统字体（实测 `document.fonts` 加载 0 个）。已删除 12 份 `@fontsource`/`@chinese-fonts` CSS 与 5 个依赖，`--font-*` 改成显式系统栈。**以后要接自定义字体必须用 `next/font/local` 注入变量**，并先估算 CJK 体积。
+  4. **KaTeX CSS 移到文章/文库详情页**（不再全站加载）。
+  5. **`app/loading.tsx`**：全局骨架（纯 CSS，无 JS），点击后**立刻**有反馈——实测人为把 RSC 延迟 1.2s，骨架仍在 **16ms** 出现、URL 同时切换。
+  6. **转场退场 0.3s → 0.12s**（`AnimatePresence mode="wait"` 会等退场结束才挂新页）。
+  7. **`experimental.staleTimes = { dynamic: 30, static: 180 }`**：30 秒内来回切换不再发 RSC（实测 30s 内二次进入 `/blog`：RSC 请求 **0**、URL 17ms）。
+  - 实测：文章页 CSS 从 6 个文件（约 147KB 传输）降到 **2 个 / 27KB**；全站字体请求 0。
+  - 仍待办（效益低/风险高，暂不做）：首页双主题同帧渲染（HTML 196KB→~100KB）、文章页去 `auth()/headers()` 恢复 ISR、非封面正文图批量转 webp。
 
 ## 当前状态（2026-10-18）
 

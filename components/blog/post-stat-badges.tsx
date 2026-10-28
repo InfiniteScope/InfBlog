@@ -12,12 +12,6 @@ export interface PostStatsPayload {
   favorites: number
 }
 
-function endpointFor(slug: string, type: "post" | "doc") {
-  return type === "doc"
-    ? `/api/docs/${encodeURIComponent(slug)}/view`
-    : `/api/posts/${encodeURIComponent(slug)}/view`
-}
-
 /**
  * 内容头部统计徽标（Eye 总/月 · Heart 点赞 · Bookmark 收藏）。
  * - 首帧用服务端传入的初始值（避免 SSR/客户端差异）
@@ -37,18 +31,10 @@ export function PostStatBadges({
   const [stats, setStats] = useState<PostStatsPayload>(initial)
   const [mounted, setMounted] = useState(false)
 
+  // SSR 已用同一份数据算好 initial（页面是动态渲染，渲染时就是最新值），
+  // 挂载后再拉一次纯属重复请求 —— 这里只监听点赞/收藏后的同步事件。
   useEffect(() => {
     setMounted(true)
-    let cancelled = false
-
-    fetch(endpointFor(slug, type))
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data && typeof data.likes === "number") {
-          setStats((prev) => ({ ...prev, ...data }))
-        }
-      })
-      .catch(() => {})
 
     const onUpdate = (e: Event) => {
       const detail = (e as CustomEvent<PostStatsPayload>).detail
@@ -56,10 +42,9 @@ export function PostStatBadges({
     }
     window.addEventListener(POST_STATS_EVENT, onUpdate)
     return () => {
-      cancelled = true
       window.removeEventListener(POST_STATS_EVENT, onUpdate)
     }
-  }, [slug, type])
+  }, [])
 
   if (!mounted) {
     return (
@@ -115,21 +100,8 @@ export function ViewCountBadge({
 }) {
   const [stats, setStats] = useState(initial)
 
+  // 同上：initial 来自 SSR，不再在挂载后重复请求
   useEffect(() => {
-    let cancelled = false
-
-    fetch(endpointFor(slug, type))
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data && typeof data.totalViews === "number") {
-          setStats({
-            totalViews: data.totalViews,
-            monthViews: data.monthViews ?? 0,
-          })
-        }
-      })
-      .catch(() => {})
-
     const onUpdate = (e: Event) => {
       const detail = (e as CustomEvent<PostStatsPayload>).detail
       if (detail && typeof detail.totalViews === "number") {
@@ -141,10 +113,9 @@ export function ViewCountBadge({
     }
     window.addEventListener(POST_STATS_EVENT, onUpdate)
     return () => {
-      cancelled = true
       window.removeEventListener(POST_STATS_EVENT, onUpdate)
     }
-  }, [slug, type])
+  }, [])
 
   return (
     <span

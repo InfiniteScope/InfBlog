@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { formatDateTime } from "@/lib/format-date"
+import { invalidateAllBookmarkStates } from "@/lib/bookmark-query"
 
 interface FavoriteItem {
   slug: string
@@ -89,6 +90,8 @@ export function FavoritesDialog({
     })
     if (!res.ok) {
       toast.error("删除失败")
+    } else {
+      invalidateAllBookmarkStates()
     }
   }
 

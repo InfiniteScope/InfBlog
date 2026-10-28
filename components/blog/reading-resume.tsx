@@ -11,6 +11,7 @@ import {
   scrollToBookmarkPercent,
 } from "@/lib/bookmark-scroll"
 import type { BookmarkType } from "@/lib/bookmarks"
+import { getBookmarkState } from "@/lib/bookmark-query"
 
 interface ReadingResumeProps {
   slug: string
@@ -108,16 +109,10 @@ export function ReadingResume({ slug, type }: ReadingResumeProps) {
     // 提示的关闭函数（由 showBookmarkPrompt 返回）：卸载/换页时调用，撤掉提示
     let dismissPromptRef: (() => void) | undefined
 
-    fetch(`/api/bookmarks?type=${type}&slug=${encodeURIComponent(slug)}`, {
-      signal: controller.signal,
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+    // 与右下角书签按钮共用同一个请求（in-flight 去重 + 15s 短缓存）
+    getBookmarkState(type, slug)
+      .then((bm) => {
         if (controller.signal.aborted) return
-        const bm = data?.bookmark as
-          | { percent: number; anchor: string | null; label: string | null }
-          | null
-          | undefined
         if (!bm || typeof bm.percent !== "number") return
         if (bm.percent < MIN_MEANINGFUL_PERCENT) return
         // 已经读到这里了，跳过去也不会动，就不问了。

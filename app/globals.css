@@ -15,8 +15,9 @@
 :root {
   --radius: 0.375rem;
 
-  /* 探索主题 hero 未来感标题字（Orbitron），不纳入 @theme inline 以保证运行时 var() 可用 */
-  --font-future: "Orbitron", var(--font-inter), var(--font-noto-sans-sc), sans-serif;
+  /* 系统字体栈：原先这里引用了从未定义的 --font-inter / --font-noto-sans-sc，
+     整条声明无效（实测一直用系统字体）。这里写清楚真实使用的栈。 */
+  --font-future: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
 
   /* Light: #fafafa 底 / #171717 字 / cyan 点缀 */
   --background: 0 0% 98%;
@@ -236,9 +237,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans: var(--font-inter), var(--font-noto-sans-sc), system-ui, -apple-system, sans-serif;
-  --font-display: "SmileySans-Oblique", var(--font-inter), var(--font-noto-sans-sc), sans-serif;
-  --font-mono: var(--font-jetbrains-mono), var(--font-noto-sans-sc), ui-monospace, monospace;
+  --font-sans: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-display: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Cascadia Code", "JetBrains Mono", monospace;
 }
 
 * {
@@ -1076,3 +1077,18 @@ html.dark:not(.ui-classic):not(.flow) .v2-starfield-canvas {
 
 
 
+
+/* ===== app/loading.tsx 的极轻加载条 ===== */
+@keyframes loading-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+.loading-sweep {
+  animation: loading-sweep 1.15s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-sweep {
+    animation: none;
+    width: 100%;
+  }
+}

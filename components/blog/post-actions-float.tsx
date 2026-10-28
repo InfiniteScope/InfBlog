@@ -54,39 +54,9 @@ export function PostActionsFloat({
   // 与服务端一致：首帧不渲染（null），挂载后再 portal——避免 hydration 不匹配
   useEffect(() => setMounted(true), [])
 
-  // 初始状态：是否已赞 / 已收藏
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        const [statsRes, favRes, likeRes] = await Promise.all([
-          fetch(`/api/posts/${encodeURIComponent(slug)}/view`),
-          fetch(`/api/posts/${encodeURIComponent(slug)}/favorite`),
-          fetch(`/api/posts/${encodeURIComponent(slug)}/like`),
-        ])
-        if (cancelled) return
-        if (statsRes.ok) {
-          const data = await statsRes.json()
-          if (typeof data.favorites === "number") setFavorites(data.favorites)
-          if (typeof data.likes === "number") setLikes(data.likes)
-        }
-        if (favRes.ok) {
-          const data = await favRes.json()
-          setFavorited(Boolean(data.favorited))
-        }
-        if (likeRes.ok) {
-          const data = await likeRes.json()
-          if (typeof data.liked === "boolean") setLiked(data.liked)
-        }
-      } catch {
-        // 静默失败，保持初始值
-      }
-    }
-    void load()
-    return () => {
-      cancelled = true
-    }
-  }, [slug])
+  // 初始状态由服务端算好（initialLiked / initialFavorited / initialLikes …），
+  // 页面是动态渲染，SSR 值就是最新值；挂载后再拉 3 个接口属于重复请求。
+  // 此后点赞/收藏的变更都走本组件内部 state + POST_STATS_EVENT 同步。
 
   async function handleLike() {
     if (likeBusy) return

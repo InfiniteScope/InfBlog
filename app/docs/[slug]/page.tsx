@@ -1,4 +1,7 @@
 import Link from "next/link"
+
+/* KaTeX 的 CSS 只在这里引入：全站其它页面没有公式，不需要承担这份体积 */
+import "katex/dist/katex.min.css"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink, Pencil, Tag } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
