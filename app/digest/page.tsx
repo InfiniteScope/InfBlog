@@ -39,15 +39,17 @@ export default async function DigestPage() {
           Powered by{" "}
           <span className="font-mono text-xs">glance-of-tech</span>
         </p>
-        <Link
+        {/* 日报 feed 同样是 XML，不要用 <Link> 预取整份 RSS */}
+        <a
           href="/digest/feed.xml"
           target="_blank"
+          rel="noopener noreferrer"
           className="v2-tag w-fit transition-colors hover:text-accent"
           title="订阅科技资讯日报（每日 08:15 推送：前一日晚报 + 今日早报）"
         >
           <Rss className="h-3 w-3" />
           RSS 订阅日报
-        </Link>
+        </a>
       </section>
 
       {latest ? (

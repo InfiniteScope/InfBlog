@@ -29,9 +29,17 @@ export function CollapsibleLinkList({ links }: CollapsibleLinkListProps) {
           className="h-7 px-2 text-xs"
           asChild
         >
-          <Link href={link.url} target="_blank" rel="noopener noreferrer">
-            {link.name}
-          </Link>
+          {link.url.startsWith("/") ? (
+            /* 站内静态资源（如 /tools/datastruct 是 rewrite 到静态 HTML 的工具页）
+               不要用 <Link>：Next 会把它当页面预取，实测拉过一次 1.9MB 的 RSC。 */
+            <a href={link.url} target="_blank" rel="noopener noreferrer">
+              {link.name}
+            </a>
+          ) : (
+            <Link href={link.url} target="_blank" rel="noopener noreferrer">
+              {link.name}
+            </Link>
+          )}
         </Button>
       ))}
       {collapsible && (

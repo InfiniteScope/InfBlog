@@ -20,6 +20,7 @@ import { getLatestDigest } from "@/lib/digest"
 import { Button } from "@/components/ui/button"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { CoverImage } from "@/components/ui/cover-image"
+import { preferImageVariant } from "@/lib/image-variants"
 import { MdxInline } from "@/components/ui/mdx-inline"
 import { PostDates } from "@/components/blog/post-dates"
 import { Reveal } from "@/components/motion/reveal"
@@ -251,7 +252,7 @@ export default async function HomePage() {
                       </div>
                       {featured.coverImage && (
                         <CoverImage
-                          src={featured.coverImage}
+                          src={preferImageVariant(featured.coverImage)}
                           alt={featured.title}
                           containerClassName="relative aspect-[16/10] w-full overflow-hidden rounded-md"
                           imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -438,7 +439,7 @@ export default async function HomePage() {
                           >
                             {post.coverImage && (
                               <CoverImage
-                                src={post.coverImage}
+                                src={preferImageVariant(post.coverImage)}
                                 alt={post.title}
                                 containerClassName="relative aspect-video w-full shrink-0 overflow-hidden sm:aspect-square sm:w-40"
                                 imgClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/reveal"
 import { PostDates } from "@/components/blog/post-dates"
 import { CoverImage } from "@/components/ui/cover-image"
+import { preferImageVariant } from "@/lib/image-variants"
 import { MdxInline } from "@/components/ui/mdx-inline"
 
 export const metadata = {
@@ -76,7 +77,7 @@ export default async function DocsPage() {
                 <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card/50 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-card hover:shadow-lg hover:shadow-accent/5">
                   {doc.coverImage && (
                     <CoverImage
-                      src={doc.coverImage}
+                      src={preferImageVariant(doc.coverImage)}
                       alt={doc.title}
                       containerClassName="aspect-video w-full overflow-hidden"
                       imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

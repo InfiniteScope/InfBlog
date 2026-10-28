@@ -83,6 +83,19 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-10-28）
+
+- **性能优化 P0：首屏传输量降约 75%**（已本地验证；Playwright + CDP，禁用缓存冷启动）：首页 **4.45 MB → 1.06 MB**，文章页冷启动 **2.71 MB（线上）→ 0.75 MB（本地）**。改动：
+  1. 头像 `public/images/avatar.jpg`（1.07 MB）→ `avatar.webp`（256×256，10.8 KB），`siteConfig.avatar` 已指向 webp；原图保留但不再被引用。
+  2. `app/icon.png` 339 KB → 2 KB（64×64 调色板 PNG）；`app/apple-icon.png` 43 KB → 10.3 KB（180×180）。
+  3. `components/collectibles/collectible-reveal.tsx`：3D 藏品查看器改为 `next/dynamic({ ssr: false })`——它挂在根布局，静态 import 会把 **约 1 MB 的 three.js** 塞进每个页面（实测文章页首屏 1,030 KB 就是它）。
+  4. `feed.xml` / `digest/feed.xml` 的入口改原生 `<a>`（`<Link>` 会把它当页面预取，一次拉 150–220 KB）；`CollapsibleLinkList` 的站内链接（`/tools/datastruct`）也改 `<a>`（预取曾达 1.9 MB）。
+  5. 封面图转 WebP：新增 **`scripts/optimize-covers.ts`**（默认只预览，`--write` 落盘；自动在“无损 / 有损 q84 + 最长边 1600”里选小且合适的一个；结果 ≥ 原图 90% 时跳过）。本地 8 张封面 **1983 KB → 355 KB**。
+     - **不改 frontmatter**：新增 `lib/image-variants.ts`，在渲染层把 `/uploads/x.png|jpg` 映射到**同名** `.webp`（文件存在才替换），首页/博客/文库的封面与正文 `<img>` 都已接入。这样 `content/` 仍以服务器为准，不需要动文章。
+     - 目录清单在进程内缓存 → **新增 .webp 后要重启进程**（部署本来就会重启）。
+  - 注意：`/uploads` 仍有 30 天缓存，**同名覆盖**老访客看不到；本次是新文件名 `.webp`，不受影响。以后更新图片请换名。
+  - P1 待办：非封面的正文图批量转 webp、去掉 4 个冗余 API（`view`×2 / `like` / `favorite` / `bookmarks`×2）、删除未生效的字体 CSS（`--font-*` 未定义，379 条 @font-face 全是死代码）、`experimental.staleTimes`、首页双主题同帧渲染。
+
 ## 当前状态（2026-10-18）
 
 - **首页「最后更新」改为取动态/博客/文库三者最新**（提交 `24c81a5`，已部署）——原先只看 `updates[0].date`（动态），刚发的文章/档案不会推动这个时间。现新增 `lib/last-update.ts` 的 `getLatestContentDate({ posts, docs, updates })`：取动态 `date`、博客 `date/updatedAt`、文库 `date/updatedAt` 的**最大值**；`app/page.tsx` 里算好并格式化成字符串，以 `lastUpdate` 传给 `DataStrip` / `StatsWidget`（**别把 docs 数组塞进客户端组件**，会白白撑大 RSC payload）。线上实测两套主题（探索 DataStrip / 经典 StatsWidget）显示同一时间。

@@ -3,6 +3,7 @@ import { ComponentPropsWithoutRef, ReactNode } from "react"
 
 import { CodeBlock } from "@/components/blog/code-block"
 import { slugifyHeading } from "@/lib/headings"
+import { preferImageVariant } from "@/lib/image-variants"
 
 function getTextFromChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") {
@@ -183,11 +184,15 @@ function Pre(props: ComponentPropsWithoutRef<"pre">) {
 function Img({
   className,
   alt,
+  src,
   ...props
 }: ComponentPropsWithoutRef<"img">) {
+  // 正文图片同样优先使用 .webp 变体（scripts/optimize-covers.ts 生成）
+  const optimisedSrc = typeof src === "string" ? preferImageVariant(src) : src
   return (
     <img
       alt={alt}
+      src={optimisedSrc}
       loading="lazy"
       decoding="async"
       className="my-6 h-auto w-full rounded-lg border border-border object-cover"

@@ -27,6 +27,7 @@ import {
 import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
 import { CoverImage } from "@/components/ui/cover-image"
+import { preferImageVariant } from "@/lib/image-variants"
 import { MdxInline } from "@/components/ui/mdx-inline"
 import { PostDates } from "@/components/blog/post-dates"
 import { RemovePostButton } from "@/components/admin/remove-post-button"
@@ -163,7 +164,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         />
         {post.coverImage && (
           <CoverImage
-            src={post.coverImage}
+            src={preferImageVariant(post.coverImage)}
             alt={post.title}
             containerClassName="aspect-video w-full overflow-hidden rounded-xl border border-border"
             imgClassName="h-full w-full object-cover"

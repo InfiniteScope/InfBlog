@@ -24,6 +24,7 @@ import { DocBookmarkFloat } from "@/components/blog/bookmark-float"
 import { RemoveDocButton } from "@/components/admin/remove-doc-button"
 import { Button } from "@/components/ui/button"
 import { CoverImage } from "@/components/ui/cover-image"
+import { preferImageVariant } from "@/lib/image-variants"
 import { MdxInline } from "@/components/ui/mdx-inline"
 
 interface PageProps {
@@ -126,7 +127,7 @@ export default async function DocDetailPage({ params }: PageProps) {
           />
           {doc.coverImage && (
             <CoverImage
-              src={doc.coverImage}
+              src={preferImageVariant(doc.coverImage)}
               alt={doc.title}
               containerClassName="aspect-video w-full overflow-hidden rounded-xl border border-border"
               imgClassName="h-full w-full object-cover"

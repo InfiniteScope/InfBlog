@@ -4,7 +4,7 @@ export const siteConfig = {
   realName: "Xia",
   title: "一个关于技术与思考的个人博客",
   description: "记录技术思考、设计实践与生活片段",
-  avatar: "/images/avatar.jpg",
+  avatar: "/images/avatar.webp",
   email: "Kzxia001@gmail\n2678725875@qq.com",
   location: "Zhoushan,Zhejiang | Chengdu,Sichuan",
   education: "Sichuan Normal University - Undergraduate",

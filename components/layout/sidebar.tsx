@@ -201,10 +201,12 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
           )}
           asChild
         >
-          <Link href="/feed.xml" target="_blank" title="RSS 订阅博客">
+          {/* RSS 是 XML 资源，不是页面：用原生 <a>，避免 Next 把它当页面预取
+              （曾实测预取一次就拉 220KB 的 /feed.xml?_rsc=…） */}
+          <a href="/feed.xml" target="_blank" rel="noopener noreferrer" title="RSS 订阅博客">
             <Rss className="h-4 w-4 shrink-0" />
             {!collapsed && "RSS"}
-          </Link>
+          </a>
         </Button>
 
         {/* 快报：glance-of-tech 服务的临时入口（内部页，不新开标签） */}

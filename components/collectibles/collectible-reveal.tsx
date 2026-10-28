@@ -3,9 +3,22 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { Sparkles, X } from "lucide-react"
+import dynamic from "next/dynamic"
 
-import { CollectibleViewer } from "@/components/collectibles/collectible-viewer"
 import { Button } from "@/components/ui/button"
+
+/**
+ * 3D 藏品查看器会把 three.js + @react-three/* 打进 bundle（约 1MB），
+ * 而这个组件挂在**根布局**里 → 静态 import 会让每个页面都下载 3D 引擎。
+ * 改成按需加载：只有真正开出一件藏品时才请求这块代码。
+ */
+const CollectibleViewer = dynamic(
+  () =>
+    import("@/components/collectibles/collectible-viewer").then(
+      (mod) => mod.CollectibleViewer
+    ),
+  { ssr: false, loading: () => null }
+)
 import { COLLECTIBLE_REVEAL_EVENT } from "@/lib/collectibles-client"
 import { COLLECTIBLE_MAP, type CollectibleId } from "@/lib/collectibles"
 

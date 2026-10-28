@@ -12,6 +12,7 @@ import { PostSortControl } from "@/components/blog/post-sort-control"
 import { BlogTagFilter } from "@/components/blog/blog-tag-filter"
 import { PostDates } from "@/components/blog/post-dates"
 import { CoverImage } from "@/components/ui/cover-image"
+import { preferImageVariant } from "@/lib/image-variants"
 import { MdxInline } from "@/components/ui/mdx-inline"
 
 export const metadata = {
@@ -85,7 +86,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
                 >
                   {post.coverImage && (
                     <CoverImage
-                      src={post.coverImage}
+                      src={preferImageVariant(post.coverImage)}
                       alt={post.title}
                       containerClassName="relative aspect-video w-full shrink-0 overflow-hidden rounded-md sm:aspect-[4/3] sm:w-44"
                       imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -179,7 +180,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
                   <Link href={`/blog/${post.slug}`} className="block">
                     {post.coverImage && (
                       <CoverImage
-                        src={post.coverImage}
+                        src={preferImageVariant(post.coverImage)}
                         alt={post.title}
                         containerClassName="aspect-video w-full overflow-hidden"
                         imgClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
