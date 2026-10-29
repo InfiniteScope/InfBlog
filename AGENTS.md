@@ -83,6 +83,16 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-10-29）
+
+- **公开只读接口：`GET /api/v1/digest/latest`**（供 macOS 小组件用，`BUILD_ID: D4qJ_EiORo7A0fP0LyUow`）：
+  - 文件 `app/api/v1/digest/latest/route.ts`，直接复用 `lib/digest.ts` 的 `getLatestDigest()`（其 fetch 自带 `revalidate: 300`），**不抓取、不调 LLM、不碰管理接口、不加登录**。
+  - 返回**裸 digest 对象**（不包 `{code,data}`）：`date/period/title/summary/degraded/generatedAt/items[]`，item 含 `source/title/url/imageUrl/summary/tags[]/publishedAt`；保持后端原始顺序与字段名。
+  - 成功头：`Content-Type: application/json; charset=utf-8` + `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=600`。
+  - 失败（无简报/后端挂/异常）：**503 JSON** `{"error":"digest_unavailable","message":"暂时无法获取简报"}` + `Cache-Control: no-store`（绝不能缓存错误）。
+  - ⚠️ **不要给这个路由加 `dynamic = "force-static"`（内容烤死）或 `force-dynamic`（会把路由内 fetch 变 no-store，打穿 Java 后端，破坏 5 分钟缓存）**；默认动态路由 + fetch 缓存即可。`NextResponse.json` 的 `Content-Type` 显式写成带 charset 的版本（中文原样输出，无 `\uXXXX`）。
+  - 验收（公网）：200 / 中文正常 / items=15 / `tags` 是数组 / POST=405 / 停 `glance-of-tech` 后 503 JSON 且 `no-store` / 连续请求 ~54ms。注意 Java 是 Spring Boot，`systemctl start` 后要 **20–30s** 才 ready，期间的 503 是正常的（不是缓存问题）。
+
 ## 当前状态（2026-10-28）
 
 - **性能优化 P0：首屏传输量降约 75%**（已本地验证；Playwright + CDP，禁用缓存冷启动）：首页 **4.45 MB → 1.06 MB**，文章页冷启动 **2.71 MB（线上）→ 0.75 MB（本地）**。改动：
