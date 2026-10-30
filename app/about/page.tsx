@@ -48,7 +48,7 @@ export default function AboutPage() {
         </ul>
       </section>
 
-      <section className="v2-card space-y-4 p-6">
+      <section id="friends" className="v2-card scroll-mt-24 space-y-4 p-6">
         <h2 className="font-display text-2xl tracking-tight">友情链接</h2>
         <div className="flex flex-wrap gap-3">
           {siteConfig.links.friends.map((friend) => (

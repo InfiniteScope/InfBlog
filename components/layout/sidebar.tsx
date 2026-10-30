@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { ChillButton } from "@/components/layout/chill-button"
 import { CollapsibleLinkList } from "@/components/layout/collapsible-link-list"
+import { MaxRowsLinkList } from "@/components/layout/max-rows-link-list"
 import { ShatterAvatar } from "@/components/collectibles/shatter-avatar"
 import { DanmakuList } from "@/components/danmaku/danmaku-list"
 import { DanmakuForm } from "@/components/danmaku/danmaku-form"
@@ -262,7 +263,12 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
             <Separator />
             <div>
               <p className="mb-2 font-mono text-xs text-muted-foreground">FRIENDS - 友情链接</p>
-              <CollapsibleLinkList links={siteConfig.links.friends} />
+              {/* 最多两行；放不下时给「所有友链」入口，跳到关于页的友链区 */}
+              <MaxRowsLinkList
+                links={siteConfig.links.friends}
+                maxRows={2}
+                moreHref="/about#friends"
+              />
             </div>
           </div>
         </div>

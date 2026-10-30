@@ -83,6 +83,13 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-10-30）
+
+- **侧边栏友链改为「最多两行 + 所有友链」**：新增 `components/layout/max-rows-link-list.tsx`（客户端组件），`sidebar.tsx` 的 FRIENDS 区改用它（TOOLS 仍用 `CollapsibleLinkList`）。规则：容器 `maxHeight = 2×28 + 8 = 64px`（按钮 `h-7` + `gap-2`）+ `overflow-hidden`；用**最后一个子元素的 bottom 相对容器 top** 判断是否溢出（比 `scrollHeight` 稳），溢出时在下方渲染「所有友链 →」按钮，跳 `/about#friends`。
+  - 关于页友情链接区已加 `id="friends"` + `scroll-mt-24`（避开固定顶栏）。
+  - 测量同时观察容器与其父容器（容器高度被固定，宽度变化不一定触发自身 ResizeObserver），并在 `document.fonts.ready` 后复测一次。
+  - 验证：4 条友链在正常侧栏宽度下正好两行、**不显示**按钮；把容器压到 96px 后按钮出现（`scrollHeight 136 > 64`），点击跳转 `/about#friends`、区块可见、4 条全在、控制台 0 错误。
+
 ## 当前状态（2026-10-29）
 
 - **公开只读接口：`GET /api/v1/digest/latest`**（供 macOS 小组件用，`BUILD_ID: D4qJ_EiORo7A0fP0LyUow`）：
