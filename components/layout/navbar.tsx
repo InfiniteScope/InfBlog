@@ -31,14 +31,16 @@ import {
 } from "@/lib/hooks/use-aspect-ratio"
 import type { Danmaku } from "@prisma/client"
 import type { Post } from "@/lib/mdx"
+import type { FriendLinkItem } from "@/lib/friends"
 
 interface NavbarProps {
   danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
   posts: Post[]
   unreadCount?: number
+  friends: FriendLinkItem[]
 }
 
-export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
+export function Navbar({ danmaku, posts, unreadCount = 0, friends }: NavbarProps) {
   const pathname = usePathname()
   const { status } = useSession()
   const [loginHref, setLoginHref] = useState("/login")
@@ -178,7 +180,11 @@ export function Navbar({ danmaku, posts, unreadCount = 0 }: NavbarProps) {
                   </div>
                 )}
               </div>
-              <Sidebar danmaku={danmaku} className="min-h-0 flex-1" />
+              <Sidebar
+                danmaku={danmaku}
+                friends={friends}
+                className="min-h-0 flex-1"
+              />
             </SheetContent>
           </Sheet>
 

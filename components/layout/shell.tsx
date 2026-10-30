@@ -1,6 +1,7 @@
 import { getDanmakuList } from "@/app/danmaku/actions"
 import { siteConfig } from "@/lib/config"
 import { getAllPosts } from "@/lib/mdx"
+import { getFriendLinks } from "@/lib/friends"
 import { getUnreadCount } from "@/app/messages/actions"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Navbar } from "@/components/layout/navbar"
@@ -21,20 +22,21 @@ interface ShellProps {
 }
 
 export async function Shell({ children }: ShellProps) {
-  const [danmaku, posts, unreadCount] = await Promise.all([
+  const [danmaku, posts, unreadCount, friends] = await Promise.all([
     getDanmakuList(20),
     getAllPosts(),
     getUnreadCount(),
+    getFriendLinks(),
   ])
 
   return (
     <MusicProvider>
-      <SidebarCollapseProvider sidebar={<Sidebar danmaku={danmaku} />}>
+      <SidebarCollapseProvider sidebar={<Sidebar danmaku={danmaku} friends={friends} />}>
         <FlowProvider>
           <MusicCollapseController />
           <NavbarVisibilityProvider>
             <NavbarExpandButton />
-            <Navbar danmaku={danmaku} posts={posts} unreadCount={unreadCount} />
+            <Navbar danmaku={danmaku} posts={posts} unreadCount={unreadCount} friends={friends} />
           </NavbarVisibilityProvider>
           <MusicPlayerOverlay />
           <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">

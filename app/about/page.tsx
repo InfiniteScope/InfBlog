@@ -1,13 +1,16 @@
 import { ExternalLink } from "lucide-react"
 
 import { siteConfig } from "@/lib/config"
+import { getFriendLinks } from "@/lib/friends"
 
 export const metadata = {
   title: "关于 | InfBlog",
   description: "关于 InfBlog 与我",
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const friends = await getFriendLinks()
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-8">
       <section className="space-y-2">
@@ -51,18 +54,23 @@ export default function AboutPage() {
       <section id="friends" className="v2-card scroll-mt-24 space-y-4 p-6">
         <h2 className="font-display text-2xl tracking-tight">友情链接</h2>
         <div className="flex flex-wrap gap-3">
-          {siteConfig.links.friends.map((friend) => (
-            <a
-              key={friend.name}
-              href={friend.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="v2-tag group"
-            >
-              {friend.name}
-              <ExternalLink className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-accent" />
-            </a>
-          ))}
+          {friends.length === 0 ? (
+            <p className="text-sm text-muted-foreground">暂无友链</p>
+          ) : (
+            friends.map((friend) => (
+              <a
+                key={friend.id}
+                href={friend.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="v2-tag group"
+                title={friend.note ?? friend.url}
+              >
+                {friend.name}
+                <ExternalLink className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-accent" />
+              </a>
+            ))
+          )}
         </div>
       </section>
     </div>

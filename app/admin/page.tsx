@@ -4,6 +4,7 @@ import {
   BookMarked,
   Download,
   FileText,
+  Link2,
   MessageSquare,
   Rss,
   Users,
@@ -53,6 +54,13 @@ const adminItems = [
     title: "藏品图鉴",
     description: "查看全部藏品 3D 模型",
     icon: BookMarked,
+    ownerOnly: true,
+  },
+  {
+    href: "/admin/friends",
+    title: "友链管理",
+    description: "增删改侧边栏与关于页的友链",
+    icon: Link2,
     ownerOnly: true,
   },
 ]

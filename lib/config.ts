@@ -27,6 +27,7 @@ export const siteConfig = {
       { name: "数模Skill", url: "https://github.com/Escap1ng/math-modeling-skill"},
       { name: "Paste-XRay", url: "https://nisconder.github.io/paste-xray/"},
     ],
+    // 友链已改为数据库驱动（后台 /admin/friends 可增删改）；这里只是首次部署的种子数据
     friends: [
       { name: "Soren-ABT", url: "https://soren-s-blog-base.pages.dev/" },
       { name: "Nisconder", url: "https://nisconder.pages.dev/" },

@@ -90,6 +90,16 @@
   - 测量同时观察容器与其父容器（容器高度被固定，宽度变化不一定触发自身 ResizeObserver），并在 `document.fonts.ready` 后复测一次。
   - 验证：4 条友链在正常侧栏宽度下正好两行、**不显示**按钮；把容器压到 96px 后按钮出现（`scrollHeight 136 > 64`），点击跳转 `/about#friends`、区块可见、4 条全在、控制台 0 错误。
 
+## 当前状态（2026-10-30）
+
+- **友链改为数据库驱动 + 后台「友链管理」**（`/admin/friends`，仅 OWNER）：
+  - 新增 Prisma 模型 `FriendLink`（表 `friend_links`：`name/url/note/sortOrder/createdAt/updatedAt`），迁移 `20261030104116_add_friend_links`。
+  - `lib/friends.ts` 的 `getFriendLinks()` 供侧边栏（`Shell` → `Sidebar`）与关于页实时读取；**不再依赖 `lib/config.ts`**（config 里的 friends 只作为首次种子，`scripts/seed-friends.ts` 在表为空时写入）。
+  - 后台页支持新增/编辑/删除/上移下移；server actions 在 `app/admin/friends/actions.ts`，均做 `auth()` + `role === "OWNER"` 校验，URL 只允许 http/https，名称≤30、备注≤60、最多 50 条；改完 `revalidatePath("/", "layout")` + 客户端 `router.refresh()`，**无需重新构建**。
+  - 侧边栏仍沿用「最多两行 + 所有友链 → /about#friends」逻辑（`MaxRowsLinkList`），现在数据来自数据库。
+  - 本地 E2E（临时 OWNER 用户，测完已删）：4 条 → 新增 5 条 → 侧栏出现「所有友链」→ 关于页同步 → 改名 → 上移 → 删除 → 回到 4 条，控制台 0 错误。
+  - ⚠️ 部署时需要：`pnpm exec prisma migrate deploy && pnpm exec prisma generate` → `pnpm tsx scripts/seed-friends.ts` → `next build` → `pm2 restart infblog`；**先跑种子再重启**，否则侧栏/关于页会短暂没有友链。
+
 ## 当前状态（2026-10-29）
 
 - **公开只读接口：`GET /api/v1/digest/latest`**（供 macOS 小组件用，`BUILD_ID: D4qJ_EiORo7A0fP0LyUow`）：

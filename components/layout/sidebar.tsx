@@ -22,6 +22,7 @@ import { SectionHeading } from "@/components/ui/section-heading"
 import { ChillButton } from "@/components/layout/chill-button"
 import { CollapsibleLinkList } from "@/components/layout/collapsible-link-list"
 import { MaxRowsLinkList } from "@/components/layout/max-rows-link-list"
+import type { FriendLinkItem } from "@/lib/friends"
 import { ShatterAvatar } from "@/components/collectibles/shatter-avatar"
 import { DanmakuList } from "@/components/danmaku/danmaku-list"
 import { DanmakuForm } from "@/components/danmaku/danmaku-form"
@@ -58,9 +59,10 @@ const TRAVELLINGS_URL = "https://www.travellings.cn/go.html"
 interface SidebarProps {
   className?: string
   danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
+  friends: FriendLinkItem[]
 }
 
-export function Sidebar({ className, danmaku }: SidebarProps) {
+export function Sidebar({ className, danmaku, friends }: SidebarProps) {
   const { collapsed } = useSidebarCollapse()
 
   const copyEmail = async () => {
@@ -264,11 +266,7 @@ export function Sidebar({ className, danmaku }: SidebarProps) {
             <div>
               <p className="mb-2 font-mono text-xs text-muted-foreground">FRIENDS - 友情链接</p>
               {/* 最多两行；放不下时给「所有友链」入口，跳到关于页的友链区 */}
-              <MaxRowsLinkList
-                links={siteConfig.links.friends}
-                maxRows={2}
-                moreHref="/about#friends"
-              />
+              <MaxRowsLinkList links={friends} maxRows={2} moreHref="/about#friends" />
             </div>
           </div>
         </div>

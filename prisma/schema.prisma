@@ -297,3 +297,16 @@ model Counter {
 
   @@map("counters")
 }
+
+/** 友链：后台可增删改，侧边栏与关于页运行时读取（改完立即生效，无需重新构建） */
+model FriendLink {
+  id        Int      @id @default(autoincrement())
+  name      String
+  url       String
+  note      String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("friend_links")
+}
