@@ -32,7 +32,9 @@ export const siteConfig = {
       { name: "Soren-ABT", url: "https://soren-s-blog-base.pages.dev/" },
       { name: "Nisconder", url: "https://nisconder.pages.dev/" },
       { name: "Escap1ng", url:"https://escaping.top"},
-      { name: "Qm's Blog", url: "https://qmin.top" }
+      { name: "Qm's Blog", url: "https://qmin.top" },
+      { name:"Tilex Blog", url: "https://tilex.world/"},
+      { name:"Au's Blog", url: "https://audience.ink/"},
     ],
   },
   nav: [
