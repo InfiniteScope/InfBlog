@@ -28,9 +28,10 @@ export const siteConfig = {
       { name: "Paste-XRay", url: "https://nisconder.github.io/paste-xray/"},
     ],
     friends: [
-      { name: "Soren-ABT博客", url: "https://soren-s-blog-base.pages.dev/" },
-      { name: "Nisconder博客", url: "https://github.com/nisconder" },
-      { name: "Escap1ng", url:"https://github.com/Escap1ng"},
+      { name: "Soren-ABT", url: "https://soren-s-blog-base.pages.dev/" },
+      { name: "Nisconder", url: "https://nisconder.pages.dev/" },
+      { name: "Escap1ng", url:"https://escaping.top"},
+      { name: "Qm's Blog", url: "https://qmin.top" }
     ],
   },
   nav: [
