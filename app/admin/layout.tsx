@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowLeft, Download, FileText, LibraryBig, Link2, Plus, Rss, Users } from "lucide-react"
+import { ArrowLeft, BarChart3, Download, FileText, LibraryBig, Link2, Plus, Rss, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -67,6 +67,12 @@ export default function AdminLayout({
           <Link href="/admin/friends">
             <Link2 className="mr-2 h-4 w-4" />
             友链管理
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/admin/traffic">
+            <BarChart3 className="mr-2 h-4 w-4" />
+            流量来源
           </Link>
         </Button>
       </div>

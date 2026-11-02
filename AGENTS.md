@@ -83,6 +83,17 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-11-02）
+
+- **应用内「流量来源」统计**：
+  - 新增 `ReferralVisit`（表 `referral_visits`：`date/source/path/referrer/createdAt`，索引 `date+source`），迁移 `20261102142647_add_referral_visits`。
+  - `ViewsTracker` 在**每个标签页首次进入**时 POST `/api/views`，带上 `path` 与 `document.referrer`（HTTP Referer 头拿到的是本站 URL，只有 `document.referrer` 才有外部来源）；`lib/referral.ts` 服务端过滤爬虫/无头 UA，按 host 归类为 `(direct)` / `(internal)` / 域名（去掉 `www.`），日期固定 `Asia/Shanghai`。
+  - 后台新增 **`/admin/traffic`**（仅 OWNER，后台顶部与首页卡片都有入口）：今日 / 近 7 天 / 近 30 天 / 外部来源占比 + 最近 14 天 × 来源矩阵（右侧为 30 天合计）。
+  - **口径与局限**：一次标签页首次进入 = 一次访问；`/api/views` 的 60s/IP 限流会让同一 IP 多设备少计；聚合站常用 `rel="noreferrer"` 或 App 内置浏览器，Referer 被抹掉后只能算 direct → **外链流量会被低估**。
+  - 参考量级（部署前）：`page_views` 约 17–36/天，而 nginx 页面加载 500–1400/天（后者含爬虫与站内跳转），所以“真实访问”本来就应该是几十的量级。
+  - 本地 E2E：6 种来源（blogsclub/bing/google/qmin/direct/internal）均正确落库、bot UA 被过滤、后台表格/卡片正常、控制台 0 错误。
+  - 部署需要：`prisma migrate deploy && prisma generate` → `next build` → `pm2 restart`（无种子数据）。
+
 ## 当前状态（2026-10-30）
 
 - **侧边栏友链改为「最多两行 + 所有友链」**：新增 `components/layout/max-rows-link-list.tsx`（客户端组件），`sidebar.tsx` 的 FRIENDS 区改用它（TOOLS 仍用 `CollapsibleLinkList`）。规则：容器 `maxHeight = 2×28 + 8 = 64px`（按钮 `h-7` + `gap-2`）+ `overflow-hidden`；用**最后一个子元素的 bottom 相对容器 top** 判断是否溢出（比 `scrollHeight` 稳），溢出时在下方渲染「所有友链 →」按钮，跳 `/about#friends`。

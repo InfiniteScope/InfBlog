@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import {
+  BarChart3,
   BookMarked,
   Download,
   FileText,
@@ -61,6 +62,13 @@ const adminItems = [
     title: "友链管理",
     description: "增删改侧边栏与关于页的友链",
     icon: Link2,
+    ownerOnly: true,
+  },
+  {
+    href: "/admin/traffic",
+    title: "流量来源",
+    description: "每日访问量与各平台来源",
+    icon: BarChart3,
     ownerOnly: true,
   },
 ]

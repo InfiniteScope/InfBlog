@@ -310,3 +310,16 @@ model FriendLink {
 
   @@map("friend_links")
 }
+
+/** 访问来源：每个标签页首次访问记一条（已过滤爬虫），用于后台「流量来源」统计 */
+model ReferralVisit {
+  id        Int      @id @default(autoincrement())
+  date      String   // YYYY-MM-DD（Asia/Shanghai）
+  source    String   // 来源域名 / (direct) / (internal)
+  path      String   // 落地页路径
+  referrer  String?  // 完整 Referer（可能为空）
+  createdAt DateTime @default(now())
+
+  @@index([date, source])
+  @@map("referral_visits")
+}
