@@ -15,8 +15,8 @@ export interface PostViewStats {
  */
 export type StatsType = "post" | "doc"
 
-function currentMonthKey(): string {
-  const now = new Date()
+export function currentMonthKey(now: Date = new Date()): string {
+  // 用服务器本地时区（Asia/Shanghai）；显式传参只是为了可测试跨年边界
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
 }
 

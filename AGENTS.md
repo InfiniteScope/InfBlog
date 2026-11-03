@@ -89,6 +89,12 @@
   - 修复：`pick()` 统一校验 `monthKey` 是否等于当前 `YYYY-MM`，不一致则 `monthViews` 返回 0（不改数据库，下一次浏览时仍由 `trackPostView` 正常清零）。
   - 验证：本地 `hello-world` 原数据 `total=6, monthKey=2026-10, monthViews=4` → 页面显示 **6 / 0**；POST 一次浏览后 → `total=7, monthKey=2026-11, monthViews=1`，页面 **7 / 1**。
   - 注意：列表页与详情页共用 `pick()`，一处修复全覆盖；`trackPostView` 的跨月逻辑未改。
+  - **跨月/跨年矩阵测试**（改 DB 的 `monthKey` 后实测详情页 + 列表页 + 写路径）：
+    - 本月 5 → `7 / 5`；上个月 4 → `7 / 0`；6 个月前 9 → `7 / 0`；去年 12 月 12 → `7 / 0`；下个月（脏数据）3 → `7 / 0`；空 `monthKey` → `7 / 0`（全部 PASS）
+    - 列表页 `getPostStatsMap` 同样输出 `7 / 0`
+    - 写路径：6 个月前 / 去年 12 月各 POST 一次 → `monthKey` 重置为当前月、`monthViews=1`、total +1
+    - `currentMonthKey()` 边界：2025-12-31 23:59 → `2025-12`、2026-01-01 → `2026-01`、2026-12-31 → `2026-12`、2027-01-01 → `2027-01`
+  - `currentMonthKey(now?: Date)` 现在可传入时间（仅为测试；生产调用不传，行为不变）。
 
 ## 当前状态（2026-11-02）
 
