@@ -96,6 +96,16 @@
     - `currentMonthKey()` 边界：2025-12-31 23:59 → `2025-12`、2026-01-01 → `2026-01`、2026-12-31 → `2026-12`、2027-01-01 → `2027-01`
   - `currentMonthKey(now?: Date)` 现在可传入时间（仅为测试；生产调用不传，行为不变）。
 
+- **统计口径差异：首页「浏览量」vs 后台「流量来源」（待处理，用户 2026-11-03 决定暂缓）**：
+  - **首页「今日/总浏览量」= `PageView`**：`ViewsTracker` → `POST /api/views` → `trackPageView()`。**只做 60s/IP 限流，不过滤 UA**——会执行 JS 的爬虫（Googlebot、Bytespider、HeadlessChrome 等）都会被计入；历史累计（total）同样含爬虫。
+  - **后台「流量来源」= `ReferralVisit`**：同一个 POST 里调用 `trackReferralVisit()`，**额外按 UA 过滤爬虫/无头浏览器**；且该表从 **2026-11-02 部署后**才开始记录。
+  - 实测 2026-11-03：POST 40 次（1 次被限流 202）→ `page_views=39`；其中 Googlebot 13、Bytespider 5、HeadlessChrome 测试 1 → **真实浏览器 20**，正好等于 `referral_visits=20`（全部 direct）。**两个数字天然是 `浏览量 ≥ 流量来源`，不是 bug。**
+  - 待办方案（用户之后有空再改）：
+    - **A（推荐）**：给 `trackPageView` 加同一套 UA 过滤，使首页数字 = 真实访问（历史累计不清洗）。改动点：`lib/views.ts` 的 `trackPageView`，复用 `lib/referral.ts` 的 `isBotUserAgent`；注意 `/api/views` 里的 60s 限流器是两个口径共用的。
+    - B：保持现状，把首页标签改成「请求数（含爬虫）」之类，明确口径。
+    - C：首页同时展示「真实访问」与「总请求」两个数字。
+  - 另有既有局限（两个口径都受影响）：60s/IP 限流会让同一 IP 的多设备/多人少计。
+
 ## 当前状态（2026-11-02）
 
 - **应用内「流量来源」统计**：
