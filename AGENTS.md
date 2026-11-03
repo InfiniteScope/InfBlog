@@ -83,6 +83,13 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-11-03）
+
+- **修复「本月阅读量」显示成总阅读量**（`lib/post-stats.ts`）：`getPostStats` / `getPostStatsMap` 之前直接返回数据库里的 `monthViews`，而跨月清零只发生在 `trackPostView`（有**新浏览**时）——所以「上个月有浏览、本月还没人看」的文章会一直返回上个月的月计数，出现 `总阅读量 = 本月阅读量`（如 17/17）。
+  - 修复：`pick()` 统一校验 `monthKey` 是否等于当前 `YYYY-MM`，不一致则 `monthViews` 返回 0（不改数据库，下一次浏览时仍由 `trackPostView` 正常清零）。
+  - 验证：本地 `hello-world` 原数据 `total=6, monthKey=2026-10, monthViews=4` → 页面显示 **6 / 0**；POST 一次浏览后 → `total=7, monthKey=2026-11, monthViews=1`，页面 **7 / 1**。
+  - 注意：列表页与详情页共用 `pick()`，一处修复全覆盖；`trackPostView` 的跨月逻辑未改。
+
 ## 当前状态（2026-11-02）
 
 - **应用内「流量来源」统计**：

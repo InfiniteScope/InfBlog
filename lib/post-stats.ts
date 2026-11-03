@@ -242,13 +242,18 @@ export async function getUserFavorites(userId: string): Promise<
 
 function pick(row: {
   totalViews: number
+  monthKey: string
   monthViews: number
   likes: number
   favorites: number
 }): PostViewStats {
+  // 关键：读取时也要校验 monthKey。
+  // 原先只有「产生新浏览」时才会跨月清零，导致上个月有浏览、本月还没人看的文章
+  // 读取时仍返回上个月的 monthViews（出现 总阅读量 = 本月阅读量）。
+  const isCurrentMonth = row.monthKey === currentMonthKey()
   return {
     totalViews: row.totalViews,
-    monthViews: row.monthViews,
+    monthViews: isCurrentMonth ? row.monthViews : 0,
     likes: row.likes,
     favorites: row.favorites,
   }
