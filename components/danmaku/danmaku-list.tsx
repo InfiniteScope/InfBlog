@@ -1,8 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { useSession } from "next-auth/react"
 import { useTheme } from "next-themes"
+import { GripHorizontal, Maximize2, X } from "lucide-react"
 
 import type { Danmaku } from "@prisma/client"
 
@@ -26,7 +28,8 @@ interface ActiveItem {
   key: string
   content: string
   color: string
-  top: number
+  /** 垂直位置（相对容器高度的百分比），两个容器共用 */
+  topPercent: number
   duration: number
   mine: boolean
 }
@@ -45,15 +48,22 @@ const lightPalette = [
   "#713f12", // yellow-900
 ]
 
-/** 泳道高度（像素），侧栏弹幕区 96px 高 → 4 条泳道 */
+/** 泳道高度（像素），侧栏弹幕区约 78px 高 → 3 条泳道 */
 const LANE_HEIGHT = 22
 /** 普通弹幕的发射间隔 */
 const SPAWN_INTERVAL_MS = 1300
 /** 同一泳道再次发射前要等多久（避免文字重叠） */
 const LANE_BUSY_MS = 4000
-/** 滚动耗时范围（秒） */
-const MIN_DURATION = 9
-const DURATION_RANGE = 5
+/** 滚动耗时（秒）——原 9~14s 提速 1.5 倍 → 6~9.33s */
+const MIN_DURATION = 6
+const DURATION_RANGE = 10 / 3
+/** 放大浮窗的尺寸 */
+const PANEL_HEIGHT = 280
+const PANEL_MAX_WIDTH = 560
+
+function panelWidth() {
+  return Math.max(240, Math.min(PANEL_MAX_WIDTH, window.innerWidth - 24))
+}
 
 function invertHex(hex: string): string {
   const sanitized = hex.replace("#", "")
@@ -118,10 +128,10 @@ function FlyingDanmaku({
       ref={ref}
       data-danmaku-item
       data-mine={item.mine ? "true" : "false"}
-      className="absolute whitespace-nowrap text-xs font-medium will-change-transform"
+      className="pointer-events-none absolute whitespace-nowrap text-xs font-medium will-change-transform"
       style={{
         left: "100%",
-        top: item.top,
+        top: `calc(${item.topPercent}% - 8px)`,
         color: item.color,
         textShadow: isDark
           ? "0 0 2px rgba(0,0,0,0.6)"
@@ -147,15 +157,23 @@ export function DanmakuList({ danmaku }: DanmakuListProps) {
   const myId = session?.user?.id ?? null
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const panelBodyRef = useRef<HTMLDivElement>(null)
   const [trackWidth, setTrackWidth] = useState(0)
+  const [panelBodyWidth, setPanelBodyWidth] = useState(0)
   const [active, setActive] = useState<ActiveItem[]>([])
+  const [mounted, setMounted] = useState(false)
+  /** null = 浮窗关闭；否则是浮窗左上角坐标 */
+  const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(null)
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null)
 
   /** 当前可用的弹幕池（服务端数据 + 本地刚发的） */
   const itemsRef = useRef<DanmakuItem[]>(danmaku)
   /** 每条泳道下一次可发射的时间（performance.now 基准） */
   const laneFreeAtRef = useRef<number[]>([])
 
-  // 容器宽度：动画需要按“容器宽度 + 文字宽度”精确算距离
+  useEffect(() => setMounted(true), [])
+
+  // 侧栏弹幕区宽度
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -165,6 +183,18 @@ export function DanmakuList({ danmaku }: DanmakuListProps) {
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
+
+  // 放大浮窗的内容宽度
+  useEffect(() => {
+    if (!panelPos) return
+    const el = panelBodyRef.current
+    if (!el) return
+    const measure = () => setPanelBodyWidth(el.clientWidth)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [panelPos])
 
   // 合并服务端下发的弹幕（去重），不清空正在飞行的条目
   useEffect(() => {
@@ -179,7 +209,7 @@ export function DanmakuList({ danmaku }: DanmakuListProps) {
 
       const laneCount = Math.max(
         2,
-        Math.floor((containerRef.current?.clientHeight ?? 96) / LANE_HEIGHT)
+        Math.floor((containerRef.current?.clientHeight ?? 78) / LANE_HEIGHT)
       )
       if (laneFreeAtRef.current.length !== laneCount) {
         laneFreeAtRef.current = Array(laneCount).fill(0)
@@ -204,7 +234,7 @@ export function DanmakuList({ danmaku }: DanmakuListProps) {
           key,
           content: item.content,
           color: pickColor(isDark),
-          top: lane * LANE_HEIGHT + 1,
+          topPercent: ((lane + 0.5) / laneCount) * 100,
           duration: MIN_DURATION + Math.random() * DURATION_RANGE,
           mine: Boolean(myId && item.userId && item.userId === myId),
         },
@@ -269,23 +299,138 @@ export function DanmakuList({ danmaku }: DanmakuListProps) {
     setActive((prev) => prev.filter((item) => item.key !== key))
   }, [])
 
+  const openPanel = useCallback(() => {
+    const width = panelWidth()
+    setPanelPos({
+      x: Math.max(12, (window.innerWidth - width) / 2),
+      y: Math.max(12, (window.innerHeight - PANEL_HEIGHT) / 2),
+    })
+  }, [])
+
+  const closePanel = useCallback(() => {
+    dragRef.current = null
+    setPanelPos(null)
+  }, [])
+
+  const onDragStart = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!panelPos) return
+    dragRef.current = {
+      dx: event.clientX - panelPos.x,
+      dy: event.clientY - panelPos.y,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const onDragMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current) return
+    const width = panelWidth()
+    const x = Math.min(
+      Math.max(0, event.clientX - dragRef.current.dx),
+      window.innerWidth - width
+    )
+    const y = Math.min(
+      Math.max(0, event.clientY - dragRef.current.dy),
+      window.innerHeight - PANEL_HEIGHT
+    )
+    setPanelPos({ x, y })
+  }
+
+  const onDragEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragRef.current = null
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
-      {active.length === 0 && danmaku.length === 0 ? (
-        <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
-          暂无弹幕
-        </p>
-      ) : (
-        active.map((item) => (
-          <FlyingDanmaku
-            key={item.key}
-            item={item}
-            trackWidth={trackWidth}
-            isDark={isDark}
-            onDone={handleDone}
-          />
-        ))
-      )}
-    </div>
+    <>
+      <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+        {/* 放大按钮：弹幕区右上角 */}
+        <button
+          type="button"
+          onClick={openPanel}
+          aria-label="放大弹幕"
+          title="放大弹幕"
+          className="absolute right-0.5 top-0.5 z-20 rounded-md border border-border/60 bg-background/75 p-1 text-muted-foreground backdrop-blur transition-colors hover:border-accent/60 hover:text-accent"
+        >
+          <Maximize2 className="h-3 w-3" />
+        </button>
+
+        {active.length === 0 && danmaku.length === 0 ? (
+          <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
+            暂无弹幕
+          </p>
+        ) : (
+          active.map((item) => (
+            <FlyingDanmaku
+              key={item.key}
+              item={item}
+              trackWidth={trackWidth}
+              isDark={isDark}
+              onDone={handleDone}
+            />
+          ))
+        )}
+      </div>
+
+      {mounted &&
+        panelPos &&
+        createPortal(
+          <div
+            data-danmaku-panel
+            className="pointer-events-none fixed rounded-xl border border-border bg-background/90 shadow-2xl backdrop-blur-md"
+            style={{
+              left: panelPos.x,
+              top: panelPos.y,
+              width: panelWidth(),
+              height: PANEL_HEIGHT,
+              zIndex: 2147483000,
+            }}
+          >
+            {/* 只有标题栏可交互（拖动/关闭），弹幕主体点击穿透到网页 */}
+            <div
+              onPointerDown={onDragStart}
+              onPointerMove={onDragMove}
+              onPointerUp={onDragEnd}
+              onPointerCancel={onDragEnd}
+              className="pointer-events-auto flex h-9 cursor-grab touch-none select-none items-center justify-between border-b border-border/60 px-3 active:cursor-grabbing"
+            >
+              <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
+                // DANMAKU
+              </span>
+              <div className="flex items-center gap-1">
+                <GripHorizontal className="h-4 w-4 text-muted-foreground/70" />
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={closePanel}
+                  aria-label="关闭弹幕浮窗"
+                  title="关闭"
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent/10 hover:text-accent"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+
+            <div
+              ref={panelBodyRef}
+              className="pointer-events-none relative overflow-hidden"
+              style={{ height: PANEL_HEIGHT - 36 }}
+            >
+              {active.map((item) => (
+                <FlyingDanmaku
+                  key={`panel-${item.key}`}
+                  item={item}
+                  trackWidth={panelBodyWidth}
+                  isDark={isDark}
+                  onDone={handleDone}
+                />
+              ))}
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   )
 }

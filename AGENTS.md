@@ -98,6 +98,13 @@
   - `Danmaku` 新增可空 `userId`（迁移 `20261104115705_add_danmaku_user`），登录发送时记录；列表用 `useSession()` 比对，**只有自己发的**显示白框（`border-white/90 bg-black/45 text-white` + 阴影），匿名发送 `userId=null` 不显示。`Sidebar` / `Navbar` 的弹幕 prop 类型已补 `userId`。
   - 显示逻辑重写：96px 高弹幕区分 **4 条泳道（22px）**，普通弹幕每 **1.3s** 一条、滚动 **9–14s**，启动先补 3 条；同泳道 4s 内不再发射（避免重叠）；自己发送的弹幕强制挤入最早空闲泳道。动画改用 Web Animations API，按“容器宽度 + 文字宽度”精确计算距离（不再用 `-100vw`）。
   - 验证：匿名/登录发送后 `performance` 导航数仍为 1、`_rsc` 请求 0、输入框清空、新弹幕立即出现；登录用户自己条目 `data-mine=true` 且带白框；控制台 0 错误。部署需要 `prisma migrate deploy && prisma generate`。
+- **弹幕提速 + 可拖拽放大浮窗**（同批）：
+  - 滚动时长 **9–14s → 6–9.33s（1.5×）**（`MIN_DURATION = 6`、`DURATION_RANGE = 10/3`）。
+  - 弹幕区右上角新增 **`Maximize2` 放大按钮**；点击后 `createPortal` 到 `document.body` 渲染 **560×280** 的长方形浮窗，初始**屏幕正中**，可拖动标题栏（Pointer Events + `setPointerCapture`，`touch-none`），右上角 `X` 单独关闭。
+  - **层级与穿透**：浮窗 `z-index: 2147483000`；容器 `pointer-events: none`，**只有 9px 高的标题栏可交互**（拖动/关闭），弹幕主体点击与滚轮直接穿透到网页（实测滚轮在浮窗上仍能滚动页面 0→500）。
+  - 浮窗在客户端导航后保持打开（Sidebar 属于根布局，不随页面切换卸载）；只有点 `X` 才关闭。
+  - 实现细节：`ActiveItem` 改为存 `topPercent`（百分比垂直位置），侧栏与浮窗共用同一批 active 条目，各自按容器宽度用 WAAPI 计算滚动距离；浮窗主体宽度用 ResizeObserver 测量。
+  - 自测：动画时长 7742–8933ms；浮窗居中偏差 0/0；`z-index=2147483000`；面板/主体 `pointer-events=none`、标题栏 `auto`；拖动位移与鼠标一致（+120/+60）；导航到 `/blog` 后浮窗仍在；关闭后节点移除；控制台 0 错误。
 
 ## 当前状态（2026-11-03）
 
