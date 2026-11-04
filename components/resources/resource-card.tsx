@@ -14,7 +14,7 @@ export function ResourceCard({ resource }: { resource: ResourceWithAuthor }) {
   return (
     <Link
       href={`/resources/${resource.id}`}
-      className="group flex flex-col gap-4 rounded-xl border border-border bg-card/50 p-4 transition-colors hover:border-accent/40 hover:bg-card"
+      className="group flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card/50 p-4 transition-colors hover:border-accent/40 hover:bg-card"
     >
       <div className="flex items-center gap-4">
         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
