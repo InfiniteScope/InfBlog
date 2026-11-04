@@ -29,6 +29,15 @@ const danmakuLimiter = createWaitLimiter({
   windowMs: DANMAKU_WINDOW_MS,
 })
 
+/** 新弹幕返回给客户端，用于"热更新"：不刷新页面，直接滚动出来 */
+export interface CreatedDanmaku {
+  id: number
+  content: string
+  color: string
+  userId: string | null
+  createdAt: string
+}
+
 export type DanmakuFormState =
   | {
       success: false
@@ -38,7 +47,7 @@ export type DanmakuFormState =
       /** 被限速时刻（ms 时间戳），UI 据此做本地倒计时，避免与水合时间不一致 */
       limitedAt?: number
     }
-  | { success: true }
+  | { success: true; danmaku: CreatedDanmaku }
   | null
 
 export async function submitDanmaku(
@@ -67,15 +76,30 @@ export async function submitDanmaku(
   }
 
   try {
-    await prisma.danmaku.create({
+    // 登录用户记录 userId：仅用于"自己的弹幕"高亮，匿名发送为 null
+    const session = await auth()
+    const created = await prisma.danmaku.create({
       data: {
         content: validated.data.content,
         color: "#ffffff",
         speed: 1,
+        userId: session?.user?.id ?? null,
       },
     })
-    revalidatePath("/")
-    return { success: true }
+
+    // 注意：这里**不要**再 revalidatePath("/")。
+    // 那会让 Server Action 返回后整页 RSC 重渲染（弹幕区被重置，看起来像刷新）；
+    // 现在由客户端把返回的 danmaku 通过 danmaku:created 事件热插进去。
+    return {
+      success: true,
+      danmaku: {
+        id: created.id,
+        content: created.content,
+        color: created.color,
+        userId: created.userId,
+        createdAt: created.createdAt.toISOString(),
+      },
+    }
   } catch {
     return {
       success: false,

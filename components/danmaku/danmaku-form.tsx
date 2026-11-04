@@ -1,9 +1,10 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
 import { Send } from "lucide-react"
 
 import { submitDanmaku, type DanmakuFormState } from "@/app/danmaku/actions"
+import { DANMAKU_CREATED_EVENT } from "@/lib/danmaku-events"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -63,10 +64,24 @@ export function DanmakuForm() {
   const [state, formAction, isPending] = useActionState(submitDanmaku, null)
   const { active: cooling, remainingMs, errorText } = useCooldown(state)
   const coolingSeconds = Math.ceil(remainingMs / 1000)
+  const formRef = useRef<HTMLFormElement>(null)
+  const lastCreatedId = useRef<number | null>(null)
+
+  // 发送成功：广播给 DanmakuList 立即滚动（热更新），并清空输入框。
+  // 服务端 action 不再 revalidatePath，所以这里不会触发整页刷新。
+  useEffect(() => {
+    if (!state?.success || !state.danmaku) return
+    if (lastCreatedId.current === state.danmaku.id) return
+    lastCreatedId.current = state.danmaku.id
+    window.dispatchEvent(
+      new CustomEvent(DANMAKU_CREATED_EVENT, { detail: state.danmaku })
+    )
+    formRef.current?.reset()
+  }, [state])
 
   return (
     <div className="space-y-1.5">
-      <form action={formAction} className="flex gap-2">
+      <form ref={formRef} action={formAction} className="flex gap-2">
         <Input
           name="content"
           placeholder={cooling ? `冷却中，${coolingSeconds} 秒后可发送` : "发送弹幕..."}

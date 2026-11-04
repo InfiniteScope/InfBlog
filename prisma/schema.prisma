@@ -195,6 +195,8 @@ model Danmaku {
   content   String
   color     String   @default("#ffffff")
   speed     Int      @default(1)
+  /** 登录用户发送时记录，用于"自己的弹幕"高亮；匿名发送为 null */
+  userId    String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])

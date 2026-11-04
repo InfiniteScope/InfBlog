@@ -1,12 +1,34 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useSession } from "next-auth/react"
 import { useTheme } from "next-themes"
 
 import type { Danmaku } from "@prisma/client"
 
+import {
+  DANMAKU_CREATED_EVENT,
+  type CreatedDanmakuDetail,
+} from "@/lib/danmaku-events"
+
 interface DanmakuListProps {
-  danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
+  danmaku: Pick<
+    Danmaku,
+    "id" | "content" | "color" | "createdAt" | "userId"
+  >[]
+}
+
+type DanmakuItem = Omit<DanmakuListProps["danmaku"][number], "createdAt"> & {
+  createdAt: Date | string
+}
+
+interface ActiveItem {
+  key: string
+  content: string
+  color: string
+  top: number
+  duration: number
+  mine: boolean
 }
 
 // 浅色模式下使用的深色随机色板，确保在浅底上可读
@@ -23,151 +45,245 @@ const lightPalette = [
   "#713f12", // yellow-900
 ]
 
+/** 泳道高度（像素），侧栏弹幕区 96px 高 → 4 条泳道 */
+const LANE_HEIGHT = 22
+/** 普通弹幕的发射间隔 */
+const SPAWN_INTERVAL_MS = 1300
+/** 同一泳道再次发射前要等多久（避免文字重叠） */
+const LANE_BUSY_MS = 4000
+/** 滚动耗时范围（秒） */
+const MIN_DURATION = 9
+const DURATION_RANGE = 5
+
 function invertHex(hex: string): string {
   const sanitized = hex.replace("#", "")
-  const r = (255 - parseInt(sanitized.slice(0, 2), 16))
-    .toString(16)
-    .padStart(2, "0")
-  const g = (255 - parseInt(sanitized.slice(2, 4), 16))
-    .toString(16)
-    .padStart(2, "0")
-  const b = (255 - parseInt(sanitized.slice(4, 6), 16))
-    .toString(16)
-    .padStart(2, "0")
-  return `#${r}${g}${b}`
+  const r = 255 - parseInt(sanitized.slice(0, 2), 16)
+  const g = 255 - parseInt(sanitized.slice(2, 4), 16)
+  const b = 255 - parseInt(sanitized.slice(4, 6), 16)
+  return `#${[r, g, b]
+    .map((n) => n.toString(16).padStart(2, "0"))
+    .join("")}`
 }
 
-function shuffle<T>(array: T[]): T[] {
-  const copy = [...array]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
+function pickColor(isDark: boolean) {
+  const base = lightPalette[Math.floor(Math.random() * lightPalette.length)]
+  return isDark ? invertHex(base) : base
 }
 
-interface ActiveItem {
-  key: string
-  content: string
-  top: number
-  duration: number
-  color: string
+function FlyingDanmaku({
+  item,
+  trackWidth,
+  isDark,
+  onDone,
+}: {
+  item: ActiveItem
+  trackWidth: number
+  isDark: boolean
+  onDone: (key: string) => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || trackWidth <= 0) return
+
+    // 从容器右缘外开始，移动到完全离开左缘
+    const distance = trackWidth + el.offsetWidth + 24
+    const durationMs = item.duration * 1000
+    const animation = el.animate(
+      [
+        { transform: "translateX(0)" },
+        { transform: `translateX(-${distance}px)` },
+      ],
+      { duration: durationMs, easing: "linear", fill: "forwards" }
+    )
+
+    let finished = false
+    const finish = () => {
+      if (finished) return
+      finished = true
+      onDone(item.key)
+    }
+    animation.onfinish = finish
+    const timer = window.setTimeout(finish, durationMs + 120)
+
+    return () => {
+      animation.cancel()
+      window.clearTimeout(timer)
+    }
+  }, [item, trackWidth, onDone])
+
+  return (
+    <div
+      ref={ref}
+      data-danmaku-item
+      data-mine={item.mine ? "true" : "false"}
+      className="absolute whitespace-nowrap text-xs font-medium will-change-transform"
+      style={{
+        left: "100%",
+        top: item.top,
+        color: item.color,
+        textShadow: isDark
+          ? "0 0 2px rgba(0,0,0,0.6)"
+          : "0 0 2px rgba(255,255,255,0.6)",
+      }}
+    >
+      {item.mine ? (
+        // 登录用户自己发的弹幕：白色框（B 站风格），匿名用户不会走到这里
+        <span className="rounded-md border border-white/90 bg-black/45 px-1.5 py-0.5 text-white shadow-[0_0_10px_rgba(255,255,255,0.25)]">
+          {item.content}
+        </span>
+      ) : (
+        item.content
+      )}
+    </div>
+  )
 }
 
 export function DanmakuList({ danmaku }: DanmakuListProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const { data: session } = useSession()
+  const myId = session?.user?.id ?? null
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [trackWidth, setTrackWidth] = useState(0)
   const [active, setActive] = useState<ActiveItem[]>([])
 
-  // 最近 50 条缓存池，以及全部历史池
-  const recentPool = useMemo(
-    () => shuffle(danmaku.slice(0, 50)),
-    [danmaku]
-  )
-  const allPool = useMemo(() => shuffle(danmaku), [danmaku])
+  /** 当前可用的弹幕池（服务端数据 + 本地刚发的） */
+  const itemsRef = useRef<DanmakuItem[]>(danmaku)
+  /** 每条泳道下一次可发射的时间（performance.now 基准） */
+  const laneFreeAtRef = useRef<number[]>([])
 
-  const indexRef = useRef(0)
-  const cycleRef = useRef(0)
-  const poolRef = useRef<"recent" | "all">("recent")
-
-  // 数据源变化时重置状态
+  // 容器宽度：动画需要按“容器宽度 + 文字宽度”精确算距离
   useEffect(() => {
-    indexRef.current = 0
-    cycleRef.current = 0
-    poolRef.current = "recent"
-    setActive([])
+    const el = containerRef.current
+    if (!el) return
+    const measure = () => setTrackWidth(el.clientWidth)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // 合并服务端下发的弹幕（去重），不清空正在飞行的条目
+  useEffect(() => {
+    const map = new Map<number, DanmakuItem>()
+    for (const item of [...itemsRef.current, ...danmaku]) map.set(item.id, item)
+    itemsRef.current = [...map.values()]
   }, [danmaku])
 
-  useEffect(() => {
-    if (danmaku.length === 0) return
+  const spawn = useCallback(
+    (item: DanmakuItem | null, force = false) => {
+      if (!item) return
 
-    const spawn = () => {
-      let item: Pick<Danmaku, "id" | "content" | "color" | "createdAt">
-
-      if (poolRef.current === "recent") {
-        item = recentPool[indexRef.current % recentPool.length]
-        indexRef.current++
-
-        if (indexRef.current >= recentPool.length) {
-          indexRef.current = 0
-          cycleRef.current++
-          if (cycleRef.current >= 2) {
-            poolRef.current = "all"
-            indexRef.current = 0
-          }
-        }
-      } else {
-        item = allPool[indexRef.current % allPool.length]
-        indexRef.current++
-
-        if (indexRef.current >= allPool.length) {
-          indexRef.current = 0
-        }
+      const laneCount = Math.max(
+        2,
+        Math.floor((containerRef.current?.clientHeight ?? 96) / LANE_HEIGHT)
+      )
+      if (laneFreeAtRef.current.length !== laneCount) {
+        laneFreeAtRef.current = Array(laneCount).fill(0)
       }
 
-      const baseColor =
-        lightPalette[Math.floor(Math.random() * lightPalette.length)]
-      const color = isDark ? invertHex(baseColor) : baseColor
-      const top = Math.floor(Math.random() * 85) + 5
+      const now = performance.now()
+      let lane = laneFreeAtRef.current.findIndex((freeAt) => freeAt <= now)
+      if (lane < 0) {
+        // 普通弹幕：没空泳道就跳过，避免重叠；
+        // 刚发送的弹幕（force）：挤到最早空闲的泳道，保证立刻可见
+        if (!force) return
+        lane = laneFreeAtRef.current.indexOf(
+          Math.min(...laneFreeAtRef.current)
+        )
+      }
+      laneFreeAtRef.current[lane] = now + LANE_BUSY_MS
 
-      // 原速度基准 8s ~ 18s，新速度为现在的 30% ~ 50%
-      const baseDuration = 8 + Math.random() * 10
-      const speedRatio = 0.3 + Math.random() * 0.2
-      const duration = baseDuration / speedRatio
-
-      const key = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-
+      const key = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       setActive((prev) => [
         ...prev,
-        { key, content: item.content, top, duration, color },
+        {
+          key,
+          content: item.content,
+          color: pickColor(isDark),
+          top: lane * LANE_HEIGHT + 1,
+          duration: MIN_DURATION + Math.random() * DURATION_RANGE,
+          mine: Boolean(myId && item.userId && item.userId === myId),
+        },
       ])
+    },
+    [isDark, myId]
+  )
 
-      setTimeout(() => {
-        setActive((prev) => prev.filter((i) => i.key !== key))
-      }, duration * 1000)
+  const pickNext = useCallback(() => {
+    const pool = itemsRef.current
+    if (pool.length === 0) return null
+    const recent = pool.slice(0, 15)
+    const useRecent = recent.length > 0 && Math.random() < 0.65
+    const source = useRecent ? recent : pool
+    return source[Math.floor(Math.random() * source.length)]
+  }, [])
+
+  // 发射器：启动时先补 3 条，之后每 1.3s 一条
+  useEffect(() => {
+    if (itemsRef.current.length === 0) return
+
+    const timers: number[] = [
+      window.setTimeout(() => spawn(pickNext()), 0),
+      window.setTimeout(() => spawn(pickNext()), 220),
+      window.setTimeout(() => spawn(pickNext()), 440),
+    ]
+    const interval = window.setInterval(
+      () => spawn(pickNext()),
+      SPAWN_INTERVAL_MS
+    )
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer))
+      window.clearInterval(interval)
+    }
+  }, [spawn, pickNext])
+
+  // 自己发送成功 → 立即插入并发射（不刷新页面）
+  useEffect(() => {
+    const onCreated = (event: Event) => {
+      const detail = (event as CustomEvent<CreatedDanmakuDetail>).detail
+      if (!detail) return
+      const item: DanmakuItem = {
+        id: detail.id,
+        content: detail.content,
+        color: detail.color,
+        userId: detail.userId,
+        createdAt: detail.createdAt,
+      }
+      itemsRef.current = [
+        item,
+        ...itemsRef.current.filter((existing) => existing.id !== item.id),
+      ]
+      spawn(item, true)
     }
 
-    spawn()
-    const interval = setInterval(spawn, 2500)
-    return () => clearInterval(interval)
-  }, [danmaku.length, recentPool, allPool, isDark])
+    window.addEventListener(DANMAKU_CREATED_EVENT, onCreated)
+    return () => window.removeEventListener(DANMAKU_CREATED_EVENT, onCreated)
+  }, [spawn])
+
+  const handleDone = useCallback((key: string) => {
+    setActive((prev) => prev.filter((item) => item.key !== key))
+  }, [])
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <style>{`
-        @keyframes danmaku-scroll {
-          from {
-            transform: translateX(100%);
-          }
-          to {
-            transform: translateX(-100vw);
-          }
-        }
-      `}</style>
-
-      {active.length === 0 ? (
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+      {active.length === 0 && danmaku.length === 0 ? (
         <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
           暂无弹幕
         </p>
       ) : (
         active.map((item) => (
-          <div
+          <FlyingDanmaku
             key={item.key}
-            className="absolute whitespace-nowrap text-xs font-medium will-change-transform"
-            style={{
-              color: item.color,
-              top: `${item.top}%`,
-              right: 0,
-              transform: "translateX(100%)",
-              animation: `danmaku-scroll ${item.duration}s linear infinite`,
-              textShadow: isDark
-                ? "0 0 2px rgba(0,0,0,0.6)"
-                : "0 0 2px rgba(255,255,255,0.6)",
-            }}
-          >
-            {item.content}
-          </div>
+            item={item}
+            trackWidth={trackWidth}
+            isDark={isDark}
+            onDone={handleDone}
+          />
         ))
       )}
     </div>

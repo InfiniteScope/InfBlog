@@ -58,7 +58,7 @@ const TRAVELLINGS_URL = "https://www.travellings.cn/go.html"
 
 interface SidebarProps {
   className?: string
-  danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
+  danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt" | "userId">[]
   friends: FriendLinkItem[]
   forceExpanded?: boolean
 }

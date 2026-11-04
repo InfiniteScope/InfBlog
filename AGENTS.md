@@ -85,7 +85,7 @@
 
 ## 当前状态（2026-11-04）
 
-- **移动端优化（本地完成，未部署）**：
+- **移动端优化（已部署，`BUILD_ID: o35WpyaSAbOfplUnyyKb5`）**：
   - 移动抽屉通过 `Sidebar.forceExpanded` 与桌面收起态解耦，始终显示完整资料、文字社交按钮、友链与弹幕；抽屉限宽 `min(280px, 100vw-2rem)`，侧栏自身纵向滚动，弹幕面板 `shrink-0`，320px 下也能滚动到输入框。
   - 根布局显式 `viewport: device-width / initialScale: 1`（不禁止用户缩放）；Shell、主内容、转场、卡片与项目行补齐 `min-w-0` / `minmax(0,1fr)`。经典首页外层及 Stagger 内层网格都必须限制轨道——只修外层时 320px 仍会被卡片撑到 335px。
   - 探索首页长英文标题（如 Tarjan 篇）需 `break-words`，否则 184px 内容区会被无空格标题撑出 42px 横向溢出；FEATURED 网格也改为显式 `minmax(0,1fr)`。
@@ -93,6 +93,11 @@
   - <380px 隐藏重复的顶栏品牌文字与迷你播放器“下一首”，保留菜单、播放/暂停、搜索、主题和账户入口。
   - 验收：真实 Chrome CDP 移动模拟（DPR=3）覆盖 320/393/440px × 经典/探索 × 首页/博客，全部 `innerWidth=clientWidth=scrollWidth`、scale=1、卡片边缘 `16→width-16`；320/440px 抽屉完整内容、弹幕及输入框滚动可达；桌面展开/收起正常；运行时异常 0；`pnpm typecheck` 与 `pnpm build` 通过。
   - 测试 Next dev 时使用 `localhost`，不要用 `127.0.0.1`：Next 16 默认拦截后者对 dev chunks/HMR 的跨源请求，会造成“HTML 正常但完全未水合、按钮点击无效”的假象。
+- **弹幕热更新 + 自己的弹幕白框**：
+  - `submitDanmaku` **不再 `revalidatePath("/")`**（那会让 Server Action 返回后整页 RSC 重渲染、弹幕区被重置，看起来像刷新），改为返回新弹幕；`DanmakuForm` 成功后广播 `danmaku:created`（`lib/danmaku-events.ts`）并重置输入框，`DanmakuList` 监听后**立即插入并发射**。
+  - `Danmaku` 新增可空 `userId`（迁移 `20261104115705_add_danmaku_user`），登录发送时记录；列表用 `useSession()` 比对，**只有自己发的**显示白框（`border-white/90 bg-black/45 text-white` + 阴影），匿名发送 `userId=null` 不显示。`Sidebar` / `Navbar` 的弹幕 prop 类型已补 `userId`。
+  - 显示逻辑重写：96px 高弹幕区分 **4 条泳道（22px）**，普通弹幕每 **1.3s** 一条、滚动 **9–14s**，启动先补 3 条；同泳道 4s 内不再发射（避免重叠）；自己发送的弹幕强制挤入最早空闲泳道。动画改用 Web Animations API，按“容器宽度 + 文字宽度”精确计算距离（不再用 `-100vw`）。
+  - 验证：匿名/登录发送后 `performance` 导航数仍为 1、`_rsc` 请求 0、输入框清空、新弹幕立即出现；登录用户自己条目 `data-mine=true` 且带白框；控制台 0 错误。部署需要 `prisma migrate deploy && prisma generate`。
 
 ## 当前状态（2026-11-03）
 

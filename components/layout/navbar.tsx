@@ -34,7 +34,7 @@ import type { Post } from "@/lib/mdx"
 import type { FriendLinkItem } from "@/lib/friends"
 
 interface NavbarProps {
-  danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
+  danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt" | "userId">[]
   posts: Post[]
   unreadCount?: number
   friends: FriendLinkItem[]
