@@ -197,12 +197,12 @@ export default async function HomePage() {
                     <Link
                       href={`/blog/${featured.slug}`}
                       className={cn(
-                        "grid gap-8 py-10",
+                        "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-8 py-10",
                         featured.coverImage &&
                           "md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:items-center"
                       )}
                     >
-                      <div className="space-y-3">
+                      <div className="min-w-0 space-y-3">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
                           <span className="text-accent">FEATURED</span>
                           <span aria-hidden className="text-border">
@@ -305,7 +305,7 @@ export default async function HomePage() {
                             </>
                           )}
                         </div>
-                        <h3 className="font-display text-xl tracking-tight transition-colors group-hover:text-accent">
+                        <h3 className="font-display text-xl break-words tracking-tight transition-colors group-hover:text-accent">
                           {post.title}
                         </h3>
                         <div className="font-mono text-[10px] tracking-wide text-muted-foreground/70">
@@ -396,7 +396,7 @@ export default async function HomePage() {
           {/* 2 列栅格：左列（hero + 最新文章）纵向排列，
               右列（播放器 + widgets）独立成列。
               不再用跨行 item，避免右列高度把左列行轨道撑出空白 */}
-          <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[1fr_420px]">
             {/* 左列：hero + Latest Posts */}
             <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-start-1">
               {/* Hero: title left, skill showcase right.
@@ -429,9 +429,9 @@ export default async function HomePage() {
                     <p className="text-muted-foreground">博客文章即将上线</p>
                   </div>
                 ) : (
-                  <StaggerContainer className="grid gap-4">
+                  <StaggerContainer className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
                     {classicPosts.map((post) => (
-                      <StaggerItem key={post.slug}>
+                      <StaggerItem key={post.slug} className="min-w-0">
                         <article className="group overflow-hidden rounded-xl border border-border bg-card/50 transition-colors hover:bg-card">
                           <Link
                             href={`/blog/${post.slug}`}
@@ -499,7 +499,7 @@ export default async function HomePage() {
             </div>
 
             {/* Right column: music player + widgets packed */}
-            <div className="flex flex-col gap-8 lg:col-start-2 lg:row-start-1">
+            <div className="flex min-w-0 flex-col gap-8 lg:col-start-2 lg:row-start-1">
               <MusicPlayerExpanded />
               <ViewsCard />
               <TimelineWidget updates={latestUpdates} digest={digest} />

@@ -83,6 +83,17 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-11-04）
+
+- **移动端优化（本地完成，未部署）**：
+  - 移动抽屉通过 `Sidebar.forceExpanded` 与桌面收起态解耦，始终显示完整资料、文字社交按钮、友链与弹幕；抽屉限宽 `min(280px, 100vw-2rem)`，侧栏自身纵向滚动，弹幕面板 `shrink-0`，320px 下也能滚动到输入框。
+  - 根布局显式 `viewport: device-width / initialScale: 1`（不禁止用户缩放）；Shell、主内容、转场、卡片与项目行补齐 `min-w-0` / `minmax(0,1fr)`。经典首页外层及 Stagger 内层网格都必须限制轨道——只修外层时 320px 仍会被卡片撑到 335px。
+  - 探索首页长英文标题（如 Tarjan 篇）需 `break-words`，否则 184px 内容区会被无空格标题撑出 42px 横向溢出；FEATURED 网格也改为显式 `minmax(0,1fr)`。
+  - `.v2-starfield-canvas` 必须显式 `width/height:100%`：JS 会把 canvas backing width 设为 `innerWidth×DPR`，仅有 `position:fixed; inset:0` 时 backing width 会成为 CSS 布局宽度，高 DPR 真机因此稳定超宽。
+  - <380px 隐藏重复的顶栏品牌文字与迷你播放器“下一首”，保留菜单、播放/暂停、搜索、主题和账户入口。
+  - 验收：真实 Chrome CDP 移动模拟（DPR=3）覆盖 320/393/440px × 经典/探索 × 首页/博客，全部 `innerWidth=clientWidth=scrollWidth`、scale=1、卡片边缘 `16→width-16`；320/440px 抽屉完整内容、弹幕及输入框滚动可达；桌面展开/收起正常；运行时异常 0；`pnpm typecheck` 与 `pnpm build` 通过。
+  - 测试 Next dev 时使用 `localhost`，不要用 `127.0.0.1`：Next 16 默认拦截后者对 dev chunks/HMR 的跨源请求，会造成“HTML 正常但完全未水合、按钮点击无效”的假象。
+
 ## 当前状态（2026-11-03）
 
 - **修复「本月阅读量」显示成总阅读量**（`lib/post-stats.ts`）：`getPostStats` / `getPostStatsMap` 之前直接返回数据库里的 `monthViews`，而跨月清零只发生在 `trackPostView`（有**新浏览**时）——所以「上个月有浏览、本月还没人看」的文章会一直返回上个月的月计数，出现 `总阅读量 = 本月阅读量`（如 17/17）。
