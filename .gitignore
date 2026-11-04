@@ -65,3 +65,6 @@ data/blog.db
 # locally cached resource icons (server-side regenerated)
 /public/uploads/resource-icons/*
 !/public/uploads/resource-icons/.gitkeep
+
+# local mobile testing chrome profile
+.mobile-chrome-profile/

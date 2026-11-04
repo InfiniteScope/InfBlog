@@ -398,7 +398,7 @@ export default async function HomePage() {
               不再用跨行 item，避免右列高度把左列行轨道撑出空白 */}
           <div className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
             {/* 左列：hero + Latest Posts */}
-            <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
+            <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-start-1">
               {/* Hero: title left, skill showcase right.
                   上/下边缘与音乐播放器（h-56）对齐 */}
               <div className="grid items-start gap-6 md:h-[224px] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">

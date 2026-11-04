@@ -92,7 +92,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
                       imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   )}
-                  <div className="flex flex-1 flex-col justify-center space-y-2.5">
+                  <div className="flex min-w-0 flex-1 flex-col justify-center space-y-2.5">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
                       <PostDates
                         date={post.date}
@@ -186,7 +186,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
                         imgClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     )}
-                    <div className="space-y-3 p-5">
+                    <div className="min-w-0 space-y-3 p-5">
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <PostDates
                           date={post.date}

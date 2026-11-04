@@ -86,10 +86,10 @@ export function GithubProjects() {
           target="_blank"
           rel="noopener noreferrer"
           title={repo.full_name}
-          className="group flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-accent/5 sm:gap-2 sm:px-2 sm:py-2"
+          className="group flex min-w-0 items-center gap-1.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-accent/5 sm:gap-2 sm:px-2 sm:py-2"
         >
           <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="shrink-0 text-xs font-medium text-foreground group-hover:text-accent sm:text-sm">
+          <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground group-hover:text-accent sm:text-sm">
             {repo.name}
           </span>
           {repo.description && (

@@ -146,7 +146,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0, friends }: NavbarProps
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="flex w-[280px] flex-col overflow-hidden p-0"
+              className="flex w-[min(280px,calc(100vw-2rem))] max-w-full flex-col overflow-hidden p-0"
             >
               {/* Mobile nav drawer: 顶部导航列表 */}
               <div className="shrink-0 border-b border-border/60 p-4">
@@ -183,6 +183,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0, friends }: NavbarProps
               <Sidebar
                 danmaku={danmaku}
                 friends={friends}
+                forceExpanded
                 className="min-h-0 flex-1"
               />
             </SheetContent>
@@ -190,7 +191,7 @@ export function Navbar({ danmaku, posts, unreadCount = 0, friends }: NavbarProps
 
           <Link
             href="/"
-            className="font-display text-lg tracking-tight lg:hidden"
+            className="hidden font-display text-lg tracking-tight min-[380px]:block lg:hidden"
           >
             {siteConfig.name}
           </Link>

@@ -4,6 +4,8 @@ import type { ReactNode } from "react"
 import { usePathname } from "next/navigation"
 import { AnimatePresence, motion } from "motion/react"
 
+import { cn } from "@/lib/utils"
+
 interface PageTransitionProps {
   children: ReactNode
   className?: string
@@ -38,7 +40,7 @@ export function PageTransition({ children, className }: PageTransitionProps) {
           ease: [0.22, 1, 0.36, 1],
         }}
         id="page-transition-root"
-        className={className}
+        className={cn("min-w-0 max-w-full", className)}
       >
         {children}
       </motion.div>

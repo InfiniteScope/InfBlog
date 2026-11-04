@@ -42,7 +42,7 @@ export function SidebarCollapseProvider({
 
   return (
     <SidebarCollapseContext.Provider value={{ collapsed, toggle, setCollapsed }}>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen min-w-0">
         {/* Desktop Sidebar */}
         <div
           className={cn(
@@ -75,7 +75,7 @@ export function SidebarCollapseProvider({
         {/* Main Content */}
         <div
           className={cn(
-            "flex w-full flex-col transition-all duration-300",
+            "flex w-full min-w-0 flex-col transition-all duration-300",
             collapsed ? "lg:pl-[80px]" : "lg:pl-[280px]"
           )}
         >

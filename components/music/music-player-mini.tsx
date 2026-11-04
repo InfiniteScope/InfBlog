@@ -61,7 +61,12 @@ export function MusicPlayerMini() {
                 <Play className="h-3.5 w-3.5 pl-0.5" />
               )}
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={next}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden h-7 w-7 min-[380px]:inline-flex"
+              onClick={next}
+            >
               <SkipForward className="h-3.5 w-3.5" />
             </Button>
           </div>

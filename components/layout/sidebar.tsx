@@ -60,10 +60,12 @@ interface SidebarProps {
   className?: string
   danmaku: Pick<Danmaku, "id" | "content" | "color" | "createdAt">[]
   friends: FriendLinkItem[]
+  forceExpanded?: boolean
 }
 
-export function Sidebar({ className, danmaku, friends }: SidebarProps) {
-  const { collapsed } = useSidebarCollapse()
+export function Sidebar({ className, danmaku, friends, forceExpanded = false }: SidebarProps) {
+  const { collapsed: desktopCollapsed } = useSidebarCollapse()
+  const collapsed = forceExpanded ? false : desktopCollapsed
 
   const copyEmail = async () => {
     // siteConfig.email = "gmail\nqq"（换行分隔），复制 QQ 邮箱
@@ -276,7 +278,7 @@ export function Sidebar({ className, danmaku, friends }: SidebarProps) {
 
       {/* Danmaku */}
       {!collapsed && (
-        <div className="v2-panel space-y-3">
+        <div className="v2-panel shrink-0 space-y-3">
           <SectionHeading>// DANMAKU</SectionHeading>
           <div className="h-24 overflow-hidden rounded-md border border-border bg-background/50 px-3 py-2">
             <DanmakuList danmaku={danmaku} />

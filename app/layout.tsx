@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 
 /**
  * 字体说明（2026-10-28 性能清理）：
@@ -32,6 +32,11 @@ export const metadata: Metadata = {
   alternates: {
     types: { "application/rss+xml": "/feed.xml" },
   },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 }
 
 export default function RootLayout({
