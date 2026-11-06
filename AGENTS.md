@@ -83,6 +83,15 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-11-06）
+
+- **修复：含行内公式的文章整页 500（`Could not parse expression with acorn`）**（`lib/headings.ts`）：
+  - 现象：新文章《计算机网络》中出现的那些算法设计 - 01 打开报错，HTTP 200 但正文为空、显示 "A server error occurred"；服务端日志 `[53:93: Could not parse expression with acorn]` / `SyntaxError: Identifier directly after number`（digest `232722421`）。
+  - 根因：**目录解析器** `lib/headings.ts` 的 unified 管线只有 `remarkParse + remarkMdx + remarkGfm`，**缺 `remarkMath`**；正文内联公式 `$(s_{2i}, s_{2i+1})$` 里的 `{2i}` 被 mdx-expression 当成 JS 表达式交给 acorn → 抛错。正文的 MDXRemote 管线本身带 `remarkMath`，所以不是文章写法的问题，是 `extractHeadings(post.content)` 把整页拖崩。
+  - 修复：管线改为 `remarkParse → remarkMdx → remarkMath → remarkGfm`（与 `/feed.xml` 一致）；并给 `extractHeadings` 加 `try/catch` + 正则兜底（跳过代码围栏，按行提取 h2/h3），以后解析器不认识的写法最多让目录变糙，不会让页面 500。
+  - 验证：本地 dev 与生产构建均正常（h1 + 正文 44,683 字符、无 acorn 错误）；旧文章不受影响。
+  - ⚠️ 以后凡是走 MDX 的解析器（目录、摘要、RSS 等），**只要内容里可能有 `s_{...}` 这类数学括号，就必须先挂 `remarkMath`**，否则花括号会被当成 JS 表达式。
+
 ## 当前状态（2026-11-04）
 
 - **移动端优化（已部署，`BUILD_ID: o35WpyaSAbOfplUnyyKb5`）**：
