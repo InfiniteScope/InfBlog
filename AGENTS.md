@@ -83,6 +83,21 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-11-07）
+
+- **内容修复：《计算机网络》算法 01 的 CDMA 公式渲染错误**（本地暂存文件 `个人博客部分内容暂存处/《计算机网络》中，出现的那些算法设计01.md`，服务器上的文章已被用户删除）：
+  - 源文件里 `$$\begin{aligned}` 与 `\end{aligned}$$` 都写在**和内容同一行**；remark-math 的**块公式要求 `$$` 独占一行**，否则 `{aligned}` 会被 MDX 当成表达式吞掉 → KaTeX 报 `Expected 'EOF', got '&'`，整块公式变成纯文本，甚至把后续正文一起吞进数学节点。
+  - 已改为标准写法（`$$` 单独成行）：
+    ```md
+    $$
+    \begin{aligned}
+    ...
+    \end{aligned}
+    $$
+    ```
+  - 临时文章实测：`.katex-display = 1`、`.katex-error = 0`，显示效果与 Typora 截图一致。
+  - ⚠️ 规则：**块公式的 `$$` 必须单独成行**；`$$\begin{...}` / `\end{...}$$` 这种“围栏贴着内容”的写法在 MDX（remark-math）里不可用。单行 `$$...$$` 会被当作行内公式（display 风格但不居中）。
+
 ## 当前状态（2026-11-06）
 
 - **修复：含行内公式的文章整页 500（`Could not parse expression with acorn`）**（`lib/headings.ts`）：
