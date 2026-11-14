@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import { unified } from "unified"
 import remarkParse from "remark-parse"
 import remarkMdx from "remark-mdx"
@@ -83,8 +85,36 @@ function extractHeadingsFallback(markdown: string): TocHeading[] {
 
 /**
  * 从文章正文提取目录条目（h2/h3；h1 是文章标题、h4+ 过深不入目录）。
+ *
+ * 结果按正文哈希缓存：目录解析是一次完整的 remark/mdx 语法树构建，
+ * 长文（4~5 万字）要几十到上百毫秒；正文不变时没必要每个请求都重跑。
  */
+const headingCache = new Map<string, TocHeading[]>()
+const MAX_HEADING_CACHE = 32
+
 export function extractHeadings(markdown: string): TocHeading[] {
+  const key = createHash("sha1").update(markdown).digest("base64url")
+  const cached = headingCache.get(key)
+  if (cached) {
+    // 移到队尾（最近使用）
+    headingCache.delete(key)
+    headingCache.set(key, cached)
+    return cached
+  }
+
+  const headings = extractHeadingsUncached(markdown)
+
+  headingCache.set(key, headings)
+  while (headingCache.size > MAX_HEADING_CACHE) {
+    const oldest = headingCache.keys().next().value
+    if (oldest === undefined) break
+    headingCache.delete(oldest)
+  }
+
+  return headings
+}
+
+function extractHeadingsUncached(markdown: string): TocHeading[] {
   try {
     const tree = processor.parse(markdown) as { children?: unknown[] }
     const headings: TocHeading[] = []

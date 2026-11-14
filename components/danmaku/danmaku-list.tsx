@@ -139,8 +139,14 @@ function FlyingDanmaku({
       }}
     >
       {item.mine ? (
-        // 登录用户自己发的弹幕：白色框（B 站风格），匿名用户不会走到这里
-        <span className="rounded-md border border-white/90 bg-black/45 px-1.5 py-0.5 text-white shadow-[0_0_10px_rgba(255,255,255,0.25)]">
+        // 登录用户自己发的弹幕：白色框（B 站风格），匿名用户不会走到这里。
+        // 注意：globals.css 里有一条**未分层**的 `* { border-color: hsl(var(--border)) }`，
+        // 它按 CSS 级联规则会压过 Tailwind 的 border-white/90 工具类（未分层 > @layer utilities），
+        // 所以这里的白色边框必须用内联样式，否则会显示成默认灰色边框。
+        <span
+          className="rounded-md border px-1.5 py-0.5"
+          style={{ borderColor: "rgba(255, 255, 255, 0.9)" }}
+        >
           {item.content}
         </span>
       ) : (
@@ -151,8 +157,11 @@ function FlyingDanmaku({
 }
 
 export function DanmakuList({ danmaku }: DanmakuListProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
+  const { resolvedTheme, forcedTheme } = useTheme()
+  // next-themes 的 resolvedTheme 只反映用户偏好，不包含 forcedTheme：
+  // 探索主题用 forcedTheme="dark" 强制深色时，resolvedTheme 仍可能是 "light"，
+  // 会导致弹幕在深色背景上选到深色（几乎看不见）。这里把 forcedTheme 也算进去。
+  const isDark = (forcedTheme ?? resolvedTheme) === "dark"
   const { data: session } = useSession()
   const myId = session?.user?.id ?? null
 
@@ -351,7 +360,7 @@ export function DanmakuList({ danmaku }: DanmakuListProps) {
           onClick={openPanel}
           aria-label="放大弹幕"
           title="放大弹幕"
-          className="absolute right-0.5 top-0.5 z-20 rounded-md border border-border/60 bg-background/75 p-1 text-muted-foreground backdrop-blur transition-colors hover:border-accent/60 hover:text-accent"
+          className="absolute right-0.5 top-0.5 z-20 rounded-md p-1 text-muted-foreground transition-colors hover:text-accent"
         >
           <Maximize2 className="h-3 w-3" />
         </button>

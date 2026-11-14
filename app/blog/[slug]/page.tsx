@@ -8,16 +8,10 @@ import {
   ArrowLeft,
   Pencil,
 } from "lucide-react"
-import { MDXRemote } from "next-mdx-remote/rsc"
-import remarkGfm from "remark-gfm"
-import remarkMath from "remark-math"
-import rehypeKatex from "rehype-katex"
-import rehypePrettyCode from "rehype-pretty-code"
-import { rehypeStyleObject } from "@/lib/rehype-style-object"
+import { renderMdxCached } from "@/lib/mdx-render-cache"
 
 import { auth } from "@/auth"
 import { getPostBySlug, getPostSlugs } from "@/lib/mdx"
-import { normalizeMdxSource } from "@/lib/mdx-normalize"
 import { stripMarkdown } from "@/lib/mdx-inline"
 import { formatDateTime, shouldShowUpdatedAt } from "@/lib/format-date"
 import { extractHeadings } from "@/lib/headings"
@@ -27,7 +21,6 @@ import {
   hasFavorited,
   visitorKeyFromHeaders,
 } from "@/lib/post-stats"
-import { mdxComponents } from "@/components/mdx-components"
 import { Button } from "@/components/ui/button"
 import { CoverImage } from "@/components/ui/cover-image"
 import { preferImageVariant } from "@/lib/image-variants"
@@ -101,6 +94,8 @@ export default async function BlogPostPage({ params }: PageProps) {
   ])
 
   const headings = extractHeadings(post.content)
+  // 编译结果按「slug + 内容哈希」缓存在进程内，长文二次访问不再重跑 MDX/KaTeX/Shiki
+  const content = await renderMdxCached(post.slug, post.content)
 
   return (
     <div className="@container mx-auto flex w-full max-w-3xl flex-col gap-8 py-8 xl:max-w-none xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)]">
@@ -176,29 +171,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       </header>
 
       <div className="max-w-none">
-        <MDXRemote
-          source={normalizeMdxSource(post.content)}
-          components={mdxComponents}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm, remarkMath],
-              rehypePlugins: [
-                rehypeKatex,
-                [
-                  rehypePrettyCode,
-                  {
-                    // 跟随站点明暗主题（next-themes .dark class）
-                    theme: { light: "github-light", dark: "github-dark" },
-                    keepBackground: false,
-                    defaultLang: "plaintext",
-                  },
-                ],
-                // 必须最后：把 Shiki/Katex 的内联 style 字符串转成 JSX 对象
-                rehypeStyleObject,
-              ],
-            },
-          }}
-        />
+        {content}
       </div>
 
       <ReadingTracker />

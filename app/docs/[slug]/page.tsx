@@ -4,20 +4,13 @@ import Link from "next/link"
 import "katex/dist/katex.min.css"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink, Pencil, Tag } from "lucide-react"
-import { MDXRemote } from "next-mdx-remote/rsc"
-import remarkGfm from "remark-gfm"
-import remarkMath from "remark-math"
-import rehypeKatex from "rehype-katex"
-import rehypePrettyCode from "rehype-pretty-code"
+import { renderMdxCached } from "@/lib/mdx-render-cache"
 
 import { auth } from "@/auth"
 import { getDocBySlug, getDocSlugs } from "@/lib/docs"
-import { normalizeMdxSource } from "@/lib/mdx-normalize"
 import { stripMarkdown } from "@/lib/mdx-inline"
 import { extractHeadings } from "@/lib/headings"
 import { getPostStats } from "@/lib/post-stats"
-import { rehypeStyleObject } from "@/lib/rehype-style-object"
-import { mdxComponents } from "@/components/mdx-components"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { PostDates } from "@/components/blog/post-dates"
 import { ViewCountBadge } from "@/components/blog/post-stat-badges"
@@ -68,6 +61,8 @@ export default async function DocDetailPage({ params }: PageProps) {
   const session = await auth()
   const isOwner = session?.user?.role === "OWNER"
   const headings = extractHeadings(doc.content)
+  // 与文章页共用同一份渲染缓存（key 含 slug + 内容哈希，互不串味）
+  const content = await renderMdxCached(doc.slug, doc.content)
   // 阅读量：与文章同一套统计（post_stats.type = 'doc'）
   const stats = await getPostStats(doc.slug, "doc")
 
@@ -139,27 +134,7 @@ export default async function DocDetailPage({ params }: PageProps) {
         </header>
 
         <div className="max-w-none">
-        <MDXRemote
-          source={normalizeMdxSource(doc.content)}
-          components={mdxComponents}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm, remarkMath],
-                rehypePlugins: [
-                  rehypeKatex,
-                  [
-                    rehypePrettyCode,
-                    {
-                      theme: { light: "github-light", dark: "github-dark" },
-                      keepBackground: false,
-                      defaultLang: "plaintext",
-                    },
-                  ],
-                  rehypeStyleObject,
-                ],
-              },
-            }}
-          />
+        {content}
         </div>
       </article>
 

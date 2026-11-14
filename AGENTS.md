@@ -76,12 +76,28 @@
   - `app/layout.tsx` 的预绘制脚本只做两件事：**(a) 只有真带了 `?ui=` 参数才写 `infblog-ui`**（把"没有参数"当成"切经典"会让中键打开的任何导航链接删掉这个共享键）；**(b) 打上 `ui-classic` 或 `dark` 类**。它**绝不写 `theme` / `infblog-prev-theme`**。
   - 全项目只有 3 处会移除 `ui-classic`：layout 的预绘制脚本、`ui-theme.ts` 的 `applyUiTheme`、`transition-classic.ts`。
   - 旧的 `components/theme/explore-dark-sync.tsx` **已删除**（它用 MutationObserver 无差别监听 class 并反复 `setTheme`，是上述抖动的放大器）。
+  - **`resolvedTheme` 不包含 `forcedTheme`**：next-themes 的 `resolvedTheme` 只按用户偏好/系统计算，探索强制深色时它仍可能是 `light`。需要判断"实际是否深色"时必须写 `(forcedTheme ?? resolvedTheme) === "dark"`（`DanmakuList` 已按此修正；`ThemeTransitionProvider` 的开关逻辑仍是旧写法，未改）。
+- **`globals.css` 的 `* { border-color: hsl(var(--border)) }` 是未分层规则**：按 CSS 级联它会压过所有 Tailwind `border-*` 颜色工具类（未分层 > `@layer utilities`），表现为"写了 `border-white/90` 还是灰边"。要自定义边框颜色时用**内联 style**（如弹幕白框）。若想根治，把它移进 `@layer base` 即可，但 `border-transparent`、`border-accent/40`、`border-rose-400/70` 等会**全站一起变样**，必须做视觉回归后再改。
 - **hydration 铁律**：**绝不要用 `typeof document !== "undefined"` / `typeof window !== "undefined"` 作为"是否渲染某段 DOM"的条件**——那是 SSR 与客户端结果不同的分支，必然触发 *Hydration failed because the server rendered HTML didn't match the client*，整棵树会被迫在客户端重新生成（还会连带报出一条误导性的 `<script> tag while rendering React component`，因为重渲染时又渲染了一遍 layout 里的预绘制脚本）。**正确写法是用 `useEffect` 置位的 `mounted` 状态**（首帧两边都不渲染），首屏后再渲染客户端专属内容（portal 等）。项目里 `bookmark-float` / `post-actions-float` 就是正确示范。已修的实例：`app/guestbook/guestbook-form.tsx` 的底部输入栏。
 - **调试方法论（血泪）**：**行为与源码不符时，先去产物里核对"跑的到底是哪份代码"**。我这次连着几轮都在跑旧代码却不自知（改了源码但 dev 没重新编译，产物里还是旧实现），导致分析被反复误导。核对方式：`Get-ChildItem .next\static\chunks -Filter *.js | Select-String -Pattern "<特征串>"`，或直接读产物里那段函数。必要时停 dev、删 `.next` 强制全量重编译。
 - **Radix `DropdownMenu` 的 modal 陷阱（重要）**：默认 `modal` 为 true 时，打开菜单会经 `react-remove-scroll` 给 `<body>` 加 `overflow: hidden` **并注入滚动条占位补偿**。实测：`bodyOverflow` `visible→hidden`、`bodyMarginRight` `0px→10px`、`documentElement.clientWidth` `1430→1440`（正是滚动条宽度）。结果就是**所有贴视口右边固定的元素（右下角浮标、侧边栏等）整体横移约 10px**，看起来像"打开菜单把其他 UI 挤动了"（`article`/`main` 在静态流里宽度不变，所以只有 fixed 元素动）。这个菜单只是个选项框，无需锁滚动 → 加 `modal={false}` 即从根上消除（同时保留 Escape / 点外部关闭）。
 - **sonner 的坑（都是实测踩出来的，别再踩）**：① `Action.onClick` 是**必填**的，想做"纯取消"按钮要显式给空实现；② 用 `.click()` 在无头浏览器里**点不开 Radix 的 DropdownMenu**（它监听 `pointerdown`），E2E 必须用 CDP `Input.dispatchMouseEvent` 派发真实鼠标事件，否则得到"菜单不存在"的假阴性；③ **不要复用 `[data-sonner-toast]::after` 画自己的东西**——sonner 用它做「悬停展开时卡片之间的衔接桥」（`[data-sonner-toast][data-expanded=true]::after{content:'';position:absolute;height:calc(var(--gap)+1px);bottom:100%;width:100%}`），特异性更高，hook/悬停时会把你的元素顶到卡片上方（实测 `bottom` 0px → 89.875px、`height` 2px → 15px）；④ **sonner 悬停会暂停它自己的自动关闭计时器**，所以"到点必消失"的需求**不能依赖 `duration`**，要用显式 `setTimeout + toast.dismiss()`（纯 CSS 动画的进度条不受暂停影响，会出现"条读完了卡片还在"）；⑤ **sonner 2.0.8 不在 DOM 上渲染 `data-id`**，`[data-sonner-toast][data-id="x"]` 永远选不到卡片，而且卡片之后还会重渲染——**别用命令式 append 往卡片里塞元素**，要用 `description` 里的 React 元素；⑥ **`ToasterProps` 没有 `width`**（`TOAST_WIDTH` 硬编码 356，且以**行内样式**写 `var(--width)`，外部 CSS 覆盖不了），要改宽度只能用 `style={{ "--width": "430px" }}`（多传的 `width` prop 会被静默忽略、类型检查也不报错）。
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
+
+## 当前状态（2026-11-14）
+
+- **弹幕样式微调（用户要求）**：放大按钮去掉边框/背景（透明填充）；自己发送的弹幕只保留白色 1px 边框，无背景、无阴影。
+  - ⚠️ 白色边框必须用**内联样式** `style={{ borderColor: "rgba(255,255,255,0.9)" }}`：`globals.css` 里的 `* { border-color: hsl(var(--border)) }` 是**未分层（unlayered）规则**，按 CSS 级联会压过 Tailwind 的 `border-white/90`（未分层 > `@layer utilities`），写成工具类会显示成灰色边框。
+  - 顺带修复探索主题下的弹幕颜色：next-themes 的 `resolvedTheme` **不包含 `forcedTheme`**，探索强制深色时它仍是用户偏好（可能是 `light`）→ `pickColor` 选到深色字、深底上几乎看不见。改为 `(forcedTheme ?? resolvedTheme) === "dark"`。
+- **新增 `public/robots.txt` / `public/favicon.ico`**：robots 允许全站、禁止 `/admin` 与 `/api`；favicon 由 `app/icon.png` 生成 16/32/48 多尺寸 ICO（6.9 KB）。`public/` 新文件仍需 `pm2 restart infblog` 才生效（旧坑）。
+- **文章/文库 MDX 渲染缓存**（`lib/mdx-render-cache.ts`）：
+  - 根因：全站动态渲染（根布局 `Shell` → `auth()`），每次请求都重跑 remark/rehype + KaTeX + Shiki；公式多的长文服务端 TTFB 1.1–1.5s、公网 3s+。
+  - 用 `compileMDX` 缓存**编译后的 React 元素树**（进程内 LRU，最多 3 篇；key = `slug:sha1(normalizeMdxSource(content))`）；正文一变哈希就变、自动失效，无需手动清理；并发首次请求共用同一个 Promise。
+  - 同步给 `lib/headings.ts` 的 `extractHeadings` 加了按内容哈希的 LRU（32 条），目录解析不再每请求重跑（仍是纯函数，返回数组只读）。
+  - 实测（本地生产构建）：`java面试八股` TTFB **1.52s → 0.063s**，`计算机网络期末总复习` 0.26s → 0.037s；文章页同一路径生效。缓存只在内存、重启清空，最多占几十 MB。
+  - 注意：缓存的是 React 元素（复用安全，元素不可变），**不是 HTML 字符串**——不要改成 `dangerouslySetInnerHTML`，会破坏代码块复制按钮等客户端组件的水合。
+- **nginx 拦截扫描器**：443 server 内新增两条 regex `location`，命中 `wp-admin|wp-login.php|wp-content|wp-includes|xmlrpc.php|phpmyadmin|pma|cgi-bin|actuator|druid|server-status` 或 `/.env|.git|.svn|.hg|.aws|.ssh|.DS_Store` 时直接 `return 444`（断开连接、不返回响应）。备份 `/root/infblog.bak-scanner-20261114-153455`；`nginx -t` + `systemctl reload nginx`；实测正常路由全 200、扫描路径 curl 退出码 92（连接被断开）。
 
 ## 当前状态（2026-11-07）
 
@@ -121,7 +137,7 @@
   - 测试 Next dev 时使用 `localhost`，不要用 `127.0.0.1`：Next 16 默认拦截后者对 dev chunks/HMR 的跨源请求，会造成“HTML 正常但完全未水合、按钮点击无效”的假象。
 - **弹幕热更新 + 自己的弹幕白框**：
   - `submitDanmaku` **不再 `revalidatePath("/")`**（那会让 Server Action 返回后整页 RSC 重渲染、弹幕区被重置，看起来像刷新），改为返回新弹幕；`DanmakuForm` 成功后广播 `danmaku:created`（`lib/danmaku-events.ts`）并重置输入框，`DanmakuList` 监听后**立即插入并发射**。
-  - `Danmaku` 新增可空 `userId`（迁移 `20261104115705_add_danmaku_user`），登录发送时记录；列表用 `useSession()` 比对，**只有自己发的**显示白框（`border-white/90 bg-black/45 text-white` + 阴影），匿名发送 `userId=null` 不显示。`Sidebar` / `Navbar` 的弹幕 prop 类型已补 `userId`。
+  - `Danmaku` 新增可空 `userId`（迁移 `20261104115705_add_danmaku_user`），登录发送时记录；列表用 `useSession()` 比对，**只有自己发的**显示白框。**2026-11-14 起白框样式 = 1px 白边、透明背景、无阴影**（内联 `borderColor`，原因见 2026-11-14 状态块）。`Sidebar` / `Navbar` 的弹幕 prop 类型已补 `userId`。
   - 显示逻辑重写：96px 高弹幕区分 **4 条泳道（22px）**，普通弹幕每 **1.3s** 一条、滚动 **9–14s**，启动先补 3 条；同泳道 4s 内不再发射（避免重叠）；自己发送的弹幕强制挤入最早空闲泳道。动画改用 Web Animations API，按“容器宽度 + 文字宽度”精确计算距离（不再用 `-100vw`）。
   - 验证：匿名/登录发送后 `performance` 导航数仍为 1、`_rsc` 请求 0、输入框清空、新弹幕立即出现；登录用户自己条目 `data-mine=true` 且带白框；控制台 0 错误。部署需要 `prisma migrate deploy && prisma generate`。
 - **弹幕提速 + 可拖拽放大浮窗**（同批）：
