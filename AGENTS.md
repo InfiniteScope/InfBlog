@@ -98,6 +98,12 @@
   - 实测（本地生产构建）：`java面试八股` TTFB **1.52s → 0.063s**，`计算机网络期末总复习` 0.26s → 0.037s；文章页同一路径生效。缓存只在内存、重启清空，最多占几十 MB。
   - 注意：缓存的是 React 元素（复用安全，元素不可变），**不是 HTML 字符串**——不要改成 `dangerouslySetInnerHTML`，会破坏代码块复制按钮等客户端组件的水合。
 - **nginx 拦截扫描器**：443 server 内新增两条 regex `location`，命中 `wp-admin|wp-login.php|wp-content|wp-includes|xmlrpc.php|phpmyadmin|pma|cgi-bin|actuator|druid|server-status` 或 `/.env|.git|.svn|.hg|.aws|.ssh|.DS_Store` 时直接 `return 444`（断开连接、不返回响应）。备份 `/root/infblog.bak-scanner-20261114-153455`；`nginx -t` + `systemctl reload nginx`；实测正常路由全 200、扫描路径 curl 退出码 92（连接被断开）。
+- **线上部署（2026-11-14，`BUILD_ID: besOnli7VpildBg8NYU3r`）**：
+  - 部署清单 **14 个文件**（含 `8bd79c4`/`36c369b` 的整套弹幕改动 + 本轮缓存/robots/favicon），sha256 全部核对通过；DB 备份 `/root/backup-manual-20261114-154154-danmaku-cache.db`；`prisma migrate deploy` 应用 `20261104115705_add_danmaku_user`（`danmaku.userId` 已加）→ `prisma generate` → `next build`（`BUILD_EXIT=0`，编译 2.1min）→ `pm2 restart infblog`。
+  - 公网实测（带 `Accept-Encoding: gzip`，浏览器真实口径）：文章 TTFB **3.1s → 0.23s**、总耗时 **3.7s → 0.48s**（2.2MB 原始 / 334KB gzip）；服务端 localhost 热缓存 TTFB **0.08–0.21s**（部署前 1.1–1.5s）；`java面试八股` localhost 热缓存 ~0.10s。
+  - 线上 E2E（临时用户，测完已删除，danmaku 20 条复原）：经典/探索两套主题下自己发的弹幕均为 `1px solid rgba(255,255,255,0.9)` + 透明背景 + 无阴影；放大按钮 `bg=transparent / border=0 / shadow=none / backdrop=none`；控制台 0 错误。
+  - 其余：`/robots.txt` 200 text/plain、`/favicon.ico` 200 image/x-icon；扫描路径公网 444（curl 退出码 92）；首页/博客/文库/快报/资源/关于/RSS 全 200，今日 5xx=0；pm2 内存 ~410MB（缓存热身后较基线 +50MB 左右），服务器 free 976MB。
+  - 注意：构建期间 `.next/BUILD_ID` 会被短暂删除（构建收尾才写回），判断成功以 `BUILD_EXIT=0` + 新 BUILD_ID mtime 为准。日志里 `Error: The destination stream closed early`（digest `540203352`）是测试时浏览器/curl 提前断开长文流式响应的噪声，静默 30s 不再增长，不是站点故障。
 
 ## 当前状态（2026-11-07）
 
