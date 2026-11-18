@@ -45,6 +45,17 @@ export type UpdateFormState =
   | { success: true; slug: string; message: string }
   | null
 
+const isoDateField = z
+  .string()
+  .regex(
+    /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?)?$/,
+    { message: "日期格式不正确" }
+  )
+  .refine((val) => !Number.isNaN(Date.parse(val)), {
+    message: "日期格式不正确",
+  })
+  .optional()
+
 const postSchema = z.object({
   title: z.string().min(1, "标题不能为空").max(200, "标题过长"),
   description: z.string().min(1, "描述不能为空").max(500, "描述过长"),
@@ -57,10 +68,7 @@ const postSchema = z.object({
       "封面图片地址格式不正确"
     )
     .optional(),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?Z?)?$/, { message: "日期格式不正确" })
-    .optional(),
+  date: isoDateField,
 })
 
 export type AdminFormState =
@@ -150,7 +158,7 @@ export async function updatePost(
     content: formData.get("content")?.toString() ?? "",
     tags: formData.get("tags")?.toString() ?? "",
     coverImage: formData.get("coverImage")?.toString() ?? "",
-    date: formData.get("date")?.toString() ?? "",
+    date: formData.get("date")?.toString() || undefined,
   }
 
   const validated = postSchema.safeParse(rawData)
@@ -351,10 +359,7 @@ const docSchema = z.object({
     .regex(/^(https?:\/\/.*)?$/, "来源链接格式不正确")
     .optional()
     .or(z.literal("")),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?Z?)?$/, { message: "日期格式不正确" })
-    .optional(),
+  date: isoDateField,
 })
 
 export type DocFormState = AdminFormState
@@ -441,7 +446,7 @@ export async function updateDoc(
     coverImage: formData.get("coverImage")?.toString() ?? "",
     source: formData.get("source")?.toString() ?? "",
     sourceUrl: formData.get("sourceUrl")?.toString() ?? "",
-    date: formData.get("date")?.toString() ?? "",
+    date: formData.get("date")?.toString() || undefined,
   }
 
   const validated = docSchema.safeParse(rawData)
