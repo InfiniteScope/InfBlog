@@ -87,16 +87,16 @@
 
 ## 当前状态（2026-11-18）
 
-- **新文章《太空非伊甸》及全屏剧场演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
+- **新文章《太空非伊甸》及克制融合型专属演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
   - 新增文章 `content/posts/宇宙非伊甸.mdx`（路由 `/blog/宇宙非伊甸`，标题 `太空非伊甸`）。
   - 路由严格匹配：`lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）+ `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`）。
-  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章淡出暂停原播放器并**保留原曲目与 `currentTime`**，自动播放 `everglow`（接入 Web Audio `AnalyserNode` 驱动频谱与日食光晕）；离开文章平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步展示接管状态且随时可一键切回。
-  - 剧场化全屏演出模块 `components/blog/stages/space-no-eden/`：
-    - **全屏 WebGL 开篇序幕**（`no-eden-shader.ts` + `SpaceNoEdenCurtain.tsx`，`fixed inset-0 z-[95]`）：FBM 星尘 + 折射液化标题纹理 + 吞没银辉的日食钻石环 + 棱镜色散光束 + 蛇夫座雷达波 + 视差双准星扫屏（支持跳过/重播，`prefers-reduced-motion` 自动跳过）。
-    - **100vw × 100vh 六幕音频响应宇宙舞台**（`SpaceNoEdenStageCanvas.tsx`）：220 颗多景深星野、巨型日食月与开普勒轨道、1967 合成器极光波 / 2047 雷达扫描 / 筒仓坍缩透视网格 / 断裂轨道基准环 / 2001 黑石碑与 Voyager 轨迹 / 双基线激光视差、底部 64 针 FFT 频谱地平线。
-    - **黑曜石磨砂阅读舱 & 幕间遥测闪条**（`SpaceNoEdenArticleFrame.tsx` / `SpaceNoEdenActFlash.tsx` / `SpaceNoEdenHeader.tsx` / `SpaceNoEdenLeftRail.tsx`）：默认以局部深空剧场渲染（绝不污染全局 `localStorage("theme")` 或 `<html>`），支持切换「素雅底色」与「重播序幕」；宽屏左列 `// TELEMETRY_LOG` 与右列 TOC 对称（`@min-[1150px]` + `w-44`）；文末 `SpaceNoEdenEnding.tsx` + `app/api/stage/space-no-eden/antenna/route.ts` 发射莫尔斯电码脉冲并触发全屏电磁冲击波与冲天光柱（复用 `Counter` 表，无 schema 变更）。
-  - 踩坑修复：`rAF` 回调首帧 `now` 在 Chrome 中可能略早于回调外预先取的 `performance.now()`，`t0`/`start` 必须改为在 `rAF` 回调首帧赋值并做 `Math.max(0, ...)` 钳位（修复 `CanvasRenderingContext2D.arc` 负半径异常与 `HTMLMediaElement.volume` 越界报错）；`AudioContext` 延迟到 `audio.play()` 成功后再挂载，避免无手势时的控制台警告。
-  - 验收：`pnpm typecheck` ✓、`pnpm build`（57/57）✓；Playwright + Chrome 本地验收（序幕自动出现并淡出、重播/跳过正常、6 幕舞台与 `Everglow` 实曲播放正常、原歌单中断保留进度与退出续播正常、`/blog/hello-world` 严格无演出层、控制台/页面报错均为 0）。待用户本地验收后再决定部署。
+  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章淡出暂停原播放器并**保留原曲目与 `currentTime`**，自动播放 `everglow`；离开文章平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步提示接管状态。
+  - 左下角紧凑伴音胶囊 `components/blog/stages/space-no-eden/SpaceNoEdenBgmPill.tsx`：随侧栏收起/展开自动避让（`lg:left-[96px]` / `lg:left-[296px]`），仅保留「暂停/播放」与「切回原音乐」两个按钮。
+  - 全屏背景画布 `components/blog/stages/space-no-eden/SpaceNoEdenStageCanvas.tsx`（`fixed inset-0 z-0 pointer-events-none`）：
+    - **完全跟随站点当前主题色**（经典浅色 / 经典深色 / 探索深色自然透底，正文保持无边框自然融合，不改 `theme` 键）。
+    - **左边缘背景**：大尺度高精度天文「视差轨道模型」（72 刻度分度环 + 倾斜开普勒椭圆 + 2 AU 基线 + 视差角三角射线 + 无框无概要的 `CH.XX // SILO_MATRIX` 等章节代号）。
+    - **右侧背景**：斜向阶梯条纹「线条月球」，每条弦带接入阻尼弹簧物理，鼠标划过时如同琴弦/电波般产生驻波振动扭曲（并随 `Everglow` 音频能量微弱共振）。
+  - 验收：`pnpm build`（57/57）与 `pnpm typecheck` 均通过；Playwright + Chrome 实测经典浅色与深色两套主题、鼠标拨动月球弦线变形、左缘视差模型与紧凑左下胶囊定位、`/blog/hello-world` 严格无演出层、控制台与页面报错均为 0。待用户本地验收后再决定部署。
 
 ## 当前状态（2026-11-14）
 

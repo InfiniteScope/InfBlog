@@ -6,11 +6,9 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type ReactNode,
 } from "react"
 import { usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
 
 import {
   ARTICLE_BGM_YIELD_EVENT,
@@ -18,33 +16,11 @@ import {
 } from "@/components/music/music-provider"
 import type { StageBgmTrack } from "@/lib/music-find"
 import { isExactStageRoute, SPACE_NO_EDEN_ROUTE } from "@/lib/post-stages"
-import { cn } from "@/lib/utils"
 import { SPACE_NO_EDEN_CHAPTERS } from "./chapters"
 import { SpaceNoEdenBackdrop } from "./SpaceNoEdenBackdrop"
 import { SpaceNoEdenContextProvider } from "./stage-context"
 
 const STAGE_OWNER_ID = "post-stage:space-no-eden"
-
-const SCOPED_DARK_VARS: CSSProperties = {
-  ["--background" as string]: "222 30% 6%",
-  ["--foreground" as string]: "210 25% 92%",
-  ["--card" as string]: "222 26% 9%",
-  ["--card-foreground" as string]: "210 25% 92%",
-  ["--popover" as string]: "222 26% 10%",
-  ["--popover-foreground" as string]: "210 25% 92%",
-  ["--primary" as string]: "210 25% 94%",
-  ["--primary-foreground" as string]: "222 30% 8%",
-  ["--secondary" as string]: "220 20% 14%",
-  ["--secondary-foreground" as string]: "210 20% 84%",
-  ["--muted" as string]: "220 20% 14%",
-  ["--muted-foreground" as string]: "215 16% 65%",
-  ["--accent" as string]: "187 80% 55%",
-  ["--accent-foreground" as string]: "222 30% 6%",
-  ["--border" as string]: "215 20% 20%",
-  ["--input" as string]: "215 20% 20%",
-  ["--ring" as string]: "187 80% 55%",
-  color: "hsl(210 25% 92%)",
-}
 
 interface SpaceNoEdenStageProps {
   bgmTrack: StageBgmTrack | null
@@ -55,7 +31,6 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   const pathname = usePathname()
   const active = isExactStageRoute(pathname, SPACE_NO_EDEN_ROUTE)
 
-  const { forcedTheme, resolvedTheme } = useTheme()
   const {
     volume: globalVolume,
     muted: globalMuted,
@@ -73,20 +48,10 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   const autoplayBlockedRef = useRef(false)
 
   const [bgmPlaying, setBgmPlaying] = useState(false)
-  const [bgmCurrentTime, setBgmCurrentTime] = useState(0)
-  const [bgmDuration, setBgmDuration] = useState(bgmTrack?.durationSeconds ?? 0)
-  const [bgmMuted, setBgmMuted] = useState(false)
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
   const [yieldedToMain, setYieldedToMain] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [chapterIndex, setChapterIndex] = useState(0)
-  // 默认开启深空剧场演出模式（只作用于当前舞台容器，绝不污染全局主题）
-  const [immersiveDark, setImmersiveDark] = useState(true)
-  const [curtainOpen, setCurtainOpen] = useState(true)
-  const [antennaBurstSeq, setAntennaBurstSeq] = useState(0)
-
-  const isGlobalDark = (forcedTheme ?? resolvedTheme) === "dark"
-  const isDarkStage = isGlobalDark || immersiveDark
 
   const ensureAudioAnalyser = useCallback(async () => {
     const audio = audioRef.current
@@ -115,14 +80,14 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
         await ctx.resume()
       }
     } catch {
-      // Web Audio 不可用时不影响原生 <audio> 播放，自动回退到模拟呼吸波形
+      // Web Audio 不可用时不影响原生 <audio> 播放
     }
   }, [])
 
   const targetVolume = useMemo(() => {
-    if (bgmMuted || globalMuted) return 0
+    if (globalMuted) return 0
     return Math.max(0, Math.min(1, globalVolume))
-  }, [bgmMuted, globalMuted, globalVolume])
+  }, [globalMuted, globalVolume])
 
   const targetVolumeRef = useRef(targetVolume)
   useEffect(() => {
@@ -176,7 +141,6 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
           audio.volume = targetVolumeRef.current
         }
         await audio.play()
-        // 仅在浏览器允许实际起播后再挂载 AudioContext 分析器，避免无手势时的控制台警告
         void ensureAudioAnalyser()
         autoplayBlockedRef.current = false
         setAutoplayBlocked(false)
@@ -230,7 +194,6 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     cancelBgmFade,
   ])
 
-  // 组件卸载时释放 AudioContext 资源
   useEffect(() => {
     return () => {
       if (audioCtxRef.current) {
@@ -253,7 +216,7 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     return () => window.removeEventListener(ARTICLE_BGM_YIELD_EVENT, onYield)
   }, [cancelBgmFade])
 
-  // 若直接刷新进文章被浏览器自动播放策略拦截，则在首次交互时尝试唤醒（若用户未手动暂停）
+  // 若直接刷新进文章被浏览器自动播放策略拦截，则在首次交互时唤醒（除非用户手动暂停）
   useEffect(() => {
     if (!active || !bgmTrack || !autoplayBlocked || yieldedToMain) return
 
@@ -270,30 +233,18 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     }
   }, [active, bgmTrack, autoplayBlocked, yieldedToMain, startArticlePlayback])
 
-  // 监听文章专属 <audio> 进度与播放态
   useEffect(() => {
     const audio = audioRef.current
     if (!audio || !bgmTrack) return
 
-    const onLoadedMetadata = () => {
-      if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        setBgmDuration(audio.duration)
-      }
-    }
     const onPlay = () => setBgmPlaying(true)
     const onPause = () => setBgmPlaying(false)
-    const onTimeUpdate = () => setBgmCurrentTime(audio.currentTime)
 
-    audio.addEventListener("loadedmetadata", onLoadedMetadata)
     audio.addEventListener("play", onPlay)
     audio.addEventListener("pause", onPause)
-    audio.addEventListener("timeupdate", onTimeUpdate)
-
     return () => {
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata)
       audio.removeEventListener("play", onPlay)
       audio.removeEventListener("pause", onPause)
-      audio.removeEventListener("timeupdate", onTimeUpdate)
     }
   }, [bgmTrack])
 
@@ -366,17 +317,6 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     yieldedToMain,
   ])
 
-  const seekBgm = useCallback((time: number) => {
-    const audio = audioRef.current
-    if (!audio) return
-    audio.currentTime = time
-    setBgmCurrentTime(time)
-  }, [])
-
-  const toggleBgmMute = useCallback(() => {
-    setBgmMuted((prev) => !prev)
-  }, [])
-
   const restoreMainPlaylist = useCallback(() => {
     cancelBgmFade()
     const audio = audioRef.current
@@ -398,23 +338,6 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     void startArticlePlayback(true)
   }, [active, bgmTrack, startArticlePlayback, suspendForOverride])
 
-  const toggleImmersiveDark = useCallback(() => {
-    setImmersiveDark((prev) => !prev)
-  }, [])
-
-  const dismissCurtain = useCallback(() => {
-    setCurtainOpen(false)
-  }, [])
-
-  const replayCurtain = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-    setCurtainOpen(true)
-  }, [])
-
-  const triggerAntennaBurst = useCallback(() => {
-    setAntennaBurstSeq((s) => s + 1)
-  }, [])
-
   const chapter = SPACE_NO_EDEN_CHAPTERS[chapterIndex] ?? SPACE_NO_EDEN_CHAPTERS[0]
 
   const contextValue = useMemo(
@@ -425,27 +348,14 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
       chapter,
       bgmTrack,
       bgmPlaying,
-      bgmCurrentTime,
-      bgmDuration,
-      bgmMuted,
       autoplayBlocked,
       yieldedToMain,
       suspendedMainTrackTitle: articleOverride?.suspendedTrackTitle,
       wasMainPlaying: articleOverride?.wasMainPlaying ?? false,
-      immersiveDark: !isGlobalDark && immersiveDark,
-      isDarkStage,
-      toggleImmersiveDark,
       toggleBgmPlay,
-      seekBgm,
-      toggleBgmMute,
       restoreMainPlaylist,
       resumeArticleBgm,
-      curtainOpen,
-      dismissCurtain,
-      replayCurtain,
       analyserRef,
-      antennaBurstSeq,
-      triggerAntennaBurst,
     }),
     [
       active,
@@ -454,31 +364,15 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
       chapter,
       bgmTrack,
       bgmPlaying,
-      bgmCurrentTime,
-      bgmDuration,
-      bgmMuted,
       autoplayBlocked,
       yieldedToMain,
       articleOverride?.suspendedTrackTitle,
       articleOverride?.wasMainPlaying,
-      immersiveDark,
-      isGlobalDark,
-      isDarkStage,
-      toggleImmersiveDark,
       toggleBgmPlay,
-      seekBgm,
-      toggleBgmMute,
       restoreMainPlaylist,
       resumeArticleBgm,
-      curtainOpen,
-      dismissCurtain,
-      replayCurtain,
-      antennaBurstSeq,
-      triggerAntennaBurst,
     ]
   )
-
-  const useScopedDarkVars = active && !isGlobalDark && immersiveDark
 
   return (
     <SpaceNoEdenContextProvider value={contextValue}>
@@ -492,25 +386,7 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
         />
       )}
 
-      {/* 局部适配 <main> 底部页脚在深空背景下的可读性（离开本路由自动销毁） */}
-      {useScopedDarkVars && (
-        <style>{`
-          main > footer {
-            position: relative;
-            z-index: 10;
-            color: hsl(215 16% 68%);
-            border-color: hsl(215 20% 22% / 0.55);
-          }
-          main > footer a:hover {
-            color: hsl(210 25% 94%);
-          }
-        `}</style>
-      )}
-
-      <div
-        className={cn("relative", useScopedDarkVars && "dark")}
-        style={useScopedDarkVars ? SCOPED_DARK_VARS : undefined}
-      >
+      <div className="relative">
         <SpaceNoEdenBackdrop />
         <div className="relative z-10">{children}</div>
       </div>
