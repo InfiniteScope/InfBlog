@@ -171,9 +171,10 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         onDone?.()
         return
       }
-      const start = performance.now()
+      let start: number | null = null
       const tick = (now: number) => {
-        const progress = Math.min(1, (now - start) / durationMs)
+        if (start === null) start = now
+        const progress = Math.max(0, Math.min(1, (now - start) / durationMs))
         audio.volume = Math.max(0, Math.min(1, from + (to - from) * progress))
         if (progress < 1) {
           fadeRafRef.current = requestAnimationFrame(tick)

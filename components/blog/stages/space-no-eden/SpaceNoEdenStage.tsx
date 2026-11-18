@@ -65,6 +65,9 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   } = useMusic()
 
   const audioRef = useRef<HTMLAudioElement>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const sourceConnectedRef = useRef(false)
   const bgmFadeRafRef = useRef<number>(0)
   const userPausedRef = useRef(false)
   const autoplayBlockedRef = useRef(false)
@@ -77,10 +80,44 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   const [yieldedToMain, setYieldedToMain] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [chapterIndex, setChapterIndex] = useState(0)
-  const [immersiveDark, setImmersiveDark] = useState(false)
+  // 默认开启深空剧场演出模式（只作用于当前舞台容器，绝不污染全局主题）
+  const [immersiveDark, setImmersiveDark] = useState(true)
+  const [curtainOpen, setCurtainOpen] = useState(true)
+  const [antennaBurstSeq, setAntennaBurstSeq] = useState(0)
 
   const isGlobalDark = (forcedTheme ?? resolvedTheme) === "dark"
-  const effectiveDark = isGlobalDark || immersiveDark
+  const isDarkStage = isGlobalDark || immersiveDark
+
+  const ensureAudioAnalyser = useCallback(async () => {
+    const audio = audioRef.current
+    if (!audio || typeof window === "undefined") return
+    try {
+      if (!audioCtxRef.current) {
+        const Ctx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext?: typeof AudioContext })
+            .webkitAudioContext
+        if (!Ctx) return
+        audioCtxRef.current = new Ctx()
+      }
+      const ctx = audioCtxRef.current
+      if (!sourceConnectedRef.current) {
+        const source = ctx.createMediaElementSource(audio)
+        const analyser = ctx.createAnalyser()
+        analyser.fftSize = 128
+        analyser.smoothingTimeConstant = 0.82
+        source.connect(analyser)
+        analyser.connect(ctx.destination)
+        analyserRef.current = analyser
+        sourceConnectedRef.current = true
+      }
+      if (ctx.state === "suspended") {
+        await ctx.resume()
+      }
+    } catch {
+      // Web Audio 不可用时不影响原生 <audio> 播放，自动回退到模拟呼吸波形
+    }
+  }, [])
 
   const targetVolume = useMemo(() => {
     if (bgmMuted || globalMuted) return 0
@@ -106,15 +143,17 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   const fadeBgmIn = useCallback(
     (audio: HTMLAudioElement, toVol: number, durationMs = 650) => {
       cancelBgmFade()
-      if (toVol <= 0 || durationMs <= 0) {
-        audio.volume = toVol
+      const clampedTo = Math.max(0, Math.min(1, toVol))
+      if (clampedTo <= 0 || durationMs <= 0) {
+        audio.volume = clampedTo
         return
       }
       audio.volume = 0
-      const start = performance.now()
+      let start: number | null = null
       const step = (now: number) => {
-        const p = Math.min(1, (now - start) / durationMs)
-        audio.volume = toVol * p
+        if (start === null) start = now
+        const p = Math.max(0, Math.min(1, (now - start) / durationMs))
+        audio.volume = Math.max(0, Math.min(1, clampedTo * p))
         if (p < 1) {
           bgmFadeRafRef.current = requestAnimationFrame(step)
         } else {
@@ -137,6 +176,8 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
           audio.volume = targetVolumeRef.current
         }
         await audio.play()
+        // 仅在浏览器允许实际起播后再挂载 AudioContext 分析器，避免无手势时的控制台警告
+        void ensureAudioAnalyser()
         autoplayBlockedRef.current = false
         setAutoplayBlocked(false)
         setBgmPlaying(true)
@@ -149,7 +190,7 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
         setBgmPlaying(false)
       }
     },
-    [active, bgmTrack, fadeBgmIn]
+    [active, bgmTrack, ensureAudioAnalyser, fadeBgmIn]
   )
 
   // 严格按路由生命周期接管与释放站点音乐播放器
@@ -188,6 +229,16 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     startArticlePlayback,
     cancelBgmFade,
   ])
+
+  // 组件卸载时释放 AudioContext 资源
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current) {
+        void audioCtxRef.current.close().catch(() => {})
+        audioCtxRef.current = null
+      }
+    }
+  }, [])
 
   // 监听主播放器主动接管事件（例如用户在顶栏点了播放）
   useEffect(() => {
@@ -351,6 +402,19 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     setImmersiveDark((prev) => !prev)
   }, [])
 
+  const dismissCurtain = useCallback(() => {
+    setCurtainOpen(false)
+  }, [])
+
+  const replayCurtain = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+    setCurtainOpen(true)
+  }, [])
+
+  const triggerAntennaBurst = useCallback(() => {
+    setAntennaBurstSeq((s) => s + 1)
+  }, [])
+
   const chapter = SPACE_NO_EDEN_CHAPTERS[chapterIndex] ?? SPACE_NO_EDEN_CHAPTERS[0]
 
   const contextValue = useMemo(
@@ -368,13 +432,20 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
       yieldedToMain,
       suspendedMainTrackTitle: articleOverride?.suspendedTrackTitle,
       wasMainPlaying: articleOverride?.wasMainPlaying ?? false,
-      immersiveDark: effectiveDark && !isGlobalDark ? true : false,
+      immersiveDark: !isGlobalDark && immersiveDark,
+      isDarkStage,
       toggleImmersiveDark,
       toggleBgmPlay,
       seekBgm,
       toggleBgmMute,
       restoreMainPlaylist,
       resumeArticleBgm,
+      curtainOpen,
+      dismissCurtain,
+      replayCurtain,
+      analyserRef,
+      antennaBurstSeq,
+      triggerAntennaBurst,
     }),
     [
       active,
@@ -390,14 +461,20 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
       yieldedToMain,
       articleOverride?.suspendedTrackTitle,
       articleOverride?.wasMainPlaying,
-      effectiveDark,
+      immersiveDark,
       isGlobalDark,
+      isDarkStage,
       toggleImmersiveDark,
       toggleBgmPlay,
       seekBgm,
       toggleBgmMute,
       restoreMainPlaylist,
       resumeArticleBgm,
+      curtainOpen,
+      dismissCurtain,
+      replayCurtain,
+      antennaBurstSeq,
+      triggerAntennaBurst,
     ]
   )
 
@@ -415,11 +492,23 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
         />
       )}
 
+      {/* 局部适配 <main> 底部页脚在深空背景下的可读性（离开本路由自动销毁） */}
+      {useScopedDarkVars && (
+        <style>{`
+          main > footer {
+            position: relative;
+            z-index: 10;
+            color: hsl(215 16% 68%);
+            border-color: hsl(215 20% 22% / 0.55);
+          }
+          main > footer a:hover {
+            color: hsl(210 25% 94%);
+          }
+        `}</style>
+      )}
+
       <div
-        className={cn(
-          "relative",
-          useScopedDarkVars && "dark rounded-2xl"
-        )}
+        className={cn("relative", useScopedDarkVars && "dark")}
         style={useScopedDarkVars ? SCOPED_DARK_VARS : undefined}
       >
         <SpaceNoEdenBackdrop />

@@ -5,6 +5,7 @@ import { useTheme } from "next-themes"
 import {
   Disc3,
   Eye,
+  Film,
   Pause,
   Play,
   Radio,
@@ -33,6 +34,7 @@ export function SpaceNoEdenHeader() {
     wasMainPlaying,
     immersiveDark,
     toggleImmersiveDark,
+    replayCurtain,
     toggleBgmPlay,
     seekBgm,
     toggleBgmMute,
@@ -90,9 +92,22 @@ export function SpaceNoEdenHeader() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="hidden sm:inline">Δθ {parallaxArcsec}″</span>
           <span>{Math.round(scrollProgress * 100)}%</span>
+          <button
+            type="button"
+            onClick={replayCurtain}
+            className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] transition-colors hover:text-foreground"
+            style={{
+              borderColor: `rgba(${chapter.glowRgb}, 0.42)`,
+              color: `rgb(${chapter.glowRgb})`,
+            }}
+            title="重新播放开篇全屏 WebGL 序幕"
+          >
+            <Film className="h-3 w-3" />
+            重播序幕
+          </button>
           {!isGlobalDark && (
             <button
               type="button"
@@ -107,10 +122,10 @@ export function SpaceNoEdenHeader() {
                   : "transparent",
                 color: immersiveDark ? `rgb(${chapter.glowRgb})` : undefined,
               }}
-              title="仅在本文章内切换深空观测暗场，不影响全站主题设置"
+              title="仅在本文章内切换深空剧场或素雅底色，不影响全站主题设置"
             >
               <Eye className="h-3 w-3" />
-              {immersiveDark ? "退出深空" : "深空观测"}
+              {immersiveDark ? "素雅底色" : "深空剧场"}
             </button>
           )}
         </div>

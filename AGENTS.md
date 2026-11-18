@@ -87,12 +87,16 @@
 
 ## 当前状态（2026-11-18）
 
-- **新文章《太空非伊甸》及专属演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
+- **新文章《太空非伊甸》及全屏剧场演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
   - 新增文章 `content/posts/宇宙非伊甸.mdx`（路由 `/blog/宇宙非伊甸`，标题 `太空非伊甸`）。
-  - 新增文章演出路由契约 `lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）与音频匹配 `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`，优先浏览器友好格式）。
-  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章后淡出暂停原播放器并**保留原曲目与 `currentTime`**，自动播放 `everglow`（被拦截时显示唤醒引导并在首次交互解锁）；离开文章后平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步提示接管状态且随时可一键切回。
-  - 新增演出组件 `components/blog/stages/space-no-eden/`：6 章节滚动追踪背景（星云微光渐变 + 潮汐锁定月相/终章日食环 + 开普勒轨道与双基线视差准星 + 顶部 2px 进度线）、文章头内联伴音/局部「深空观测」开关（作用域隔离、绝不污染全局 `theme`）、宽屏左列 `// TELEMETRY_LOG`（与右列 TOC 对称使用 `@min-[1150px]` + `w-44`）、文末「在暗面架起天线」莫尔斯电码脉冲发射终端（`app/api/stage/space-no-eden/antenna/route.ts`，复用现有 `Counter` 表 key `post:宇宙非伊甸:antenna`，带限流，无 schema 变更）。
-  - 验收：`pnpm typecheck` ✓、`pnpm build`（57/57）✓；Playwright + Chrome 本地生产实测（临时测试音频下验证：进入自动播伴音且原曲保留 `14.2s` 暂停、离开后自动恢复 `14.85s` 续播；`1600px` 三栏无重叠；`CH.01→CH.06` 追踪；局部暗场不改 `localStorage("theme")` / `<html>`；`/blog` 与 `/blog/hello-world` 严格无演出层；`393px` 无横向溢出；0 控制台/网络错误）。待用户本地验收后再决定部署。
+  - 路由严格匹配：`lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）+ `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`）。
+  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章淡出暂停原播放器并**保留原曲目与 `currentTime`**，自动播放 `everglow`（接入 Web Audio `AnalyserNode` 驱动频谱与日食光晕）；离开文章平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步展示接管状态且随时可一键切回。
+  - 剧场化全屏演出模块 `components/blog/stages/space-no-eden/`：
+    - **全屏 WebGL 开篇序幕**（`no-eden-shader.ts` + `SpaceNoEdenCurtain.tsx`，`fixed inset-0 z-[95]`）：FBM 星尘 + 折射液化标题纹理 + 吞没银辉的日食钻石环 + 棱镜色散光束 + 蛇夫座雷达波 + 视差双准星扫屏（支持跳过/重播，`prefers-reduced-motion` 自动跳过）。
+    - **100vw × 100vh 六幕音频响应宇宙舞台**（`SpaceNoEdenStageCanvas.tsx`）：220 颗多景深星野、巨型日食月与开普勒轨道、1967 合成器极光波 / 2047 雷达扫描 / 筒仓坍缩透视网格 / 断裂轨道基准环 / 2001 黑石碑与 Voyager 轨迹 / 双基线激光视差、底部 64 针 FFT 频谱地平线。
+    - **黑曜石磨砂阅读舱 & 幕间遥测闪条**（`SpaceNoEdenArticleFrame.tsx` / `SpaceNoEdenActFlash.tsx` / `SpaceNoEdenHeader.tsx` / `SpaceNoEdenLeftRail.tsx`）：默认以局部深空剧场渲染（绝不污染全局 `localStorage("theme")` 或 `<html>`），支持切换「素雅底色」与「重播序幕」；宽屏左列 `// TELEMETRY_LOG` 与右列 TOC 对称（`@min-[1150px]` + `w-44`）；文末 `SpaceNoEdenEnding.tsx` + `app/api/stage/space-no-eden/antenna/route.ts` 发射莫尔斯电码脉冲并触发全屏电磁冲击波与冲天光柱（复用 `Counter` 表，无 schema 变更）。
+  - 踩坑修复：`rAF` 回调首帧 `now` 在 Chrome 中可能略早于回调外预先取的 `performance.now()`，`t0`/`start` 必须改为在 `rAF` 回调首帧赋值并做 `Math.max(0, ...)` 钳位（修复 `CanvasRenderingContext2D.arc` 负半径异常与 `HTMLMediaElement.volume` 越界报错）；`AudioContext` 延迟到 `audio.play()` 成功后再挂载，避免无手势时的控制台警告。
+  - 验收：`pnpm typecheck` ✓、`pnpm build`（57/57）✓；Playwright + Chrome 本地验收（序幕自动出现并淡出、重播/跳过正常、6 幕舞台与 `Everglow` 实曲播放正常、原歌单中断保留进度与退出续播正常、`/blog/hello-world` 严格无演出层、控制台/页面报错均为 0）。待用户本地验收后再决定部署。
 
 ## 当前状态（2026-11-14）
 

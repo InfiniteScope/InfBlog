@@ -19,7 +19,7 @@ const PRESET_SIGNALS = [
 const STORAGE_KEY = "infblog:sne-antenna-last"
 
 export function SpaceNoEdenEnding() {
-  const { active, chapter } = useSpaceNoEdenStage()
+  const { active, chapter, triggerAntennaBurst } = useSpaceNoEdenStage()
   const [mounted, setMounted] = useState(false)
   const [count, setCount] = useState<number | null>(null)
   const [signal, setSignal] = useState("STILL TRANSMITTING")
@@ -110,6 +110,7 @@ export function SpaceNoEdenEnding() {
         // ignore
       }
       setPulseWave(true)
+      triggerAntennaBurst()
       setTimeout(() => setPulseWave(false), 1800)
     } catch {
       setErrorMsg("网络波动，未能接通遥测站")
