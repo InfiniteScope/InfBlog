@@ -87,16 +87,18 @@
 
 ## 当前状态（2026-11-18）
 
-- **新文章《太空非伊甸》及克制融合型专属演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
-  - 新增文章 `content/posts/宇宙非伊甸.mdx`（路由 `/blog/宇宙非伊甸`，标题 `太空非伊甸`）。
-  - 路由严格匹配：`lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）+ `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`）。
+- **新文章《太空非伊甸》及克制融合型专属演出层（已推 GitHub `2ddf8b9` 并部署上线，`BUILD_ID: rpQ0SABWw6f5arZrj-d2J`）**：
+  - 新增文章 `content/posts/宇宙非伊甸.mdx`（路由 `/blog/宇宙非伊甸`，标题 `太空非伊甸`，封面 `/uploads/mwm5nylp-db01f321.jpeg`）。
+  - 路由严格匹配：`lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）+ `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`；服务器实为 `public/music/intense/Everglow.mp3`，无需移动即可自动识别）。
   - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章先淡出暂停原播放器并**保留原曲目与 `currentTime`**，延迟 **2 秒**后再以 **60% 音量**淡入自动播放 `everglow`；离开文章平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步提示接管状态。
   - 左下角紧凑伴音胶囊 `components/blog/stages/space-no-eden/SpaceNoEdenBgmPill.tsx`：随侧栏收起/展开自动避让（`lg:left-[96px]` / `lg:left-[296px]`），仅保留「暂停/播放」与「切回原音乐」两个按钮。
   - 全屏背景画布 `components/blog/stages/space-no-eden/SpaceNoEdenStageCanvas.tsx`（`fixed inset-0 z-0 pointer-events-none`）：
     - **完全跟随站点当前主题色**（经典浅色 / 经典深色 / 探索深色自然透底，正文保持无边框自然融合，不改 `theme` 键）。
     - **左边缘背景**：大尺度高精度天文「视差轨道模型」（72 刻度分度环 + 倾斜开普勒椭圆 + 2 AU 基线 + 视差角三角射线 + 无框无概要的 `CH.XX // SILO_MATRIX` 等章节代号）。
     - **右上角背景**：悬挂于右上角的「极简镂空三棱镜月球」（`TableOfContents` 在本页采用 `top-[min(43vh,24.5rem)]` 避让），放大尺寸并保持高通透度（`moonAlpha=0.44`），**不画圆形外框**、仅以 11 条疏朗多形态球面纬线的两端点自然暗示圆形轮廓，离屏 `destination-out` 镂空出中心三棱镜并在更低图层以极细断续微线轻描几段棱线轮廓；保留鼠标**引力牵引**，收紧微幅振颤物理（`STIFFNESS=920, DAMPING=22`）。
-  - 验收：`pnpm typecheck` 与 `pnpm build`（57/57）均通过；Playwright + Chrome 实测 2s 延迟起播（`500ms` 暂停 → `2900ms` 已播放且 `vol=0.6`）、经典浅色与深色两套主题、三棱镜条纹月球右上角悬挂与 TOC 零重叠、控制台与页面报错均为 0。待用户本地验收后再决定部署。
+  - 顺带修复后台文章/档案日期校验：`app/admin/actions.ts` 的 `postSchema`/`docSchema` 之前只放行 `Z` 结尾时间导致 `+08:00` 报错「日期格式不正确」，已统一抽出 `isoDateField` 兼容 `Z` 与 `[+-]HH:MM`。
+  - **线上部署与验收**：15 文件经 Python PAX tar+scp 上传并全部 `sha256sum -c` 通过（`宇宙非伊甸.mdx` 与封面经事先核对确认为服务器不存在的新文件，其余 4 个已有代码文件经 `git hash-object` 核对全部来自 `main` 历史）；服务器运行 `pnpm tsx scripts/optimize-covers.ts --write` 生成 `mwm5nylp-db01f321.webp`（3737.6 KB → 240.2 KB，省 94%）；`next build`（`BUILD_EXIT=0`，62/62）→ `pm2 restart infblog`（online，186.9MB）；本机 4 路由与公网 4 路由（`/`、`/blog/宇宙非伊甸`、`/uploads/mwm5nylp-db01f321.webp`、`/music/intense/Everglow.mp3`）全 200，HTML 确认含标题、`.webp` 封面与 `/music/intense/Everglow.mp3`，`/feed.xml` 已收录，PM2 错误日志增量为 0（20→20）。
+  - 坑记录：在 Windows PowerShell 工具调用里执行 `ssh` 务必带 `-n`（禁用 stdin 读取），否则子进程会等待标准输入挂起。
 
 ## 当前状态（2026-11-14）
 
