@@ -31,6 +31,15 @@ interface StringOsc {
   hitU: number
 }
 
+type LineStyleKind = "band" | "fine" | "telemetry" | "double"
+
+interface MoonLineSpec {
+  yNorm: number
+  kind: LineStyleKind
+  weight: number
+  phaseTerm: number
+}
+
 interface ThemePalette {
   isDark: boolean
   isClassic: boolean
@@ -38,7 +47,6 @@ interface ThemePalette {
   accentRgb: string
   moonRgb: string
   moonSubtleRgb: string
-  spectrum: string[]
 }
 
 function readThemePalette(isDark: boolean): ThemePalette {
@@ -52,16 +60,8 @@ function readThemePalette(isDark: boolean): ThemePalette {
       isClassic,
       primaryRgb: "30, 62, 50",
       accentRgb: "24, 130, 122",
-      moonRgb: "32, 62, 52",
-      moonSubtleRgb: "72, 108, 96",
-      spectrum: [
-        "198, 72, 72",
-        "204, 128, 36",
-        "46, 138, 94",
-        "22, 142, 138",
-        "58, 110, 178",
-        "130, 88, 174",
-      ],
+      moonRgb: "30, 58, 48",
+      moonSubtleRgb: "64, 100, 88",
     }
   }
   if (isClassic) {
@@ -70,16 +70,8 @@ function readThemePalette(isDark: boolean): ThemePalette {
       isClassic: true,
       primaryRgb: "184, 214, 196",
       accentRgb: "56, 178, 172",
-      moonRgb: "218, 236, 224",
+      moonRgb: "212, 232, 220",
       moonSubtleRgb: "120, 162, 146",
-      spectrum: [
-        "248, 113, 113",
-        "251, 191, 36",
-        "74, 222, 128",
-        "45, 212, 191",
-        "96, 165, 250",
-        "167, 139, 250",
-      ],
     }
   }
   return {
@@ -87,25 +79,39 @@ function readThemePalette(isDark: boolean): ThemePalette {
     isClassic: false,
     primaryRgb: "210, 228, 248",
     accentRgb: "34, 211, 238",
-    moonRgb: "234, 244, 255",
+    moonRgb: "226, 240, 255",
     moonSubtleRgb: "130, 184, 218",
-    spectrum: [
-      "248, 113, 113",
-      "251, 191, 36",
-      "74, 222, 128",
-      "34, 211, 238",
-      "96, 165, 250",
-      "167, 139, 250",
-    ],
   }
 }
+
+// 17 条形态多样的球面纬线/遥测弦：粗亮带 + 细经纬线 + 脉冲虚线 + 双平行微弦
+const MOON_LINE_SPECS: MoonLineSpec[] = [
+  { yNorm: -0.84, kind: "telemetry", weight: 1.1, phaseTerm: 0.2 },
+  { yNorm: -0.73, kind: "fine", weight: 1.2, phaseTerm: 0.45 },
+  { yNorm: -0.62, kind: "band", weight: 3.8, phaseTerm: 0.35 },
+  { yNorm: -0.51, kind: "double", weight: 0.9, phaseTerm: 0.5 },
+  { yNorm: -0.4, kind: "band", weight: 4.8, phaseTerm: 0.28 },
+  { yNorm: -0.29, kind: "telemetry", weight: 1.3, phaseTerm: 0.65 },
+  { yNorm: -0.18, kind: "band", weight: 4.2, phaseTerm: 0.32 },
+  { yNorm: -0.07, kind: "fine", weight: 1.4, phaseTerm: 0.7 },
+  { yNorm: 0.04, kind: "double", weight: 1.0, phaseTerm: 0.55 },
+  { yNorm: 0.15, kind: "band", weight: 5.0, phaseTerm: 0.25 },
+  { yNorm: 0.26, kind: "telemetry", weight: 1.2, phaseTerm: 0.6 },
+  { yNorm: 0.37, kind: "band", weight: 3.6, phaseTerm: 0.3 },
+  { yNorm: 0.48, kind: "fine", weight: 1.3, phaseTerm: 0.55 },
+  { yNorm: 0.59, kind: "double", weight: 0.9, phaseTerm: 0.48 },
+  { yNorm: 0.7, kind: "band", weight: 2.8, phaseTerm: 0.22 },
+  { yNorm: 0.8, kind: "telemetry", weight: 1.1, phaseTerm: 0.4 },
+  { yNorm: 0.89, kind: "fine", weight: 1.0, phaseTerm: 0.3 },
+]
 
 /**
  * 全屏持续演出的核心画布（fixed inset-0 z-0 pointer-events-none）：
  * 1. 严格跟随网站当前深浅色与经典/探索主题配色，自然透出原有背景；
  * 2. 左侧边缘背景：大尺度高精度天文「视差轨道模型」+ 无方框无概要的 SILO_MATRIX / 章节标签；
- * 3. 右上角背景：极简几何「条纹三棱镜月球」——9 道圆角斜纹月弦环抱中央纯净三棱镜，
- *    右侧洁净色散出 6 道平行光谱弦，保留鼠标引力牵引与紧绷琴弦式划过震颤。
+ * 3. 右上角背景：更大尺寸、更高透明度的「镂空三棱镜球面线条月球」——
+ *    由粗亮带、细纬线、遥测脉冲虚线与双微弦构成球面曲面，中央纯负空间镂空出三棱镜轮廓
+ *    （无边框线、无入射/色散光线），保留鼠标引力牵引与克制细腻的弦波微颤。
  */
 export function SpaceNoEdenStageCanvas() {
   const {
@@ -142,6 +148,11 @@ export function SpaceNoEdenStageCanvas() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    // 专用于月球负空间镂空（destination-out）的离屏缓冲，不伤及主画布背景星野
+    const moonBuffer = document.createElement("canvas")
+    const mctx = moonBuffer.getContext("2d")
+    if (!mctx) return
+
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const rng = rand(20261118)
     const stars: StarDot[] = Array.from({ length: 120 }, () => ({
@@ -153,26 +164,18 @@ export function SpaceNoEdenStageCanvas() {
       phase: rng() * Math.PI * 2,
     }))
 
-    // 9 条斜纹月弦 + 6 条色散光谱弦（各自独立阻尼谐振）
-    const BAND_COUNT = 9
-    const SPEC_COUNT = 6
-    const bandOsc: StringOsc[] = Array.from({ length: BAND_COUNT }, (_, i) => ({
+    const lineOsc: StringOsc[] = MOON_LINE_SPECS.map((_, i) => ({
       amp: 0,
       vel: 0,
-      phase: i * 0.8,
+      phase: i * 0.75,
       hitU: 0.5,
-    }))
-    const specOsc: StringOsc[] = Array.from({ length: SPEC_COUNT }, (_, i) => ({
-      amp: 0,
-      vel: 0,
-      phase: i * 0.9,
-      hitU: 0.4,
     }))
 
     let W = window.innerWidth
     let H = window.innerHeight
+    let dpr = Math.min(window.devicePixelRatio || 1, 2)
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      dpr = Math.min(window.devicePixelRatio || 1, 2)
       W = window.innerWidth
       H = window.innerHeight
       canvas.width = Math.round(W * dpr)
@@ -215,8 +218,8 @@ export function SpaceNoEdenStageCanvas() {
     let prevMouseY = -9999
     let moonGravX = 0
     let moonGravY = 0
-    let moonCenter = { x: W * 0.86, y: H * 0.21, r: 118 }
-    const MOON_TILT = -0.36
+    let moonCenter = { x: W * 0.85, y: H * 0.22, r: 158 }
+    const MOON_TILT = -0.28 // 约 -16° 轻斜角
 
     const onPointerMove = (e: PointerEvent) => {
       prevMouseX = !hasPointer ? e.clientX : mouseX
@@ -231,47 +234,29 @@ export function SpaceNoEdenStageCanvas() {
       const dy = mouseY - moonCenter.y
       const pdx = mouseX - prevMouseX
       const pdy = mouseY - prevMouseY
-      const speed = Math.min(34, Math.hypot(pdx, pdy))
-      if (speed < 0.45) return
+      const speed = Math.min(28, Math.hypot(pdx, pdy))
+      if (speed < 0.5) return
 
       const R = moonCenter.r
-      // 1. 拨动月球斜纹弦带（在月球旋转坐标系内判断）
       const cosT = Math.cos(-MOON_TILT)
       const sinT = Math.sin(-MOON_TILT)
       const lx = dx * cosT - dy * sinT
       const ly = dx * sinT + dy * cosT
       const pvyLocal = pdx * sinT + pdy * cosT
 
-      if (Math.hypot(lx, ly) <= R * 1.18) {
-        const span = R * 1.56
-        const pitch = span / (BAND_COUNT - 1)
-        for (let i = 0; i < BAND_COUNT; i++) {
-          const bandY = -span * 0.5 + i * pitch
-          const distY = Math.abs(ly - bandY)
-          if (distY < pitch * 0.9) {
-            const falloff = 1 - distY / (pitch * 0.9)
+      if (Math.hypot(lx, ly) <= R * 1.12) {
+        const lineSpacing = (R * 1.78) / MOON_LINE_SPECS.length
+        for (let i = 0; i < MOON_LINE_SPECS.length; i++) {
+          const lineY = MOON_LINE_SPECS[i].yNorm * R
+          const distY = Math.abs(ly - lineY)
+          if (distY < lineSpacing * 1.15) {
+            const falloff = 1 - distY / (lineSpacing * 1.15)
             const dir =
               Math.abs(pvyLocal) > 0.3 ? Math.sign(pvyLocal) : i % 2 === 0 ? 1 : -1
-            const impulse = (46 + speed * 4.8) * falloff * dir
-            bandOsc[i].vel = Math.max(-175, Math.min(175, bandOsc[i].vel + impulse))
-            bandOsc[i].hitU = Math.max(0.15, Math.min(0.85, (lx + R) / (2 * R)))
-          }
-        }
-      }
-
-      // 2. 拨动右侧 6 条色散光谱弦（在正交坐标系内判断）
-      if (dx >= 0 && dx <= R * 1.65 && Math.abs(dy) <= R * 0.65) {
-        for (let i = 0; i < SPEC_COUNT; i++) {
-          const frac = (i - (SPEC_COUNT - 1) / 2) / ((SPEC_COUNT - 1) / 2)
-          const u = Math.max(0, Math.min(1, dx / (R * 1.45)))
-          const rayY = R * (0.04 + frac * 0.08 + u * (0.05 + frac * 0.24))
-          const distY = Math.abs(dy - rayY)
-          if (distY < 14) {
-            const falloff = 1 - distY / 14
-            const dir = Math.abs(pdy) > 0.3 ? Math.sign(pdy) : i % 2 === 0 ? 1 : -1
-            const impulse = (38 + speed * 4.2) * falloff * dir
-            specOsc[i].vel = Math.max(-145, Math.min(145, specOsc[i].vel + impulse))
-            specOsc[i].hitU = Math.max(0.12, Math.min(0.88, u))
+            // 克制细腻的微幅高张力波动（不再夸张晃动）
+            const impulse = (18 + speed * 1.45) * falloff * dir
+            lineOsc[i].vel = Math.max(-68, Math.min(68, lineOsc[i].vel + impulse))
+            lineOsc[i].hitU = Math.max(0.15, Math.min(0.85, (lx + R) / (2 * R)))
           }
         }
       }
@@ -305,20 +290,18 @@ export function SpaceNoEdenStageCanvas() {
         for (let i = 0; i < 16; i++) sum += bins[i]
         audioEnergy = sum / (16 * 255)
       } else if (st.bgmPlaying) {
-        audioEnergy = 0.05 + Math.sin(t * 2.1) * 0.025
+        audioEnergy = 0.04 + Math.sin(t * 2.1) * 0.02
       }
 
-      // 高张力紧绷弦物理（STIFFNESS=760, DAMPING=15.5）
-      const STIFFNESS = 760
-      const DAMPING = 15.5
-      for (const arr of [bandOsc, specOsc]) {
-        for (let i = 0; i < arr.length; i++) {
-          const s = arr[i]
-          const accel = -STIFFNESS * s.amp - DAMPING * s.vel
-          s.vel += accel * dt
-          s.amp += s.vel * dt
-          s.phase += dt * (48 + i * 2.5)
-        }
+      // 高刚度紧绷微颤弹簧（STIFFNESS=920, DAMPING=22 -> 锐利微震、极快收敛）
+      const STIFFNESS = 920
+      const DAMPING = 22
+      for (let i = 0; i < lineOsc.length; i++) {
+        const s = lineOsc[i]
+        const accel = -STIFFNESS * s.amp - DAMPING * s.vel
+        s.vel += accel * dt
+        s.amp += s.vel * dt
+        s.phase += dt * (44 + i * 1.8)
       }
 
       ctx.clearRect(0, 0, W, H)
@@ -499,28 +482,28 @@ export function SpaceNoEdenStageCanvas() {
         ctx.restore()
       }
 
-      // 3. 右上角悬挂的「极简条纹三棱镜月球」+ 引力牵引 + 紧绷琴弦震颤
+      // 3. 右上角悬挂的「更大尺寸、更高透明度、中央纯镂空三棱镜」球面线条月球
       const rightMargin = Math.max(0, W - layoutRect.articleRight)
       const hasWideRight = rightMargin >= 165
+      const moonR = hasWideRight
+        ? Math.min(rightMargin * 0.44, Math.min(H * 0.21, 168))
+        : Math.min(W, H) * 0.16
       const baseMoonCx = hasWideRight
         ? Math.max(
-            layoutRect.articleRight + rightMargin * 0.52,
-            W - Math.max(150, rightMargin * 0.44)
+            layoutRect.articleRight + rightMargin * 0.5,
+            W - Math.max(175, rightMargin * 0.48)
           )
-        : W * 0.85
-      const baseMoonCy = Math.max(155, Math.min(200, H * 0.21))
-      const moonR = hasWideRight
-        ? Math.min(rightMargin * 0.32, Math.min(H * 0.155, 122))
-        : Math.min(W, H) * 0.12
+        : W * 0.84
+      const baseMoonCy = Math.max(moonR + 74, Math.min(230, H * 0.24))
 
       if (hasPointer && !reduced) {
         const dxG = mouseX - baseMoonCx
         const dyG = mouseY - baseMoonCy
         const distG = Math.hypot(dxG, dyG)
         const nearBoost =
-          distG < moonR * 2.5 ? 1 + (1 - distG / (moonR * 2.5)) * 0.65 : 1
-        const targetGx = (mouseX / Math.max(1, W) - 0.5) * 44 * nearBoost
-        const targetGy = (mouseY / Math.max(1, H) - 0.5) * 34 * nearBoost
+          distG < moonR * 2.4 ? 1 + (1 - distG / (moonR * 2.4)) * 0.55 : 1
+        const targetGx = (mouseX / Math.max(1, W) - 0.5) * 40 * nearBoost
+        const targetGy = (mouseY / Math.max(1, H) - 0.5) * 30 * nearBoost
         moonGravX += (targetGx - moonGravX) * 0.055
         moonGravY += (targetGy - moonGravY) * 0.055
       }
@@ -529,200 +512,198 @@ export function SpaceNoEdenStageCanvas() {
       const moonCy = baseMoonCy + moonGravY
       moonCenter = { x: moonCx, y: moonCy, r: moonR }
 
-      const moonAlpha = hasWideRight ? 0.86 : 0.34
-      const span = moonR * 1.54
-      const pitch = span / (BAND_COUNT - 1)
-      const bandWidth = Math.max(4, pitch * 0.46)
+      // 更高透明度：宽屏 0.44（通透不压目录），窄屏 0.22
+      const moonAlpha = hasWideRight ? 0.44 : 0.22
 
-      // 棱镜三角形几何（中心略偏右下方，居于月轮核心）
-      const triR = moonR * 0.39
-      const triTop = { x: 0, y: -triR * 1.04 }
-      const triLeft = { x: -triR * 0.94, y: triR * 0.68 }
-      const triRight = { x: triR * 0.94, y: triR * 0.68 }
+      // 准备离屏月球缓冲（尺寸覆盖 moonR * 2 + 留白）
+      const pad = 24
+      const bufLogical = Math.ceil((moonR + pad) * 2)
+      const bufPx = Math.round(bufLogical * dpr)
+      if (moonBuffer.width !== bufPx || moonBuffer.height !== bufPx) {
+        moonBuffer.width = bufPx
+        moonBuffer.height = bufPx
+      }
+      mctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      mctx.clearRect(0, 0, bufLogical, bufLogical)
 
-      // 旋转到月球视角计算每条斜纹与棱镜外留白边界的裁切点（保证棱镜周围纯净无穿插）
-      const cosInv = Math.cos(-MOON_TILT)
-      const sinInv = Math.sin(-MOON_TILT)
-      const toMoonLocal = (pt: { x: number; y: number }) => ({
-        x: pt.x * cosInv - pt.y * sinInv,
-        y: pt.x * sinInv + pt.y * cosInv,
-      })
+      const bc = bufLogical * 0.5
+      mctx.save()
+      mctx.translate(bc, bc)
 
-      ctx.save()
-      ctx.translate(moonCx, moonCy)
+      // A. 外缘极简经纬弧线与方位刻度（增加宇宙测绘感，打破单调圆盘）
+      mctx.beginPath()
+      mctx.arc(0, 0, moonR, 0, Math.PI * 2)
+      mctx.strokeStyle = `rgba(${pal.moonSubtleRgb}, 0.28)`
+      mctx.lineWidth = 0.9
+      mctx.stroke()
 
-      // A. 右侧细微月弧轮廓（仅在暗面勾勒一弯极简虚线月缘，与左侧条纹共同构成完整圆月）
-      ctx.beginPath()
-      ctx.arc(0, 0, moonR, -1.18, 1.18)
-      ctx.strokeStyle = `rgba(${pal.moonSubtleRgb}, ${0.22 * moonAlpha})`
-      ctx.lineWidth = 1
-      ctx.setLineDash([2, 5])
-      ctx.stroke()
-      ctx.setLineDash([])
+      mctx.beginPath()
+      mctx.arc(0, 0, moonR * 1.08, -0.75, 0.75)
+      mctx.strokeStyle = `rgba(${pal.accentRgb}, 0.38)`
+      mctx.lineWidth = 0.85
+      mctx.setLineDash([3, 6])
+      mctx.stroke()
+      mctx.setLineDash([])
 
-      // B. 月轮 9 道圆角斜纹（平顺新月弧切口 + 避让中心棱镜负空间，无任何杂乱重叠线）
-      ctx.save()
-      ctx.rotate(MOON_TILT)
-      const prismHaloR = triR * 1.12
-      const prismLocalPts = [triTop, triLeft, triRight].map(toMoonLocal)
-      const prismYMin = Math.min(...prismLocalPts.map((p) => p.y)) - 8
-      const prismYMax = Math.max(...prismLocalPts.map((p) => p.y)) + 8
+      // B. 在倾斜坐标内绘制形态多样的球面纬线弦（裁剪在月盘内）
+      mctx.save()
+      mctx.rotate(MOON_TILT)
+      mctx.beginPath()
+      mctx.arc(0, 0, moonR, 0, Math.PI * 2)
+      mctx.clip()
 
-      for (let i = 0; i < BAND_COUNT; i++) {
-        const y0 = -span * 0.5 + i * pitch
-        if (Math.abs(y0) >= moonR * 0.94) continue
+      for (let i = 0; i < MOON_LINE_SPECS.length; i++) {
+        const spec = MOON_LINE_SPECS[i]
+        const y0 = spec.yNorm * moonR
+        const halfChord = Math.sqrt(Math.max(0, moonR * moonR - y0 * y0))
+        if (halfChord < 6) continue
 
-        // 圆角端点向内缩进 bandWidth/2，让轮廓完美贴合半径 moonR 的圆形
-        const chordMax = Math.sqrt(Math.max(0, moonR * moonR - y0 * y0))
-        const xLeft = -chordMax + bandWidth * 0.52
+        // 球面纬线弧度：靠近两极微弓，赤道平直，营造立体球面视错觉
+        const latSag = spec.yNorm * moonR * 0.11
 
-        // 平滑新月内弧（以右偏心圆弧切出优雅新月负空间，告别锯齿台阶）
-        const crescentOffset = moonR * 0.34
-        const crescentR = moonR * 0.88
-        const crescentDy = y0 + moonR * 0.08
-        const crescentSpan = Math.sqrt(
-          Math.max(0, crescentR * crescentR - crescentDy * crescentDy)
+        // 优雅新月明暗分界点（随滚动略微变化月相）
+        const crescentShift = (smoothScroll - 0.5) * 0.18
+        const litRatio = Math.max(
+          0.16,
+          Math.min(0.88, 0.52 + spec.phaseTerm * 0.28 - crescentShift)
         )
-        let xRight = crescentOffset - crescentSpan * 0.52 - (smoothScroll - 0.5) * moonR * 0.12
+        const xLeft = -halfChord
+        const xRight = halfChord
 
-        // 避让中心三棱镜负空间护城河（在棱镜投影高度带内自动留出干净呼吸间隙）
-        if (y0 >= prismYMin && y0 <= prismYMax) {
-          const haloX =
-            -Math.sqrt(Math.max(0, prismHaloR * prismHaloR - y0 * y0)) * 0.72
-          xRight = Math.min(xRight, haloX)
-        }
-
-        if (xRight - xLeft < 4) continue
-
-        const s = bandOsc[i]
-        const energy = Math.abs(s.amp) + Math.abs(s.vel) * 0.015
-        const audioRipple =
+        const s = lineOsc[i]
+        const audioMicro =
           st.bgmPlaying && !reduced
-            ? Math.sin(t * 4.2 + i * 0.9) * audioEnergy * 2.1
+            ? Math.sin(t * 3.8 + i * 0.7) * audioEnergy * 1.1
             : 0
 
-        const STEPS = 28
-        ctx.beginPath()
-        for (let k = 0; k <= STEPS; k++) {
-          const u = k / STEPS
-          const x = xLeft + u * (xRight - xLeft)
+        const sampleCurveY = (u: number, offsetY = 0) => {
           const endPin = Math.sin(u * Math.PI)
-          const focus = Math.exp(-Math.abs(u - s.hitU) * 2.6)
-          const wave =
-            Math.sin(u * Math.PI * 2) * 0.35 +
-            Math.sin(u * Math.PI * 4 + s.phase) * 0.45 * focus +
-            Math.cos(u * Math.PI * 6 - s.phase * 1.4) * 0.2 * focus
-          const aWave = Math.sin(u * Math.PI * 2 + t * 5 + i) * audioRipple
-          const y = y0 + endPin * (s.amp * wave + aWave)
-          if (k === 0) ctx.moveTo(x, y)
-          else ctx.lineTo(x, y)
+          const bow = latSag * (1 - Math.pow(u * 2 - 1, 2))
+          const focus = Math.exp(-Math.abs(u - s.hitU) * 2.8)
+          const oscWave =
+            Math.sin(u * Math.PI * 2) * 0.3 +
+            Math.sin(u * Math.PI * 4 + s.phase) * 0.48 * focus +
+            Math.cos(u * Math.PI * 6 - s.phase * 1.3) * 0.22 * focus
+          const aWave = Math.sin(u * Math.PI * 2 + t * 4.5 + i) * audioMicro
+          return y0 + offsetY + bow + endPin * (s.amp * oscWave + aWave)
         }
 
-        const excite = Math.min(0.45, energy * 0.04)
-        ctx.lineCap = "round"
-        ctx.lineJoin = "round"
-        ctx.lineWidth = bandWidth
-        ctx.strokeStyle =
-          excite > 0.14
-            ? `rgba(${pal.accentRgb}, ${0.88 * moonAlpha})`
-            : `rgba(${pal.moonRgb}, ${0.82 * moonAlpha})`
-        ctx.stroke()
-      }
-      ctx.restore()
+        const STEPS = 36
+        const excite = Math.min(0.35, (Math.abs(s.amp) + Math.abs(s.vel) * 0.01) * 0.04)
+        const activeColor =
+          excite > 0.1
+            ? `rgba(${pal.accentRgb}, 0.95)`
+            : `rgba(${pal.moonRgb}, 0.9)`
 
-      // C. 干净的入射光束 -> 中心三棱镜 -> 右侧 6 道平行微扇光谱弦（零交叉干扰）
-      const entryPt = {
-        x: (triTop.x + triLeft.x) * 0.52,
-        y: (triTop.y + triLeft.y) * 0.52,
-      }
-      // 入射光线顺着月亮斜纹同一俯仰角 (-20.5°) 穿过月弧直抵棱镜左腰
-      const beamStart = {
-        x: -moonR * 1.12,
-        y: entryPt.y + moonR * 0.36,
-      }
-      ctx.beginPath()
-      ctx.moveTo(beamStart.x, beamStart.y)
-      ctx.lineTo(entryPt.x, entryPt.y)
-      ctx.lineCap = "round"
-      ctx.strokeStyle = `rgba(${pal.moonRgb}, ${0.78 * moonAlpha})`
-      ctx.lineWidth = 1.6
-      ctx.stroke()
+        if (spec.kind === "band") {
+          // 亮面粗润圆角弧线 + 暗面纤细延伸线（两段节奏分明）
+          mctx.beginPath()
+          for (let k = 0; k <= STEPS; k++) {
+            const u = (k / STEPS) * litRatio
+            const x = xLeft + u * (xRight - xLeft)
+            const y = sampleCurveY(u)
+            if (k === 0) mctx.moveTo(x, y)
+            else mctx.lineTo(x, y)
+          }
+          mctx.lineCap = "round"
+          mctx.lineJoin = "round"
+          mctx.lineWidth = spec.weight
+          mctx.strokeStyle = activeColor
+          mctx.stroke()
 
-      // 出射 6 条光谱色散弦（干净向右上方/右下方扇形舒展，可被鼠标直接拨动）
-      const exitBaseX = (triTop.x + triRight.x) * 0.5
-      const exitBaseY = (triTop.y + triRight.y) * 0.5
-      for (let idx = 0; idx < SPEC_COUNT; idx++) {
-        const frac = (idx - (SPEC_COUNT - 1) / 2) / ((SPEC_COUNT - 1) / 2)
-        const sx0 = exitBaseX + frac * (triR * 0.13)
-        const sy0 = exitBaseY + frac * (triR * 0.24)
-        const ex1 = moonR * 1.42
-        const ey1 = sy0 + moonR * (0.06 + frac * 0.26)
-        const osc = specOsc[idx]
-        const audioRay =
-          st.bgmPlaying && !reduced
-            ? Math.sin(t * 4.8 + idx * 0.85) * audioEnergy * 2.0
-            : 0
-
-        ctx.beginPath()
-        for (let step = 0; step <= 24; step++) {
-          const u = step / 24
-          const px = sx0 + (ex1 - sx0) * u
-          const endPin = Math.sin(u * Math.PI)
-          const focus = Math.exp(-Math.abs(u - osc.hitU) * 2.4)
-          const wave =
-            Math.sin(u * Math.PI * 2) * 0.4 +
-            Math.sin(u * Math.PI * 4 + osc.phase) * 0.6 * focus
-          const py =
-            sy0 +
-            (ey1 - sy0) * u +
-            endPin * (osc.amp * wave + Math.sin(u * Math.PI * 2 + t * 6 + idx) * audioRay)
-          if (step === 0) ctx.moveTo(px, py)
-          else ctx.lineTo(px, py)
+          // 暗面轻盈细延长线（从明暗界线略留小缺口后再续）
+          const resumeU = Math.min(0.98, litRatio + 0.05)
+          if (resumeU < 0.95) {
+            mctx.beginPath()
+            for (let k = 0; k <= 16; k++) {
+              const u = resumeU + (k / 16) * (1 - resumeU)
+              const x = xLeft + u * (xRight - xLeft)
+              const y = sampleCurveY(u)
+              if (k === 0) mctx.moveTo(x, y)
+              else mctx.lineTo(x, y)
+            }
+            mctx.lineWidth = 0.85
+            mctx.strokeStyle = `rgba(${pal.moonSubtleRgb}, 0.42)`
+            mctx.stroke()
+          }
+        } else if (spec.kind === "telemetry") {
+          // 遥测编码脉冲虚线
+          mctx.save()
+          mctx.setLineDash([12, 5, 2.5, 5])
+          mctx.beginPath()
+          for (let k = 0; k <= STEPS; k++) {
+            const u = k / STEPS
+            const x = xLeft + u * (xRight - xLeft)
+            const y = sampleCurveY(u)
+            if (k === 0) mctx.moveTo(x, y)
+            else mctx.lineTo(x, y)
+          }
+          mctx.lineCap = "round"
+          mctx.lineWidth = spec.weight
+          mctx.strokeStyle = `rgba(${pal.accentRgb}, ${0.65 + excite * 0.3})`
+          mctx.stroke()
+          mctx.restore()
+        } else if (spec.kind === "double") {
+          // 双平行细弦（谐振共鸣线）
+          for (const dy of [-1.7, 1.7]) {
+            mctx.beginPath()
+            for (let k = 0; k <= STEPS; k++) {
+              const u = k / STEPS
+              const x = xLeft + u * (xRight - xLeft)
+              const y = sampleCurveY(u, dy)
+              if (k === 0) mctx.moveTo(x, y)
+              else mctx.lineTo(x, y)
+            }
+            mctx.lineCap = "round"
+            mctx.lineWidth = spec.weight
+            mctx.strokeStyle = `rgba(${pal.moonRgb}, 0.62)`
+            mctx.stroke()
+          }
+        } else {
+          // 连续球面经纬细线
+          mctx.beginPath()
+          for (let k = 0; k <= STEPS; k++) {
+            const u = k / STEPS
+            const x = xLeft + u * (xRight - xLeft)
+            const y = sampleCurveY(u)
+            if (k === 0) mctx.moveTo(x, y)
+            else mctx.lineTo(x, y)
+          }
+          mctx.lineCap = "round"
+          mctx.lineWidth = spec.weight
+          mctx.strokeStyle = `rgba(${pal.moonSubtleRgb}, 0.68)`
+          mctx.stroke()
         }
-        ctx.lineCap = "round"
-        ctx.strokeStyle = `rgba(${pal.spectrum[idx]}, ${(pal.isDark ? 0.88 : 0.78) * moonAlpha})`
-        ctx.lineWidth = 1.65
-        ctx.stroke()
       }
+      mctx.restore() // 结束倾斜+圆形裁剪
 
-      // 棱镜内部柔和色散光锥（不糊边）
-      const innerGrad = ctx.createLinearGradient(
-        entryPt.x,
-        entryPt.y,
-        exitBaseX,
-        exitBaseY + triR * 0.14
+      // C. 核心：纯负空间「镂空三棱镜」（不画任何三角形边线、不画任何光线，纯粹以线条断开自然呈现棱镜！）
+      mctx.save()
+      mctx.globalCompositeOperation = "destination-out"
+      const triR = moonR * 0.42
+      const triOffsetX = moonR * 0.04
+      const triOffsetY = moonR * 0.02
+      mctx.beginPath()
+      mctx.moveTo(triOffsetX, triOffsetY - triR * 1.08)
+      mctx.lineTo(triOffsetX + triR * 0.96, triOffsetY + triR * 0.68)
+      mctx.lineTo(triOffsetX - triR * 0.96, triOffsetY + triR * 0.68)
+      mctx.closePath()
+      mctx.fillStyle = "#000"
+      mctx.fill()
+      mctx.restore()
+
+      mctx.restore() // 结束离屏缓冲绘制
+
+      // 将镂空后的月球以较高透明度合成到主画布右上角
+      ctx.save()
+      ctx.globalAlpha = moonAlpha
+      ctx.drawImage(
+        moonBuffer,
+        moonCx - bc,
+        moonCy - bc,
+        bufLogical,
+        bufLogical
       )
-      innerGrad.addColorStop(0, `rgba(${pal.moonRgb}, ${0.26 * moonAlpha})`)
-      innerGrad.addColorStop(1, `rgba(${pal.accentRgb}, ${0.12 * moonAlpha})`)
-      ctx.beginPath()
-      ctx.moveTo(entryPt.x, entryPt.y)
-      ctx.lineTo(exitBaseX - triR * 0.08, exitBaseY - triR * 0.16)
-      ctx.lineTo(exitBaseX + triR * 0.14, exitBaseY + triR * 0.24)
-      ctx.closePath()
-      ctx.fillStyle = innerGrad
-      ctx.fill()
-
-      // 棱镜精致双轮廓（纯净几何三角）
-      ctx.beginPath()
-      ctx.moveTo(triTop.x, triTop.y)
-      ctx.lineTo(triRight.x, triRight.y)
-      ctx.lineTo(triLeft.x, triLeft.y)
-      ctx.closePath()
-      ctx.lineJoin = "round"
-      ctx.strokeStyle = `rgba(${pal.moonRgb}, ${0.9 * moonAlpha})`
-      ctx.lineWidth = 1.6
-      ctx.stroke()
-
-      const innerScale = 0.8
-      ctx.beginPath()
-      ctx.moveTo(triTop.x * innerScale, triTop.y * innerScale + triR * 0.06)
-      ctx.lineTo(triRight.x * innerScale, triRight.y * innerScale + triR * 0.03)
-      ctx.lineTo(triLeft.x * innerScale, triLeft.y * innerScale + triR * 0.03)
-      ctx.closePath()
-      ctx.strokeStyle = `rgba(${pal.accentRgb}, ${0.38 * moonAlpha})`
-      ctx.lineWidth = 0.75
-      ctx.stroke()
-
       ctx.restore()
 
       if (!reduced) {

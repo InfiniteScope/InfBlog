@@ -198,7 +198,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         <aside className="hidden @min-[1150px]:block xl:col-start-3 xl:row-start-1 xl:justify-self-end">
           <div
             className={
-              isSpaceNoEden ? "sticky top-[min(37vh,21rem)]" : "sticky top-20"
+              isSpaceNoEden ? "sticky top-[min(43vh,24.5rem)]" : "sticky top-20"
             }
           >
             <TableOfContents headings={headings} />
