@@ -16,6 +16,7 @@ export function MusicPlayerMini() {
     setOverlayOpen,
     togglePlay,
     next,
+    articleOverride,
   } = useMusic()
 
   const track =
@@ -32,7 +33,11 @@ export function MusicPlayerMini() {
           transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
           className="flex cursor-pointer items-center gap-2 rounded-full border border-border/60 bg-background/80 px-2 py-1 shadow-sm backdrop-blur-md"
           onClick={() => setOverlayOpen(true)}
-          title="展开音乐播放器"
+          title={
+            articleOverride
+              ? `文章伴音接管中（${articleOverride.title}）· 原曲目进度已保留`
+              : "展开音乐播放器"
+          }
         >
           <div className="relative h-7 w-7 overflow-hidden rounded-full">
             {track.cover ? (
@@ -48,10 +53,18 @@ export function MusicPlayerMini() {
                 <Music className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
             )}
+            {articleOverride && (
+              <span
+                aria-hidden
+                className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-accent ring-2 ring-background"
+              />
+            )}
           </div>
           <div className="hidden max-w-[100px] sm:block">
             <p className="truncate text-xs font-medium">{track.title}</p>
-            <p className="truncate text-[10px] text-muted-foreground">{track.artist}</p>
+            <p className="truncate text-[10px] text-muted-foreground">
+              {articleOverride ? "伴音接管 · 进度已留存" : track.artist}
+            </p>
           </div>
           <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={togglePlay}>

@@ -85,6 +85,15 @@
 - **书签提示的宽度与排版**：底部 `Toaster` 设了 `--width: 430px`（见 app/layout.tsx）。默认 356px 扣掉图标（16）与两个按钮后**文本区只剩 147px**，描述会折成「…要跳回上次的 / 位置吗？」；430px 下文本区 221px、描述单行。375px 窄屏仍会折成 2 行但不溢出屏幕。
 - **书签提示的进度条**：`components/blog/bookmark-prompt.tsx` 的 `CountdownBar` 是 sonner `description` 里的一棵 React 元素（`<span data-bm-countdown>`），时长由 `useId` 作用域的 `<style>` 注入 `--bookmark-prompt-ms`（在 effect 里注入，确保"设好变量"发生在"动画起跑"之前，否则条会先按默认时长跑）。卡片在 hover 时被 sonner 标记为 `data-expanded=true`，所以"桥"的隐藏规则必须写 `[data-expanded="true"]` 且加 `!important`（用 `background: transparent` 而非 `display: none`，保留 `height: calc(var(--gap)+1px)` 的占位以免与相邻 toast 重叠）。
 
+## 当前状态（2026-11-18）
+
+- **新文章《太空非伊甸》及专属演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
+  - 新增文章 `content/posts/宇宙非伊甸.mdx`（路由 `/blog/宇宙非伊甸`，标题 `太空非伊甸`）。
+  - 新增文章演出路由契约 `lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）与音频匹配 `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`，优先浏览器友好格式）。
+  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章后淡出暂停原播放器并**保留原曲目与 `currentTime`**，自动播放 `everglow`（被拦截时显示唤醒引导并在首次交互解锁）；离开文章后平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步提示接管状态且随时可一键切回。
+  - 新增演出组件 `components/blog/stages/space-no-eden/`：6 章节滚动追踪背景（星云微光渐变 + 潮汐锁定月相/终章日食环 + 开普勒轨道与双基线视差准星 + 顶部 2px 进度线）、文章头内联伴音/局部「深空观测」开关（作用域隔离、绝不污染全局 `theme`）、宽屏左列 `// TELEMETRY_LOG`（与右列 TOC 对称使用 `@min-[1150px]` + `w-44`）、文末「在暗面架起天线」莫尔斯电码脉冲发射终端（`app/api/stage/space-no-eden/antenna/route.ts`，复用现有 `Counter` 表 key `post:宇宙非伊甸:antenna`，带限流，无 schema 变更）。
+  - 验收：`pnpm typecheck` ✓、`pnpm build`（57/57）✓；Playwright + Chrome 本地生产实测（临时测试音频下验证：进入自动播伴音且原曲保留 `14.2s` 暂停、离开后自动恢复 `14.85s` 续播；`1600px` 三栏无重叠；`CH.01→CH.06` 追踪；局部暗场不改 `localStorage("theme")` / `<html>`；`/blog` 与 `/blog/hello-world` 严格无演出层；`393px` 无横向溢出；0 控制台/网络错误）。待用户本地验收后再决定部署。
+
 ## 当前状态（2026-11-14）
 
 - **弹幕样式微调（用户要求）**：放大按钮去掉边框/背景（透明填充）；自己发送的弹幕只保留白色 1px 边框，无背景、无阴影。

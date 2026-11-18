@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -27,6 +28,16 @@ export interface Track {
   src: string
   cover?: string
 }
+
+export interface ArticleBgmOverride {
+  ownerId: string
+  title: string
+  artist?: string
+  suspendedTrackTitle?: string
+  wasMainPlaying: boolean
+}
+
+export const ARTICLE_BGM_YIELD_EVENT = "infblog:article-bgm-yield"
 
 interface MusicContextValue {
   tracks: Track[]
@@ -57,6 +68,15 @@ interface MusicContextValue {
   seek: (time: number) => void
   setVolume: (value: number) => void
   toggleMute: () => void
+  /** 非空表示当前由某篇特殊文章的伴音接管，原曲目与进度被挂起保留 */
+  articleOverride: ArticleBgmOverride | null
+  /** 挂起当前音乐播放器（保留曲目与播放进度），进入专属伴音模式 */
+  suspendForOverride: (
+    ownerId: string,
+    meta: { title: string; artist?: string }
+  ) => void
+  /** 退出专属伴音模式；若进入前主播放器正在播放且未被用户接管，则无缝恢复原进度 */
+  releaseOverride: (ownerId: string, options?: { immediate?: boolean }) => void
 }
 
 const MusicContext = createContext<MusicContextValue | null>(null)
@@ -94,6 +114,15 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
   const playModeRef = useRef<PlayMode>("list-loop")
+  const [articleOverride, setArticleOverride] = useState<ArticleBgmOverride | null>(null)
+  const articleOverrideRef = useRef<ArticleBgmOverride | null>(null)
+  const suspendedSnapshotRef = useRef<{ wasPlaying: boolean; ownerId: string } | null>(null)
+  const releaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeRafRef = useRef<number>(0)
+  const isPlayingRef = useRef(false)
+  const volumeRef = useRef(0.8)
+  const mutedRef = useRef(false)
+  const currentTrackRef = useRef<Track | null>(null)
 
   // Keep the ref in sync so the audio effect only depends on the track
   // itself; switching play mode never touches playback progress.
@@ -101,8 +130,67 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     playModeRef.current = playMode
   }, [playMode])
 
+  useEffect(() => {
+    isPlayingRef.current = isPlaying
+  }, [isPlaying])
+
+  useEffect(() => {
+    volumeRef.current = volume
+    mutedRef.current = muted
+  }, [volume, muted])
+
+  useEffect(() => {
+    articleOverrideRef.current = articleOverride
+  }, [articleOverride])
+
   const tracks = rawTracks.filter((t) => t.category === category)
   const currentTrack = tracks[currentIndex] || null
+
+  useEffect(() => {
+    currentTrackRef.current = currentTrack
+  }, [currentTrack])
+
+  const cancelFade = useCallback(() => {
+    if (fadeRafRef.current) {
+      cancelAnimationFrame(fadeRafRef.current)
+      fadeRafRef.current = 0
+    }
+  }, [])
+
+  const fadeAudio = useCallback(
+    (
+      audio: HTMLAudioElement,
+      from: number,
+      to: number,
+      durationMs: number,
+      onDone?: () => void
+    ) => {
+      cancelFade()
+      if (durationMs <= 0) {
+        audio.volume = Math.max(0, Math.min(1, to))
+        onDone?.()
+        return
+      }
+      const start = performance.now()
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - start) / durationMs)
+        audio.volume = Math.max(0, Math.min(1, from + (to - from) * progress))
+        if (progress < 1) {
+          fadeRafRef.current = requestAnimationFrame(tick)
+        } else {
+          fadeRafRef.current = 0
+          onDone?.()
+        }
+      }
+      fadeRafRef.current = requestAnimationFrame(tick)
+    },
+    [cancelFade]
+  )
+
+  useEffect(() => () => {
+    cancelFade()
+    if (releaseTimerRef.current) clearTimeout(releaseTimerRef.current)
+  }, [cancelFade])
 
   useEffect(() => {
     fetch("/api/music/playlist")
@@ -167,8 +255,106 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
+    cancelFade()
     audio.volume = muted ? 0 : volume
-  }, [volume, muted])
+  }, [volume, muted, cancelFade])
+
+  const yieldArticleOverride = useCallback(() => {
+    if (!articleOverrideRef.current && !suspendedSnapshotRef.current) return
+    if (releaseTimerRef.current) {
+      clearTimeout(releaseTimerRef.current)
+      releaseTimerRef.current = null
+    }
+    cancelFade()
+    suspendedSnapshotRef.current = null
+    setArticleOverride(null)
+    const audio = audioRef.current
+    if (audio) {
+      audio.volume = mutedRef.current ? 0 : volumeRef.current
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(ARTICLE_BGM_YIELD_EVENT))
+    }
+  }, [cancelFade])
+
+  const suspendForOverride = useCallback(
+    (ownerId: string, meta: { title: string; artist?: string }) => {
+      if (releaseTimerRef.current) {
+        clearTimeout(releaseTimerRef.current)
+        releaseTimerRef.current = null
+      }
+
+      const audio = audioRef.current
+      if (!suspendedSnapshotRef.current) {
+        const wasMainPlaying =
+          Boolean(audio && !audio.paused) || isPlayingRef.current
+        suspendedSnapshotRef.current = { wasPlaying: wasMainPlaying, ownerId }
+        setArticleOverride({
+          ownerId,
+          title: meta.title,
+          artist: meta.artist,
+          suspendedTrackTitle: currentTrackRef.current?.title,
+          wasMainPlaying,
+        })
+
+        if (audio && !audio.paused) {
+          const startVol = audio.volume
+          fadeAudio(audio, startVol, 0, 240, () => {
+            audio.pause()
+            audio.volume = mutedRef.current ? 0 : volumeRef.current
+          })
+        }
+      } else if (suspendedSnapshotRef.current.ownerId === ownerId) {
+        const wasMainPlaying = suspendedSnapshotRef.current.wasPlaying
+        setArticleOverride({
+          ownerId,
+          title: meta.title,
+          artist: meta.artist,
+          suspendedTrackTitle: currentTrackRef.current?.title,
+          wasMainPlaying,
+        })
+      }
+    },
+    [fadeAudio]
+  )
+
+  const releaseOverride = useCallback(
+    (ownerId: string, options?: { immediate?: boolean }) => {
+      const performRelease = () => {
+        releaseTimerRef.current = null
+        const snap = suspendedSnapshotRef.current
+        if (!snap || snap.ownerId !== ownerId) return
+        suspendedSnapshotRef.current = null
+        setArticleOverride(null)
+
+        const audio = audioRef.current
+        if (snap.wasPlaying && audio && currentTrackRef.current) {
+          const targetVol = mutedRef.current ? 0 : volumeRef.current
+          audio.volume = 0
+          audio
+            .play()
+            .then(() => {
+              fadeAudio(audio, 0, targetVol, 420)
+            })
+            .catch(() => {
+              audio.volume = targetVol
+            })
+        }
+      }
+
+      if (releaseTimerRef.current) {
+        clearTimeout(releaseTimerRef.current)
+        releaseTimerRef.current = null
+      }
+
+      if (options?.immediate) {
+        performRelease()
+      } else {
+        releaseTimerRef.current = setTimeout(performRelease, 60)
+      }
+    },
+    [fadeAudio]
+  )
 
   const togglePlay = () => {
     const audio = audioRef.current
@@ -176,29 +362,34 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     if (isPlaying) {
       audio.pause()
     } else {
+      yieldArticleOverride()
       audio.play().catch(() => {})
     }
   }
 
   const playTrack = (index: number) => {
     if (index < 0 || index >= tracks.length) return
+    yieldArticleOverride()
     setCurrentIndex(index)
     setIsPlaying(true)
   }
 
   const next = () => {
     if (tracks.length === 0) return
+    yieldArticleOverride()
     setCurrentIndex((i) => (i + 1) % tracks.length)
     setIsPlaying(true)
   }
 
   const prev = () => {
     if (tracks.length === 0) return
+    yieldArticleOverride()
     setCurrentIndex((i) => (i - 1 + tracks.length) % tracks.length)
     setIsPlaying(true)
   }
 
   const changeCategory = (value: MusicCategory) => {
+    yieldArticleOverride()
     setCategory(value)
     setCurrentIndex(0)
     setIsPlaying(false)
@@ -286,6 +477,9 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         seek,
         setVolume,
         toggleMute,
+        articleOverride,
+        suspendForOverride,
+        releaseOverride,
       }}
     >
       <audio ref={audioRef} preload="metadata" />

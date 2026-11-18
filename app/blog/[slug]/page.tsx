@@ -33,6 +33,14 @@ import { PostActionsFloat } from "@/components/blog/post-actions-float"
 import { PostViewTracker } from "@/components/blog/post-view-tracker"
 import { PostStatBadges } from "@/components/blog/post-stat-badges"
 import { TableOfContents } from "@/components/blog/table-of-contents"
+import {
+  SpaceNoEdenEnding,
+  SpaceNoEdenHeader,
+  SpaceNoEdenLeftRail,
+  SpaceNoEdenStage,
+} from "@/components/blog/stages/space-no-eden"
+import { findMusicByQuery } from "@/lib/music-find"
+import { resolvePostStage } from "@/lib/post-stages"
 import Link from "next/link"
 
 interface PageProps {
@@ -97,8 +105,19 @@ export default async function BlogPostPage({ params }: PageProps) {
   // 编译结果按「slug + 内容哈希」缓存在进程内，长文二次访问不再重跑 MDX/KaTeX/Shiki
   const content = await renderMdxCached(post.slug, post.content)
 
-  return (
+  const stage = resolvePostStage(post.slug)
+  const isSpaceNoEden = stage?.id === "space-no-eden"
+  const stageBgm = isSpaceNoEden ? await findMusicByQuery(stage.bgmQuery) : null
+
+  const pageBody = (
     <div className="@container mx-auto flex w-full max-w-3xl flex-col gap-8 py-8 xl:max-w-none xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)]">
+      {isSpaceNoEden && (
+        <aside className="hidden @min-[1150px]:block xl:col-start-1 xl:row-start-1 xl:justify-self-start">
+          <div className="sticky top-20">
+            <SpaceNoEdenLeftRail />
+          </div>
+        </aside>
+      )}
       <article className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 xl:col-start-2 xl:row-start-1">
       <div className="flex items-center justify-between gap-4">
         <Button variant="ghost" size="sm" className="w-fit gap-1" asChild>
@@ -153,6 +172,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             : ""}
           {post.tags.length > 0 ? `，标签：${post.tags.join("、")}` : ""}
         </p>
+        {isSpaceNoEden && <SpaceNoEdenHeader />}
         <h1 className="font-display text-3xl tracking-tight md:text-4xl">
           {post.title}
         </h1>
@@ -173,6 +193,8 @@ export default async function BlogPostPage({ params }: PageProps) {
       <div className="max-w-none">
         {content}
       </div>
+
+      {isSpaceNoEden && <SpaceNoEdenEnding />}
 
       <ReadingTracker />
       <ReadingResume slug={post.slug} type="post" />
@@ -196,4 +218,10 @@ export default async function BlogPostPage({ params }: PageProps) {
       )}
     </div>
   )
+
+  if (isSpaceNoEden) {
+    return <SpaceNoEdenStage bgmTrack={stageBgm}>{pageBody}</SpaceNoEdenStage>
+  }
+
+  return pageBody
 }
