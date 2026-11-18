@@ -84,25 +84,19 @@ function readThemePalette(isDark: boolean): ThemePalette {
   }
 }
 
-// 17 条形态多样的球面纬线/遥测弦：粗亮带 + 细经纬线 + 脉冲虚线 + 双平行微弦
+// 11 条疏朗有致的多形态球面纬线/遥测弦：以两端点自然暗示圆形轮廓
 const MOON_LINE_SPECS: MoonLineSpec[] = [
-  { yNorm: -0.84, kind: "telemetry", weight: 1.1, phaseTerm: 0.2 },
-  { yNorm: -0.73, kind: "fine", weight: 1.2, phaseTerm: 0.45 },
-  { yNorm: -0.62, kind: "band", weight: 3.8, phaseTerm: 0.35 },
-  { yNorm: -0.51, kind: "double", weight: 0.9, phaseTerm: 0.5 },
-  { yNorm: -0.4, kind: "band", weight: 4.8, phaseTerm: 0.28 },
-  { yNorm: -0.29, kind: "telemetry", weight: 1.3, phaseTerm: 0.65 },
-  { yNorm: -0.18, kind: "band", weight: 4.2, phaseTerm: 0.32 },
-  { yNorm: -0.07, kind: "fine", weight: 1.4, phaseTerm: 0.7 },
-  { yNorm: 0.04, kind: "double", weight: 1.0, phaseTerm: 0.55 },
-  { yNorm: 0.15, kind: "band", weight: 5.0, phaseTerm: 0.25 },
-  { yNorm: 0.26, kind: "telemetry", weight: 1.2, phaseTerm: 0.6 },
-  { yNorm: 0.37, kind: "band", weight: 3.6, phaseTerm: 0.3 },
-  { yNorm: 0.48, kind: "fine", weight: 1.3, phaseTerm: 0.55 },
-  { yNorm: 0.59, kind: "double", weight: 0.9, phaseTerm: 0.48 },
-  { yNorm: 0.7, kind: "band", weight: 2.8, phaseTerm: 0.22 },
-  { yNorm: 0.8, kind: "telemetry", weight: 1.1, phaseTerm: 0.4 },
-  { yNorm: 0.89, kind: "fine", weight: 1.0, phaseTerm: 0.3 },
+  { yNorm: -0.84, kind: "telemetry", weight: 1.0, phaseTerm: 0.2 },
+  { yNorm: -0.68, kind: "band", weight: 3.6, phaseTerm: 0.36 },
+  { yNorm: -0.51, kind: "double", weight: 0.85, phaseTerm: 0.5 },
+  { yNorm: -0.34, kind: "band", weight: 4.5, phaseTerm: 0.28 },
+  { yNorm: -0.17, kind: "telemetry", weight: 1.15, phaseTerm: 0.62 },
+  { yNorm: 0.0, kind: "band", weight: 4.6, phaseTerm: 0.25 },
+  { yNorm: 0.17, kind: "fine", weight: 1.25, phaseTerm: 0.68 },
+  { yNorm: 0.34, kind: "band", weight: 3.8, phaseTerm: 0.32 },
+  { yNorm: 0.51, kind: "double", weight: 0.85, phaseTerm: 0.54 },
+  { yNorm: 0.68, kind: "band", weight: 2.8, phaseTerm: 0.24 },
+  { yNorm: 0.84, kind: "telemetry", weight: 1.0, phaseTerm: 0.38 },
 ]
 
 /**
@@ -530,22 +524,8 @@ export function SpaceNoEdenStageCanvas() {
       mctx.save()
       mctx.translate(bc, bc)
 
-      // A. 外缘极简经纬弧线与方位刻度（增加宇宙测绘感，打破单调圆盘）
-      mctx.beginPath()
-      mctx.arc(0, 0, moonR, 0, Math.PI * 2)
-      mctx.strokeStyle = `rgba(${pal.moonSubtleRgb}, 0.28)`
-      mctx.lineWidth = 0.9
-      mctx.stroke()
-
-      mctx.beginPath()
-      mctx.arc(0, 0, moonR * 1.08, -0.75, 0.75)
-      mctx.strokeStyle = `rgba(${pal.accentRgb}, 0.38)`
-      mctx.lineWidth = 0.85
-      mctx.setLineDash([3, 6])
-      mctx.stroke()
-      mctx.setLineDash([])
-
-      // B. 在倾斜坐标内绘制形态多样的球面纬线弦（裁剪在月盘内）
+      // A. 不绘制圆形外框线：纯靠 11 条球面纬线的两端点自然暗示圆形轮廓
+      // B. 在倾斜坐标内绘制疏朗多形态球面纬线弦（裁剪在隐形圆盘内）
       mctx.save()
       mctx.rotate(MOON_TILT)
       mctx.beginPath()
@@ -677,16 +657,20 @@ export function SpaceNoEdenStageCanvas() {
       }
       mctx.restore() // 结束倾斜+圆形裁剪
 
-      // C. 核心：纯负空间「镂空三棱镜」（不画任何三角形边线、不画任何光线，纯粹以线条断开自然呈现棱镜！）
-      mctx.save()
-      mctx.globalCompositeOperation = "destination-out"
+      // C. 中心镂空三棱镜：先把内部负空间挖空，再在更低图层轻描几段极简断续棱线
       const triR = moonR * 0.42
       const triOffsetX = moonR * 0.04
       const triOffsetY = moonR * 0.02
+      const triTop = { x: triOffsetX, y: triOffsetY - triR * 1.06 }
+      const triRight = { x: triOffsetX + triR * 0.94, y: triOffsetY + triR * 0.68 }
+      const triLeft = { x: triOffsetX - triR * 0.94, y: triOffsetY + triR * 0.68 }
+
+      mctx.save()
+      mctx.globalCompositeOperation = "destination-out"
       mctx.beginPath()
-      mctx.moveTo(triOffsetX, triOffsetY - triR * 1.08)
-      mctx.lineTo(triOffsetX + triR * 0.96, triOffsetY + triR * 0.68)
-      mctx.lineTo(triOffsetX - triR * 0.96, triOffsetY + triR * 0.68)
+      mctx.moveTo(triTop.x, triTop.y)
+      mctx.lineTo(triRight.x, triRight.y)
+      mctx.lineTo(triLeft.x, triLeft.y)
       mctx.closePath()
       mctx.fillStyle = "#000"
       mctx.fill()
@@ -694,7 +678,36 @@ export function SpaceNoEdenStageCanvas() {
 
       mctx.restore() // 结束离屏缓冲绘制
 
-      // 将镂空后的月球以较高透明度合成到主画布右上角
+      // 先在更低图层极简勾勒几段棱镜轮廓微线（刻意留出缺口与更低透明度，保持简约留白）
+      ctx.save()
+      ctx.translate(moonCx, moonCy)
+      ctx.globalAlpha = moonAlpha * 0.46
+      ctx.strokeStyle = `rgba(${pal.moonSubtleRgb}, 0.85)`
+      ctx.lineWidth = 0.9
+      ctx.lineCap = "round"
+
+      const drawSegment = (
+        a: { x: number; y: number },
+        b: { x: number; y: number },
+        tStart: number,
+        tEnd: number
+      ) => {
+        ctx.beginPath()
+        ctx.moveTo(a.x + (b.x - a.x) * tStart, a.y + (b.y - a.y) * tStart)
+        ctx.lineTo(a.x + (b.x - a.x) * tEnd, a.y + (b.y - a.y) * tEnd)
+        ctx.stroke()
+      }
+      // 轻描左腰上段、右腰下段、底边中段与一条极细内棱线
+      drawSegment(triTop, triLeft, 0.14, 0.78)
+      drawSegment(triTop, triRight, 0.22, 0.86)
+      drawSegment(triLeft, triRight, 0.2, 0.72)
+
+      ctx.strokeStyle = `rgba(${pal.accentRgb}, 0.55)`
+      ctx.lineWidth = 0.7
+      drawSegment(triTop, { x: triOffsetX - triR * 0.12, y: triOffsetY + triR * 0.68 }, 0.18, 0.82)
+      ctx.restore()
+
+      // 再将镂空后的月球线条层合成到上方
       ctx.save()
       ctx.globalAlpha = moonAlpha
       ctx.drawImage(
