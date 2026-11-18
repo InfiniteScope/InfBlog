@@ -90,13 +90,13 @@
 - **新文章《太空非伊甸》及克制融合型专属演出层（仅本地验证 + 已推 GitHub，暂未部署服务器）**：
   - 新增文章 `content/posts/宇宙非伊甸.mdx`（路由 `/blog/宇宙非伊甸`，标题 `太空非伊甸`）。
   - 路由严格匹配：`lib/post-stages.ts`（`resolvePostStage` + `isExactStageRoute` 双重校验，严格仅在 `/blog/宇宙非伊甸` 激活）+ `lib/music-find.ts`（递归扫描 `public/music/` 查找名称含 `everglow` 的音频，排除 `covers/`）。
-  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章淡出暂停原播放器并**保留原曲目与 `currentTime`**，自动播放 `everglow`；离开文章平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步提示接管状态。
+  - `MusicProvider` 新增 `suspendForOverride` / `releaseOverride` 与 `ARTICLE_BGM_YIELD_EVENT`：进入文章先淡出暂停原播放器并**保留原曲目与 `currentTime`**，延迟 **2 秒**后再以 **60% 音量**淡入自动播放 `everglow`；离开文章平滑淡入恢复原进度；顶栏 `MusicPlayerMini` 同步提示接管状态。
   - 左下角紧凑伴音胶囊 `components/blog/stages/space-no-eden/SpaceNoEdenBgmPill.tsx`：随侧栏收起/展开自动避让（`lg:left-[96px]` / `lg:left-[296px]`），仅保留「暂停/播放」与「切回原音乐」两个按钮。
   - 全屏背景画布 `components/blog/stages/space-no-eden/SpaceNoEdenStageCanvas.tsx`（`fixed inset-0 z-0 pointer-events-none`）：
     - **完全跟随站点当前主题色**（经典浅色 / 经典深色 / 探索深色自然透底，正文保持无边框自然融合，不改 `theme` 键）。
     - **左边缘背景**：大尺度高精度天文「视差轨道模型」（72 刻度分度环 + 倾斜开普勒椭圆 + 2 AU 基线 + 视差角三角射线 + 无框无概要的 `CH.XX // SILO_MATRIX` 等章节代号）。
-    - **右侧背景**：斜向阶梯条纹「线条月球」，每条弦带接入阻尼弹簧物理，鼠标划过时如同琴弦/电波般产生驻波振动扭曲（并随 `Everglow` 音频能量微弱共振）。
-  - 验收：`pnpm build`（57/57）与 `pnpm typecheck` 均通过；Playwright + Chrome 实测经典浅色与深色两套主题、鼠标拨动月球弦线变形、左缘视差模型与紧凑左下胶囊定位、`/blog/hello-world` 严格无演出层、控制台与页面报错均为 0。待用户本地验收后再决定部署。
+    - **右上角背景**：悬挂于右上角的斜向条纹「三棱镜线条月球」（`TableOfContents` 在本页采用 `top-[min(37vh,21rem)]` 避让），保留鼠标**引力牵引**平滑跟随，中心嵌入半透明三棱镜并将入射白光色散为 6 条随主题适配的光谱线；线条采用高张力硬朗弹簧物理（`STIFFNESS=720, DAMPING=15`），鼠标划过如紧绷琴弦/电波般高频震颤。
+  - 验收：`pnpm typecheck` 与 `pnpm build`（57/57）均通过；Playwright + Chrome 实测 2s 延迟起播（`500ms` 暂停 → `2900ms` 已播放且 `vol=0.6`）、经典浅色与深色两套主题、三棱镜条纹月球右上角悬挂与 TOC 零重叠、控制台与页面报错均为 0。待用户本地验收后再决定部署。
 
 ## 当前状态（2026-11-14）
 

@@ -47,6 +47,8 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   const userPausedRef = useRef(false)
   const autoplayBlockedRef = useRef(false)
 
+  const startTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const [bgmPlaying, setBgmPlaying] = useState(false)
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
   const [yieldedToMain, setYieldedToMain] = useState(false)
@@ -84,9 +86,10 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     }
   }, [])
 
+  // 文章伴音默认音量限制为 60%（仍尊重全局静音及更低全局音量）
   const targetVolume = useMemo(() => {
     if (globalMuted) return 0
-    return Math.max(0, Math.min(1, globalVolume))
+    return Math.max(0, Math.min(0.6, globalVolume))
   }, [globalMuted, globalVolume])
 
   const targetVolumeRef = useRef(targetVolume)
@@ -157,8 +160,13 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     [active, bgmTrack, ensureAudioAnalyser, fadeBgmIn]
   )
 
-  // 严格按路由生命周期接管与释放站点音乐播放器
+  // 严格按路由生命周期接管与释放站点音乐播放器：进入文章先挂起原曲，延迟 2 秒再播放 Everglow
   useEffect(() => {
+    if (startTimerRef.current) {
+      clearTimeout(startTimerRef.current)
+      startTimerRef.current = null
+    }
+
     if (!active || !bgmTrack) {
       releaseOverride(STAGE_OWNER_ID)
       return
@@ -173,10 +181,19 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
     })
 
     if (!userPausedRef.current) {
-      void startArticlePlayback(true)
+      startTimerRef.current = setTimeout(() => {
+        startTimerRef.current = null
+        if (!userPausedRef.current) {
+          void startArticlePlayback(true)
+        }
+      }, 2000)
     }
 
     return () => {
+      if (startTimerRef.current) {
+        clearTimeout(startTimerRef.current)
+        startTimerRef.current = null
+      }
       cancelBgmFade()
       const audio = audioRef.current
       if (audio) {
@@ -291,6 +308,10 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   const toggleBgmPlay = useCallback(() => {
     const audio = audioRef.current
     if (!audio || !bgmTrack || !active) return
+    if (startTimerRef.current) {
+      clearTimeout(startTimerRef.current)
+      startTimerRef.current = null
+    }
     if (bgmPlaying) {
       cancelBgmFade()
       userPausedRef.current = true
@@ -318,6 +339,10 @@ export function SpaceNoEdenStage({ bgmTrack, children }: SpaceNoEdenStageProps) 
   ])
 
   const restoreMainPlaylist = useCallback(() => {
+    if (startTimerRef.current) {
+      clearTimeout(startTimerRef.current)
+      startTimerRef.current = null
+    }
     cancelBgmFade()
     const audio = audioRef.current
     if (audio) audio.pause()
